@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -53,7 +51,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -63,14 +60,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.friday.ai.domain.model.ChatUiState
 import com.friday.ai.domain.model.MessageRole
 import com.friday.ai.ui.chat.ChatViewModel
-import com.friday.ai.ui.theme.ArcCyan
 import com.friday.ai.ui.theme.BackgroundDark
 import com.friday.ai.ui.theme.OnBackground
 import com.friday.ai.ui.theme.OnSurfaceMuted
 import com.friday.ai.ui.theme.SurfaceDark
-import com.friday.ai.ui.theme.SurfaceVariant
 import kotlin.math.cos
 import kotlin.math.sin
 import org.koin.androidx.compose.koinViewModel
@@ -89,16 +85,17 @@ fun OxxiMainScreen(
     var tab by remember { mutableStateOf(OxxiTab.HOME) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val input by viewModel.inputText.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val micLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> if (granted) viewModel.onMicClick() }
 
     fun startMic() {
-        if (ContextCompat.checkSelfPermission(
-                androidx.compose.ui.platform.LocalContext.current,
-                Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
-        ) viewModel.onMicClick() else micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            viewModel.onMicClick()
+        } else {
+            micLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
     }
 
     Box(
@@ -108,7 +105,10 @@ fun OxxiMainScreen(
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
         when (tab) {
-            OxxiTab.HOME -> HomePage(onSettings = onNavigateToSettings, onMic = { startMic() })
+            OxxiTab.HOME, OxxiTab.MIC -> HomePage(
+                onSettings = onNavigateToSettings,
+                onMic = { startMic() }
+            )
             OxxiTab.CHAT -> ChatPage(
                 state = state,
                 input = input,
@@ -116,15 +116,11 @@ fun OxxiMainScreen(
                 onSend = viewModel::onSend,
                 onMic = { startMic() }
             )
-            OxxiTab.MIC -> {
-                tab = OxxiTab.HOME
-                startMic()
-            }
             OxxiTab.TASKS -> TasksPage()
         }
 
         OxxiBottomBar(
-            selected = tab,
+            selected = if (tab == OxxiTab.MIC) OxxiTab.HOME else tab,
             onSelect = { selected ->
                 if (selected == OxxiTab.MIC) startMic() else tab = selected
             },
@@ -163,7 +159,7 @@ private fun HomePage(onSettings: () -> Unit, onMic: () -> Unit) {
 
 @Composable
 private fun ChatPage(
-    state: com.friday.ai.domain.model.ChatUiState,
+    state: ChatUiState,
     input: String,
     onInput: (String) -> Unit,
     onSend: () -> Unit,
@@ -182,6 +178,7 @@ private fun ChatPage(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.weight(1f))
         } else {
             LazyColumn(
                 Modifier.weight(1f).fillMaxWidth(),
@@ -246,9 +243,13 @@ private fun TasksPage() {
         )
     }
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp).padding(bottom = 92.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 14.dp)) {
-            Text("Recordatorios", color = OnBackground, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-        }
+        Text(
+            "Recordatorios",
+            color = OnBackground,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 14.dp)
+        )
         Spacer(Modifier.height(16.dp))
         TextField(
             value = query,
@@ -293,8 +294,8 @@ private fun MicButton(onClick: () -> Unit, description: String) {
             .shadow(18.dp, CircleShape)
             .clip(CircleShape)
             .background(Brush.radialGradient(listOf(Color.White, NeonCyan, NeonBlue)))
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
+            .clickable(onClick = onClick)
+            .semantics { role = Role.Button; contentDescription = description },
         contentAlignment = Alignment.Center
     ) {
         Icon(Icons.Filled.Mic, contentDescription = null, tint = Color(0xFF05212A), modifier = Modifier.size(34.dp))
@@ -347,7 +348,7 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
                 for (x in -30..30) {
                     val nx = x / 30f
                     val ny = y / 22f
-                    val edge = (nx * nx * 0.95f + ny * ny * 1.15f)
+                    val edge = nx * nx * 0.95f + ny * ny * 1.15f
                     if (edge < 1.05f) add(Offset(nx, ny))
                 }
             }
@@ -361,7 +362,7 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
 
         drawCircle(
             brush = Brush.radialGradient(
-                listOf(NeonCyan.copy(alpha = 0.22f), NeonBlue.copy(alpha = 0.08f), NeonPurple.copy(alpha = 0.0f)),
+                listOf(NeonCyan.copy(alpha = 0.22f), NeonBlue.copy(alpha = 0.08f), NeonPurple.copy(alpha = 0f)),
                 center = Offset(cx, cy), radius = w * 0.48f
             ),
             radius = w * 0.48f,
@@ -369,20 +370,14 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
         )
         drawCircle(NeonBlue.copy(alpha = 0.12f), radius = r * 1.45f, center = Offset(cx, cy))
 
-        val points = dots.map { p ->
-            val bulge = 1f + 0.10f * cos(p.x * 3.0f) - 0.06f * sin(p.y * 4.2f)
+        for (p in dots) {
+            val bulge = 1f + 0.10f * cos(p.x * 3f) - 0.06f * sin(p.y * 4.2f)
             val px = cx + p.x * r * bulge
             val py = cy + p.y * r * (0.72f + 0.16f * cos(p.x * 2.1f))
-            val depth = 1f - (p.y + 1f) / 2f
-            Triple(px, py, depth)
-        }
-
-        for ((px, py, depth) in points) {
-            val glow = (0.25f + 0.75f * depth).coerceIn(0f, 1f)
-            val purple = (py - cy) / r
-            val color = if (purple > 0.15f) NeonPurple else if (px < cx) NeonBlue else NeonCyan
-            drawCircle(color.copy(alpha = 0.18f * glow), radius = 3.2f, center = Offset(px, py))
-            drawCircle(Color.White.copy(alpha = 0.38f + 0.38f * glow), radius = 1.15f, center = Offset(px, py))
+            val depth = (1f - (p.y + 1f) / 2f).coerceIn(0f, 1f)
+            val color = if ((py - cy) / r > 0.15f) NeonPurple else if (px < cx) NeonBlue else NeonCyan
+            drawCircle(color.copy(alpha = 0.18f * depth), radius = 3.2f, center = Offset(px, py))
+            drawCircle(Color.White.copy(alpha = 0.38f + 0.38f * depth), radius = 1.15f, center = Offset(px, py))
         }
 
         drawOval(
