@@ -127,7 +127,7 @@ object LockScreen {
             else -> {
                 val answer = CompletableDeferred<Boolean>()
                 _unlock.value = answer
-                if (!_visible.value) post(context, fullScreen = true, status = "Подтвердите разблокировку")
+                if (!_visible.value) post(context, fullScreen = true, status = "Confirma el desbloqueo")
                 val unlocked = withTimeoutOrNull(UNLOCK_WAIT_MS) { answer.await() } == true
                 _unlock.compareAndSet(answer, null)
                 if (unlocked) Unlocker.Result.UNLOCKED else Unlocker.Result.STAYED_LOCKED
@@ -171,7 +171,7 @@ object LockScreen {
         // The old call-styled channel; settings would otherwise list two «Пятница» channels.
         manager.deleteNotificationChannel(OLD_CHANNEL_ID)
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Пятница на экране блокировки", NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel(CHANNEL_ID, "Oxxi en la pantalla de bloqueo", NotificationManager.IMPORTANCE_HIGH)
                 .apply {
                     setSound(null, null)
                     lockscreenVisibility = Notification.VISIBILITY_PRIVATE
@@ -188,12 +188,12 @@ object LockScreen {
         }
         val public = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
-            .setContentTitle("Пятница")
-            .setContentText("Голосовой ассистент")
+            .setContentTitle("Oxxi")
+            .setContentText("Asistente de voz")
             .build()
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
-            .setContentTitle("Пятница")
+            .setContentTitle("Oxxi")
             .setContentText(status)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(public)
@@ -202,7 +202,7 @@ object LockScreen {
             .setSilent(true)
             .setAutoCancel(true)
             .setContentIntent(app ?: panel)
-        app?.let { builder.addAction(0, "Открыть после разблокировки", it) }
+        app?.let { builder.addAction(0, "Abrir después de desbloquear", it) }
         if (fullScreen) builder.setFullScreenIntent(panel, true)
         return try {
             manager.notify(NOTIFICATION_ID, builder.build())
