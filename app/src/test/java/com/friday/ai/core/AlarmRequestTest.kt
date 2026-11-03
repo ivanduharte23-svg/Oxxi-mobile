@@ -126,7 +126,7 @@ class AlarmRequestTest {
     @Test
     fun `the model is told it cannot act and must not claim to`() {
         val prompt = SystemPromptBuilder().build(com.friday.ai.domain.model.AssistantMode.DEFAULT)
-        assertTrue(prompt.contains("Never say an action is done"))
+        assertTrue(prompt.contains("Never claim an action is done"))
         assertTrue(prompt.contains("NOT carried out"))
     }
 }
