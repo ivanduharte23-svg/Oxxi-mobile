@@ -99,8 +99,8 @@ class ModeAlarmReceiver : BroadcastReceiver() {
     private suspend fun fire(context: Context, id: String, schedules: ModeSchedules) {
         val engine: ModeEngine = org.koin.java.KoinJavaComponent.get(ModeEngine::class.java)
         val commands: CommandExecutor = org.koin.java.KoinJavaComponent.get(CommandExecutor::class.java)
-        val said = engine.fire(id, russian = true) { step: CommandResult ->
-            (commands.execute(step, russian = true) as? CommandExecutor.Outcome.Reply)?.text.orEmpty()
+        val said = engine.fire(id, russian = false) { step: CommandResult ->
+            (commands.execute(step, russian = false) as? CommandExecutor.Outcome.Reply)?.text.orEmpty()
         }
         schedules.byId(id)?.let { ModeAlarms(context).book(it) }
         said?.let { notifyModeResult(context, it) }
@@ -118,8 +118,8 @@ fun notifyModeResult(context: Context, text: String) {
     val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Режимы", NotificationManager.IMPORTANCE_LOW)
-                .apply { description = "Что сделал режим, включившийся сам: по расписанию, Bluetooth, зарядке, Wi-Fi" }
+            NotificationChannel(CHANNEL_ID, "Modos de Oxxi", NotificationManager.IMPORTANCE_LOW)
+                .apply { description = "Acciones de los modos activados por horario, Bluetooth, carga o Wi-Fi." }
         )
     }
     val open = context.packageManager.getLaunchIntentForPackage(context.packageName)
@@ -127,7 +127,7 @@ fun notifyModeResult(context: Context, text: String) {
         context, 0, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
     val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-        .setContentTitle("Пятница")
+        .setContentTitle("Oxxi")
         .setContentText(text.take(PREVIEW_CHARS))
         .setStyle(NotificationCompat.BigTextStyle().bigText(text))
         .setSmallIcon(android.R.drawable.ic_dialog_info)
