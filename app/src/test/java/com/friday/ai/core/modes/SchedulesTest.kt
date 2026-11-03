@@ -265,7 +265,7 @@ class ModeScheduleEngineTest {
         say("режим отдыха"); say("выключи режим отдыха")
         clock += day
         val third = say("режим отдыха")!!
-        assertTrue(third, third.endsWith("¿Quieres que lo active automáticamente todos los días a las 23:00?"))
+        assertTrue(third, third.endsWith("¿Quieres que lo active automáticamente todos los días a esa hora?"))
         assertEquals("Voy a activar el modo отдыха todos los días a las 23:00.", say("да"))
         say("выключи режим отдыха")
         clock += day
