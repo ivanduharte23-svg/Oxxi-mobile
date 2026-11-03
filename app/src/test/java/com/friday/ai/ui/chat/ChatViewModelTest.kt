@@ -389,16 +389,16 @@ class ChatViewModelTest {
     @Test
     fun `a refused or failed capture says why instead of clearing the error`() = runTest {
         val screen = mockk<ScreenCapture>()
-        coEvery { screen.capture(any(), any()) } returns ScreenCapture.Result.Failed("Снимок экрана остановлен")
+        coEvery { screen.capture(any(), any()) } returns ScreenCapture.Result.Failed("Se ha detenido la captura de pantalla.")
         viewModel = createViewModel(screen = screen)
         advanceUntilIdle()
 
         viewModel.onScreenConsent(Activity.RESULT_CANCELED, null)
-        assertEquals("Доступ к экрану не дан — анализ отменён", viewModel.uiState.value.error)
+        assertEquals("No se ha concedido acceso a la pantalla; análisis cancelado.", viewModel.uiState.value.error)
 
         viewModel.onScreenConsent(Activity.RESULT_OK, mockk<Intent>())
         advanceUntilIdle()
-        assertEquals("Снимок экрана остановлен", viewModel.uiState.value.error)
+        assertEquals("Se ha detenido la captura de pantalla.", viewModel.uiState.value.error)
         coVerify(exactly = 0) { analyzeContentUseCase.analyzeImage(any(), any()) }
     }
 
@@ -412,12 +412,12 @@ class ChatViewModelTest {
 
         viewModel.onFilePicked(uri)
         advanceUntilIdle()
-        assertEquals("Файл «photo.jpg» слишком большой (больше 30 МБ)", viewModel.uiState.value.error)
+        assertEquals("El archivo «photo.jpg» es demasiado grande (supera 30 MB).", viewModel.uiState.value.error)
 
         coEvery { files.read(uri) } returns FileAnalyzer.Outcome.Unsupported("doc.pdf", "application/pdf")
         viewModel.onFilePicked(uri)
         advanceUntilIdle()
-        assertEquals("PDF пока не поддерживается — пришлите текст или снимок страницы", viewModel.uiState.value.error)
+        assertEquals("Todavía no se admiten archivos PDF; envía el texto o una captura de la página.", viewModel.uiState.value.error)
         coVerify(exactly = 0) { analyzeContentUseCase.analyzeText(any(), any()) }
     }
 
@@ -433,7 +433,7 @@ class ChatViewModelTest {
         viewModel.onFilePicked(uri)
         advanceUntilIdle()
 
-        coVerify { analyzeContentUseCase.analyzeText(match { it.startsWith("начало") && "обрезано" in it }, any()) }
+        coVerify { analyzeContentUseCase.analyzeText(match { it.startsWith("начало") && "recortado" in it }, any()) }
     }
 
     /** A reply that waits for [gate] before its last part. */
@@ -552,15 +552,15 @@ class ChatViewModelTest {
 
     @Test
     fun `an answer to a pending send is not routed as a new command`() = runTest {
-        coEvery { mail.answerPending("да", true) } returns "Отправила."
+        coEvery { mail.answerPending("sí", false) } returns "Enviado."
         viewModel = createViewModel()
         advanceUntilIdle()
 
-        viewModel.onInputChange("да")
+        viewModel.onInputChange("sí")
         viewModel.onSend()
         advanceUntilIdle()
 
         verify(exactly = 0) { router.route(any()) }
-        coVerify { sendMessageUseCase.saveMessage(match { it.content == "Отправила." }) }
+        coVerify { sendMessageUseCase.saveMessage(match { it.content == "Enviado." }) }
     }
 }
