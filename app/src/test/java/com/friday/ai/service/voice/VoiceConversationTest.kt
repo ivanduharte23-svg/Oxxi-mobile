@@ -116,7 +116,7 @@ class VoiceConversationTest {
         }
         val c = conversation(inCall = { callActive })
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0)
 
@@ -133,7 +133,7 @@ class VoiceConversationTest {
             CommandExecutor.Outcome.Reply("Linterna encendida.")
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0)
 
@@ -158,11 +158,11 @@ class VoiceConversationTest {
         coEvery { transcriber.recordAndTranscribe(any(), any()) } coAnswers { held.await() }
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         assertTrue(c.speaking)
 
-        c.onWake("пятница") // barge-in over the greeting
+        c.onWake("oxxi") // barge-in over the greeting
         advanceUntilIdle()
         verify { speaker.stop() }
         coVerify(exactly = 1) { transcriber.recordAndTranscribe(any(), any()) }
@@ -180,11 +180,11 @@ class VoiceConversationTest {
         coEvery { transcriber.recordAndTranscribe(any(), any()) } coAnswers { first.await() }
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0) // turn 1 is now recording
 
-        c.onWake("пятница") // turn 2 begins while turn 1 still records
+        c.onWake("oxxi") // turn 2 begins while turn 1 still records
         advanceUntilIdle()
 
         first.complete(VoiceTurn.Outcome.Heard("позвони маме"))
@@ -197,7 +197,7 @@ class VoiceConversationTest {
         hears(VoiceTurn.Outcome.Heard("пока"))
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0)
 
@@ -213,7 +213,7 @@ class VoiceConversationTest {
         coEvery { commands.answerPending("no", false) } returns "Lo he cancelado."
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0)
 
@@ -237,7 +237,7 @@ class VoiceConversationTest {
         )
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0)
 
@@ -253,7 +253,7 @@ class VoiceConversationTest {
         every { commands.route("qué tiempo hace") } returns CommandResult.Weather(null)
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0)
 
@@ -266,7 +266,7 @@ class VoiceConversationTest {
         coEvery { session.apiKey() } returns ""
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0)
 
@@ -280,8 +280,8 @@ class VoiceConversationTest {
         coEvery { transcriber.recordAndTranscribe(any(), any(), lead) } returns
             VoiceTurn.Outcome.Heard("Oxxi, enciende la linterna.")
         every { commands.route("enciende la linterna.") } returns CommandResult.ToggleFlashlight
-        coEvery { commands.execute(CommandResult.ToggleFlashlight, true) } returns
-            CommandExecutor.Outcome.Reply("Фонарик включён")
+        coEvery { commands.execute(CommandResult.ToggleFlashlight, false) } returns
+            CommandExecutor.Outcome.Reply("Linterna encendida.")
         val c = conversation()
 
         c.onWake("oxxi", continuing = true, lead = lead)
@@ -298,7 +298,7 @@ class VoiceConversationTest {
         coEvery { transcriber.recordAndTranscribe(any(), any(), lead) } returns VoiceTurn.Outcome.Heard("Oxxi.")
         val c = conversation()
 
-        c.onWake("пятница", continuing = true, lead = lead)
+        c.onWake("oxxi", continuing = true, lead = lead)
         advanceUntilIdle()
 
         assertEquals(1, said.size)
@@ -310,7 +310,7 @@ class VoiceConversationTest {
         hears(VoiceTurn.Outcome.Heard("пока"))
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         finishSpeaking(0)
 
