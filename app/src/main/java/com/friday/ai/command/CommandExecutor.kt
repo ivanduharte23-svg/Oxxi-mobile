@@ -69,7 +69,7 @@ class CommandExecutor(
     companion object {
         private const val TAG = "CommandExecutor"
         private const val FAILED_RU = "Не получилось: "
-        private const val FAILED_EN = "Couldn't do that: "
+        private const val FAILED_EN = "No he podido completar la acción: "
 
         /** Whether [reply] is this executor's report of a command that threw. */
         fun isFailure(reply: String): Boolean = reply.startsWith(FAILED_RU) || reply.startsWith(FAILED_EN)
@@ -141,7 +141,7 @@ class CommandExecutor(
                 is Outcome.Reply -> outcome.text
                 Outcome.Silent -> null
                 // Not produced by the router inside a sequence; said rather than dropped.
-                else -> if (russian) "Это нужно сделать отдельно." else "That needs doing on its own."
+                else -> if (russian) "Это нужно сделать отдельно." else "Eso hay que hacerlo por separado."
             }
         }.filter { it.isNotBlank() }
         return Outcome.Reply(replies.joinToString(" ") { it.trim().let { r -> if (r.last() in ".!?…") r else "$r." } })
@@ -151,15 +151,15 @@ class CommandExecutor(
         val opened = opener?.open(link.url) == true
         return when {
             opened && link.silent -> Outcome.Silent
-            opened -> Outcome.Reply(if (russian) "Открываю «${link.name}»." else "Opening ${link.name}.")
-            else -> Outcome.Reply(if (russian) "Не нашла браузер, чтобы открыть ссылку." else "No browser to open it.")
+            opened -> Outcome.Reply(if (russian) "Открываю «${link.name}»." else "Abriendo ${link.name}.")
+            else -> Outcome.Reply(if (russian) "Не нашла браузер, чтобы открыть ссылку." else "No he encontrado un navegador para abrir el enlace.")
         }
     }
 
     /** A step inside a mode always yields words. */
     private fun replyOf(outcome: Outcome, russian: Boolean): String =
         (outcome as? Outcome.Reply)?.text
-            ?: if (russian) "Это нужно сделать отдельно." else "That needs doing on its own."
+            ?: if (russian) "Это нужно сделать отдельно." else "Eso hay que hacerlo por separado."
 
     private suspend fun single(command: CommandResult, russian: Boolean): Outcome {
         val (locked, verified) = lock()
@@ -185,7 +185,7 @@ class CommandExecutor(
                     modes?.handle(command, russian, router = { router.route(it) }) { step ->
                         replyOf(single(step, russian), russian)
                     }
-                        ?: if (russian) "Режимы недоступны." else "Modes aren't available."
+                        ?: if (russian) "Режимы недоступны." else "Los modos no están disponibles."
                 )
             }
         }
