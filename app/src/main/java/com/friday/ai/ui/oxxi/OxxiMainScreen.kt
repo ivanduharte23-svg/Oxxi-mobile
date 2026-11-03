@@ -52,7 +52,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -105,10 +104,7 @@ fun OxxiMainScreen(
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
         when (tab) {
-            OxxiTab.HOME, OxxiTab.MIC -> HomePage(
-                onSettings = onNavigateToSettings,
-                onMic = { startMic() }
-            )
+            OxxiTab.HOME, OxxiTab.MIC -> HomePage(onSettings = onNavigateToSettings, onMic = { startMic() })
             OxxiTab.CHAT -> ChatPage(
                 state = state,
                 input = input,
@@ -121,9 +117,7 @@ fun OxxiMainScreen(
 
         OxxiBottomBar(
             selected = if (tab == OxxiTab.MIC) OxxiTab.HOME else tab,
-            onSelect = { selected ->
-                if (selected == OxxiTab.MIC) startMic() else tab = selected
-            },
+            onSelect = { selected -> if (selected == OxxiTab.MIC) startMic() else tab = selected },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
@@ -132,10 +126,7 @@ fun OxxiMainScreen(
 @Composable
 private fun HomePage(onSettings: () -> Unit, onMic: () -> Unit) {
     Column(
-        Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 92.dp),
+        Modifier.fillMaxSize().padding(horizontal = 24.dp).padding(bottom = 92.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -148,7 +139,6 @@ private fun HomePage(onSettings: () -> Unit, onMic: () -> Unit) {
                 Icon(Icons.Filled.Settings, contentDescription = "Ajustes", tint = OnBackground.copy(alpha = 0.85f))
             }
         }
-
         Spacer(Modifier.weight(1f))
         NexusBlob(modifier = Modifier.size(300.dp))
         Spacer(Modifier.weight(1f))
@@ -165,25 +155,15 @@ private fun ChatPage(
     onSend: () -> Unit,
     onMic: () -> Unit
 ) {
-    Column(
-        Modifier.fillMaxSize().padding(horizontal = 20.dp).padding(bottom = 92.dp)
-    ) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 20.dp).padding(bottom = 92.dp)) {
         Spacer(Modifier.height(20.dp))
         NexusBlob(modifier = Modifier.align(Alignment.CenterHorizontally).size(220.dp))
         Spacer(Modifier.height(18.dp))
         if (state.messages.isEmpty()) {
-            Text(
-                "¿En qué puedo ayudarte?",
-                color = OnSurfaceMuted,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Text("¿En qué puedo ayudarte?", color = OnSurfaceMuted, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.weight(1f))
         } else {
-            LazyColumn(
-                Modifier.weight(1f).fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
+            LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 items(state.messages, key = { it.id }) { message ->
                     Text(
                         message.content,
@@ -201,12 +181,7 @@ private fun ChatPage(
 }
 
 @Composable
-private fun ChatComposer(
-    input: String,
-    onInput: (String) -> Unit,
-    onSend: () -> Unit,
-    onMic: () -> Unit
-) {
+private fun ChatComposer(input: String, onInput: (String) -> Unit, onSend: () -> Unit, onMic: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         TextField(
             value = input,
@@ -243,13 +218,7 @@ private fun TasksPage() {
         )
     }
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp).padding(bottom = 92.dp)) {
-        Text(
-            "Recordatorios",
-            color = OnBackground,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(top = 14.dp)
-        )
+        Text("Recordatorios", color = OnBackground, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 14.dp))
         Spacer(Modifier.height(16.dp))
         TextField(
             value = query,
@@ -270,10 +239,7 @@ private fun TasksPage() {
         )
         Spacer(Modifier.height(18.dp))
         tasks.filter { it.first.contains(query, true) }.forEach { (title, date) ->
-            Row(
-                Modifier.fillMaxWidth().padding(vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = NeonCyan, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
@@ -295,7 +261,7 @@ private fun MicButton(onClick: () -> Unit, description: String) {
             .clip(CircleShape)
             .background(Brush.radialGradient(listOf(Color.White, NeonCyan, NeonBlue)))
             .clickable(onClick = onClick)
-            .semantics { role = Role.Button; contentDescription = description },
+            .semantics { contentDescription = description },
         contentAlignment = Alignment.Center
     ) {
         Icon(Icons.Filled.Mic, contentDescription = null, tint = Color(0xFF05212A), modifier = Modifier.size(34.dp))
@@ -305,11 +271,7 @@ private fun MicButton(onClick: () -> Unit, description: String) {
 @Composable
 private fun OxxiBottomBar(selected: OxxiTab, onSelect: (OxxiTab) -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier
-            .fillMaxWidth()
-            .height(74.dp)
-            .background(SurfaceDark.copy(alpha = 0.96f))
-            .border(1.dp, Color.White.copy(alpha = 0.05f)),
+        modifier.fillMaxWidth().height(74.dp).background(SurfaceDark.copy(alpha = 0.96f)).border(1.dp, Color.White.copy(alpha = 0.05f)),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -329,10 +291,7 @@ private fun BottomItem(
     onSelect: (OxxiTab) -> Unit
 ) {
     val active = tab == selected
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(78.dp).clickable(onClick = { onSelect(tab) })
-    ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(78.dp).clickable(onClick = { onSelect(tab) })) {
         Icon(icon, contentDescription = label, tint = if (active) NeonCyan else OnSurfaceMuted, modifier = Modifier.size(24.dp))
         Spacer(Modifier.height(3.dp))
         Text(label, color = if (active) NeonCyan else OnSurfaceMuted, style = MaterialTheme.typography.labelSmall)
@@ -359,7 +318,6 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
         val cx = size.width / 2f
         val cy = size.height / 2f
         val r = w * 0.33f
-
         drawCircle(
             brush = Brush.radialGradient(
                 listOf(NeonCyan.copy(alpha = 0.22f), NeonBlue.copy(alpha = 0.08f), NeonPurple.copy(alpha = 0f)),
@@ -369,7 +327,6 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
             center = Offset(cx, cy)
         )
         drawCircle(NeonBlue.copy(alpha = 0.12f), radius = r * 1.45f, center = Offset(cx, cy))
-
         for (p in dots) {
             val bulge = 1f + 0.10f * cos(p.x * 3f) - 0.06f * sin(p.y * 4.2f)
             val px = cx + p.x * r * bulge
@@ -379,7 +336,6 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
             drawCircle(color.copy(alpha = 0.18f * depth), radius = 3.2f, center = Offset(px, py))
             drawCircle(Color.White.copy(alpha = 0.38f + 0.38f * depth), radius = 1.15f, center = Offset(px, py))
         }
-
         drawOval(
             brush = Brush.sweepGradient(listOf(NeonCyan, NeonBlue, NeonPurple, NeonCyan)),
             topLeft = Offset(cx - r * 1.10f, cy - r * 0.72f),
