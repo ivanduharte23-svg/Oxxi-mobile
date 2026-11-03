@@ -20,27 +20,27 @@ object WeatherRequest {
      * recognition writes names — "мой город красивый" names no city.
      */
     private val homeCity = Regex(
-        """(?:[Мм]ой\s+(?:родной\s+|домашний\s+)?город(?:\s*(?:—|-|:|это))?|[Яя]\s+живу\s+(?:в|во))\s+""" +
+        """(?:[Мм]ой\s+(?:родной\s+|домашний\s+)?город(?:\s*(?:—|-|:|это))?|[Яя]\s+живу\s+(?:в|во)|mi\s+ciudad\s+es|vivo\s+en)\s+""" +
             """([\p{Lu}][\p{L}\-]*(?:\s+[\p{Lu}][\p{L}\-]*)?)"""
     )
     private val englishHomeCity =
-        Regex("""(?:my\s+(?:home\s+)?city\s+is|i\s+live\s+in)\s+([\p{L}][\p{L}\- ]{1,40}?)(?=[.,!?]|$)""", I)
+        Regex("""(?:my\s+(?:home\s+)?city\s+is|i\s+live\s+in|mi\s+ciudad\s+es|vivo\s+en)\s+([\p{L}][\p{L}\- ]{1,40}?)(?=[.,!?]|$)""", I)
 
     /** Words only a weather question uses. */
     private val weatherWords = Regex(
-        """(?:погод|дожд|осадк|снег|снегопад|гроз|зонт|ветр|ветер|weather|rain|snow|umbrella|wind)""",
+        """(?:tiempo|clima|lluv|llover|llueve|llovizn|chubasco|precipit|nieve|nevar|nevando|torment|paraguas|viento|temperatura|pronóstico|pronostico|погод|дожд|осадк|снег|снегопад|гроз|зонт|ветр|ветер|weather|rain|snow|umbrella|wind)""",
         I
     )
 
     /** A question: a question mark, or a question word up front. */
     private val asks = Regex(
-        """\?\s*$|^(?:а\s+|но\s+|и\s+|хорошо,?\s+(?:а|но)?\s*)?(?:какая|какой|какие|как|что|сколько|во\s+сколько|""" +
+        """\?\s*$|^(?:y\s+|pero\s+|vale,?\s*)?(?:qué|que|cuál|cual|cómo|como|cuándo|cuando|habrá|habra|va\s+a|hace|hay|qué\s+tal|que\s+tal|""" +
             """когда|будет|будут|пойд[её]т|ожидается|нужен|брать|взять|what|how|when|will|is\s+it|do\s+i)(?!\p{L})""",
         I
     )
 
     /** "в Москве", "in Paris": a capitalised place after the preposition. */
-    private val place = Regex("""(?:^|\s)(?:в|во|in)\s+([\p{Lu}][\p{L}\-]+(?:\s+[\p{Lu}][\p{L}\-]+)?)""")
+    private val place = Regex("""(?:^|\s)(?:en|del|de|в|во|in)\s+([\p{Lu}][\p{L}\-]+(?:\s+[\p{Lu}][\p{L}\-]+)?)""")
 
     fun parse(text: String, dayOffset: Int): CommandResult? {
         val t = text.trim()
