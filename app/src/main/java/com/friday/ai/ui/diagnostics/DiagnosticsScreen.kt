@@ -60,7 +60,7 @@ import com.friday.ai.ui.theme.OnSurfaceMuted
 import com.friday.ai.ui.theme.StatusDot
 
 /**
- * "Is everything in order?" — every permission, setting and integration a
+ * "¿Todo está en orden?" — every permission, setting and integration a
  * Friday feature depends on, what its absence breaks, and one tap to fix it.
  * Drawn as a systems check: one panel per group, a lit dot per line.
  */
