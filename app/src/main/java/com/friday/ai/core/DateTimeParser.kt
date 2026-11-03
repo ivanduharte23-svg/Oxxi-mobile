@@ -68,7 +68,12 @@ object DateTimeParser {
         "monday" to DayOfWeek.MONDAY, "tuesday" to DayOfWeek.TUESDAY,
         "wednesday" to DayOfWeek.WEDNESDAY, "thursday" to DayOfWeek.THURSDAY,
         "friday" to DayOfWeek.FRIDAY, "saturday" to DayOfWeek.SATURDAY,
-        "sunday" to DayOfWeek.SUNDAY
+        "sunday" to DayOfWeek.SUNDAY,
+        "lunes" to DayOfWeek.MONDAY, "martes" to DayOfWeek.TUESDAY,
+        "miércoles" to DayOfWeek.WEDNESDAY, "miercoles" to DayOfWeek.WEDNESDAY,
+        "jueves" to DayOfWeek.THURSDAY, "viernes" to DayOfWeek.FRIDAY,
+        "sábado" to DayOfWeek.SATURDAY, "sabado" to DayOfWeek.SATURDAY,
+        "domingo" to DayOfWeek.SUNDAY
     )
 
     private val RELATIVE_UNITS = Regex(
@@ -77,7 +82,7 @@ object DateTimeParser {
     )
 
     private val EXPLICIT_TIME = Regex(
-        """(?:в|at|к)\s*(\d{1,2})(?:[:.](\d{2}))?\s*(утра|дня|вечера|ночи|am|pm)?""",
+        """(?:в|at|к|a\s+las?|a|en)\s*(\d{1,2})(?:[:.](\d{2}))?\s*(de\s+la\s+mañana|de\s+la\s+tarde|de\s+la\s+noche|madrugada|mañana|tarde|noche|утра|дня|вечера|ночи|am|pm)?""",
         RegexOption.IGNORE_CASE
     )
 
@@ -114,21 +119,21 @@ object DateTimeParser {
         val amount = m.groupValues[1].toLongOrNull() ?: return null
         val unit = m.groupValues[2]
         return when {
-            unit.startsWith("мин") || unit.startsWith("min") -> now.plusMinutes(amount)
-            unit.startsWith("час") || unit.startsWith("hour") -> now.plusHours(amount)
-            unit.startsWith("дн") || unit.startsWith("день") || unit.startsWith("day") ->
+            unit.startsWith("min") || unit.startsWith("мин") -> now.plusMinutes(amount)
+            unit.startsWith("hora") || unit.startsWith("час") || unit.startsWith("hour") -> now.plusHours(amount)
+            unit.startsWith("día") || unit.startsWith("dia") || unit.startsWith("дн") || unit.startsWith("день") || unit.startsWith("day") ->
                 now.plusDays(amount)
-            unit.startsWith("недел") || unit.startsWith("week") -> now.plusWeeks(amount)
+            unit.startsWith("semana") || unit.startsWith("недел") || unit.startsWith("week") -> now.plusWeeks(amount)
             else -> null
         }
     }
 
     private fun resolveDay(text: String, now: LocalDateTime) = when {
-        text.contains("послезавтра") || text.contains("day after tomorrow") ->
+        text.contains("послезавтра") || text.contains("pasado mañana") || text.contains("day after tomorrow") ->
             now.toLocalDate().plusDays(2)
-        text.contains("завтра") || text.contains("tomorrow") ->
+        text.contains("завтра") || text.contains("mañana") || text.contains("tomorrow") ->
             now.toLocalDate().plusDays(1)
-        text.contains("сегодня") || text.contains("today") ->
+        text.contains("сегодня") || text.contains("hoy") || text.contains("today") ->
             now.toLocalDate()
         else -> WEEKDAYS.entries
             .firstOrNull { (word, _) -> text.contains(word) }
@@ -154,9 +159,9 @@ object DateTimeParser {
     /** "в 3 дня" is 15:00; "at 3pm" is 15:00; "в 8 утра" stays 08:00. */
     private fun applyDayPart(hour: Int, qualifier: String): Int = when {
         qualifier.isBlank() -> hour
-        qualifier.startsWith("утра") || qualifier == "am" -> if (hour == 12) 0 else hour
+        qualifier.startsWith("mañana") || qualifier.startsWith("madrugada") || qualifier.contains("de la mañana") || qualifier == "am" || qualifier.contains("de la madrugada") -> if (hour == 12) 0 else hour
         qualifier.startsWith("ноч") -> if (hour >= 12) hour else (hour % 12)
-        qualifier.startsWith("дня") || qualifier.startsWith("вечера") || qualifier == "pm" ->
+        qualifier.startsWith("tarde") || qualifier.startsWith("вечера") || qualifier.startsWith("дня") || qualifier.contains("de la tarde") || qualifier.contains("de la noche") || qualifier == "pm" ->
             if (hour < 12) hour + 12 else hour
         else -> hour
     }
