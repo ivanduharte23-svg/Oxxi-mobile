@@ -15,21 +15,21 @@ internal object DevicePhrases {
     private const val MIN_BRIGHTNESS = 5
     private const val MAX_LEVEL = 100
 
-    private val offWords = Regex("(?:выключ|отключ|выруби|\\boff\\b|disable|turn off)")
-    private val onWords = Regex("(?:включ|вруби|\\bon\\b|enable|turn on)")
+    private val offWords = Regex("(?:apaga|desactiva|desconecta|quita|выключ|отключ|выруби|\\boff\\b|disable|turn off)")
+    private val onWords = Regex("(?:enciende|activa|conecta|\\bon\\b|enable|turn on|включ|вруби)")
 
     private val ringerSilentPattern = Regex(
         "(?:беззвучн\\p{L}* режим|режим без звука|на беззвучн|в беззвучн|полностью беззвучн|" +
             "полная тишина|silent mode|phone on silent)"
     )
-    private val ringerVibratePattern = Regex("(?:вибраци|на вибро|режим вибро|vibrate|vibration)")
+    private val ringerVibratePattern = Regex("(?:vibración|vibracion|modo vibración|modo vibracion|вибраци|на вибро|режим вибро|vibrate|vibration)")
     private val ringerNormalPattern = Regex(
         "(?:(?:выключи|отключи|убери) беззвучн|верни звонок|включи звонок|звук звонка|обычный режим звонка|" +
             "ringer on|turn off silent)"
     )
 
     private val brightnessSetPattern =
-        Regex("(?:яркост\\p{L}*|brightness)\\s*(?:на|to)?\\s*(\\d{1,3})\\s*(?:%|процент\\p{L}*)?")
+        Regex("(?:brillo|luminosidad|яркост\\p{L}*|brightness)\\s*(?:a|en|на|to)?\\s*(\\d{1,3})\\s*(?:%|por ciento|процент\\p{L}*)?")
     private val autoBrightnessPattern = Regex("(?:автояркост|авто ?яркост|автоматическ\\p{L}* яркост|auto.?brightness)")
 
     /** "Выключи …" / "включи …" / neither: which of the three a radio phrase asks for. */
@@ -51,7 +51,7 @@ internal object DevicePhrases {
     }
 
     fun brightness(lower: String): CommandResult? {
-        val mentions = lower.contains("яркост") || lower.contains("brightness")
+        val mentions = lower.contains("brillo") || lower.contains("luminosidad") || lower.contains("яркост") || lower.contains("brightness")
         brightnessSetPattern.find(lower)?.let { m ->
             m.groupValues[1].toIntOrNull()?.let {
                 return CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_SET, it.coerceIn(MIN_BRIGHTNESS, MAX_LEVEL))
@@ -59,15 +59,15 @@ internal object DevicePhrases {
         }
         return when {
             autoBrightnessPattern.containsMatchIn(lower) -> CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_AUTO)
-            mentions && Regex("максим|полную|max").containsMatchIn(lower) ->
+            mentions && Regex("máxim|maxim|al máximo|al maximo|максим|полную|max").containsMatchIn(lower) ->
                 CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_SET, MAX_LEVEL)
-            mentions && Regex("миним|min").containsMatchIn(lower) ->
+            mentions && Regex("mínim|minim|al mínimo|al minimo|миним|min").containsMatchIn(lower) ->
                 CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_SET, MIN_BRIGHTNESS)
             Regex("(?:^|\\s)ярче(?:\\s|$)|экран ярче|brighter").containsMatchIn(lower) ||
-                mentions && Regex("прибав|увелич|повыс|up").containsMatchIn(lower) ->
+                mentions && Regex("sube|aumenta|incrementa|прибав|увелич|повыс|up").containsMatchIn(lower) ->
                 CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_UP)
             Regex("(?:^|\\s)темнее(?:\\s|$)|экран темнее|dimmer").containsMatchIn(lower) ||
-                mentions && Regex("убав|уменьш|пониз|down").containsMatchIn(lower) ->
+                mentions && Regex("baja|reduce|disminuye|убав|уменьш|пониз|down").containsMatchIn(lower) ->
                 CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_DOWN)
             else -> null
         }
