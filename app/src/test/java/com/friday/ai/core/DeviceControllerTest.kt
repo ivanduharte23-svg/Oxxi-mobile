@@ -149,7 +149,7 @@ class DeviceControllerTest {
         knobs.media.index = 13 // 87 % of 15, the step nearest 85 %
         val muted = run(DeviceAction.MUTE)
         assertTrue(muted.succeeded)
-        assertEquals("Звук медиа выключен", muted.message)
+        assertEquals("Volumen multimedia silenciado.", muted.message)
         assertEquals(13, knobs.media.index)
         assertTrue(knobs.media.muted)
 
@@ -168,7 +168,7 @@ class DeviceControllerTest {
         assertTrue(r.message, r.message.contains("al 0 %"))
 
         knobs.media.muted = false
-        assertTrue(run(DeviceAction.UNMUTE).message.contains("громкость на нуле"))
+        assertTrue(run(DeviceAction.UNMUTE).message.contains("está al 0 %"))
 
         // A build that lifts the stream to its first step says what it got.
         knobs.media.muted = true
@@ -255,7 +255,7 @@ class DeviceControllerTest {
         knobs.dndState = true
         val r = run(DeviceAction.DND_ON)
         assertTrue(r.succeeded)
-        assertTrue(r.message.contains("уже"))
+        assertTrue(r.message.contains("ya"))
         assertNull(r.undo)
     }
 
