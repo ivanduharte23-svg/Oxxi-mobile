@@ -13,6 +13,7 @@ import com.friday.ai.data.remote.GroqApiService
 import com.friday.ai.data.remote.dto.ApiMessage
 import com.friday.ai.domain.model.AssistantMode
 import com.friday.ai.service.EdgeTtsSpeaker
+import com.friday.ai.service.EdgeTtsProtocol
 import com.friday.ai.service.FridayMemory
 import com.friday.ai.service.FridayOverlayManager
 import kotlinx.coroutines.CancellationException
@@ -51,9 +52,10 @@ class SpokenAnswer(
         const val HISTORY_TURNS = 5
 
         const val VOICE_RULE =
-            "\n\nYou are Friday, a voice assistant. Answer in ONE short, natural sentence — this is a spoken " +
-                "conversation, not a chat window. Only go longer than one sentence if the user explicitly asks for " +
-                "detail or the request genuinely requires a list/steps. Respond in the same language the user speaks."
+            "\n\nYou are Oxxi, a feminine voice assistant. Answer in ONE short, natural sentence — this is a spoken " +
+                "conversation, not a chat window. Use Spanish from Spain when the user speaks Spanish, and otherwise " +
+                "respond in the same language as the user's latest message. Only go longer when the user asks for detail " +
+                "or the request genuinely requires steps."
     }
 
     suspend fun answer(userText: String): Result {
@@ -72,13 +74,14 @@ class SpokenAnswer(
             add(ApiMessage(role = "user", content = userText))
         }
 
-        val russian = session.russian()
+        val russian = userText.any { it in 'а'..'я' || it in 'А'..'Я' || it == 'ё' || it == 'Ё' }
+        val spanish = EdgeTtsProtocol.detectVoice(userText) == EdgeTtsProtocol.VOICE_ES
         val speech = speaker.beginSpeech()
         return try {
             val response = stream(messages, speech, russian)
             if (response.isBlank()) {
                 speech.cancel()
-                return Result.Failed(VoiceErrors.empty(russian))
+                return Result.Failed(VoiceErrors.empty(russian, spanish))
             }
             overlay.speaking(response)
             remember(userText, response, assistantSpokeBefore = history.isNotEmpty())
@@ -95,7 +98,7 @@ class SpokenAnswer(
             Log.e(TAG, "Groq refused: ${e.message}")
             // A retired model: re-read what exists so the next turn works.
             if (e.modelMissing) session.repairModel()
-            Result.Failed(VoiceErrors.spoken(e, russian))
+            Result.Failed(VoiceErrors.spoken(e, russian, spanish))
         } catch (e: Exception) {
             speech.cancel()
             Log.e(TAG, "Answer failed: ${e.message}")
