@@ -58,9 +58,9 @@ class ScheduleMathTest {
 
     @Test
     fun `described the way people say it`() {
-        assertEquals("каждый день в 23:00", ScheduleMath.describe(Days.ALL, LocalTime.of(23, 0), true))
-        assertEquals("по будням в 7:30", ScheduleMath.describe(Days.WEEKDAYS, LocalTime.of(7, 30), true))
-        assertEquals("по пн, пт в 9:00", ScheduleMath.describe(setOf(DayOfWeek.FRIDAY, DayOfWeek.MONDAY), LocalTime.of(9, 0), true))
+        assertEquals("todos los días a las 23:00", ScheduleMath.describe(Days.ALL, LocalTime.of(23, 0), true))
+        assertEquals("entre semana a las 7:30", ScheduleMath.describe(Days.WEEKDAYS, LocalTime.of(7, 30), true))
+        assertEquals("los lunes, viernes a las 9:00", ScheduleMath.describe(setOf(DayOfWeek.FRIDAY, DayOfWeek.MONDAY), LocalTime.of(9, 0), true))
     }
 }
 
@@ -219,12 +219,12 @@ class ModeScheduleEngineTest {
     @Test
     fun `scheduling a mode by voice books it`() = runTest {
         say("создай режим отдыха: не беспокоить")
-        assertEquals("Буду включать режим отдыха каждый день в 23:00.", say("включай режим отдыха каждый день в 23:00"))
+        assertEquals("Voy a activar el modo отдыха todos los días a las 23:00.", say("включай режим отдыха каждый день в 23:00"))
         assertEquals(LocalTime.of(23, 0), schedules.all().single().time)
         assertEquals(1, booked.last().size)
-        assertEquals("Буду выключать режим отдыха по будням в 7:00.", say("по будням в 7 утра выключай режим отдыха"))
+        assertEquals("Voy a desactivar el modo отдыха entre semana a las 7:00.", say("по будням в 7 утра выключай режим отдыха"))
         assertEquals(2, schedules.all().size)
-        assertEquals("Режим отдыха больше не включается по расписанию.", say("убери расписание режима отдыха"))
+        assertEquals("El modo отдыха ya no se activará mediante un horario.", say("убери расписание режима отдыха"))
         assertTrue(schedules.all().isEmpty())
         assertTrue(booked.last().isEmpty())
     }
@@ -232,13 +232,13 @@ class ModeScheduleEngineTest {
     @Test
     fun `without a time, Friday asks`() = runTest {
         say("создай режим отдыха: не беспокоить")
-        assertTrue(say("включай режим отдыха каждый день")!!.startsWith("Во сколько включать режим отдыха?"))
+        assertTrue(say("включай режим отдыха каждый день")!!.startsWith("¿A qué hora debo activar el modo отдыха?"))
     }
 
     @Test
     fun `a mode that messages someone never starts on a timer`() = runTest {
         say("создай режим дома: напиши маме что я дома")
-        assertTrue(say("включай режим дома каждый день в 19:00")!!.contains("не запускаю"))
+        assertTrue(say("включай режим дома каждый день в 19:00")!!.contains("no lo iniciaré mediante un horario"))
         assertTrue(schedules.all().isEmpty())
     }
 
@@ -249,9 +249,9 @@ class ModeScheduleEngineTest {
         say("каждый день в 7 утра выключай режим отдыха")
         val on = schedules.all().single { !it.exit }
         val off = schedules.all().single { it.exit }
-        assertTrue(engine.fire(on.id, true, runner)!!.startsWith("Режим отдыха."))
+        assertTrue(engine.fire(on.id, true, runner)!!.startsWith("Modo отдыха."))
         assertTrue(knobs.dndState)
-        assertTrue(engine.fire(off.id, true, runner)!!.startsWith("Режим отдыха выключен."))
+        assertTrue(engine.fire(off.id, true, runner)!!.startsWith("El modo отдыха está desactivado."))
         assertTrue(!knobs.dndState)
         assertNull("already off: nothing to say", engine.fire(off.id, true, runner))
     }
@@ -265,8 +265,8 @@ class ModeScheduleEngineTest {
         say("режим отдыха"); say("выключи режим отдыха")
         clock += day
         val third = say("режим отдыха")!!
-        assertTrue(third, third.endsWith("включать каждый день в 23:00 само?"))
-        assertEquals("Буду включать режим отдыха каждый день в 23:00.", say("да"))
+        assertTrue(third, third.endsWith("¿Quieres que lo active automáticamente todos los días a las 23:00?"))
+        assertEquals("Voy a activar el modo отдыха todos los días a las 23:00.", say("да"))
         say("выключи режим отдыха")
         clock += day
         assertTrue("asked once only", !say("режим отдыха")!!.contains("само?"))
