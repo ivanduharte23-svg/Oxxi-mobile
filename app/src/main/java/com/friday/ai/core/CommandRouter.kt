@@ -34,7 +34,7 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
     )
 
     private val timerPatterns = listOf(
-        Regex("(?:pon (?:un )?temporizador|temporizador|cronómetro|cronometro|поставь таймер|таймер|засеки|set (?:a )?timer|timer)\\s+(?:durante|en|на|for)?\\s*(\\d+)\\s*(?:minuto?s?|min(?:ут)?|min(?:ute)?s?)", RegexOption.IGNORE_CASE),
+        Regex("(?:pon (?:un )?temporizador|temporizador|cronómetro|cronometro|поставь таймер|таймер|засеки|set (?:a )?timer|timer)\\s+(?:durante|en|на|for)?\\s*(\\d+)\\s*(?:minuto?s?|мин(?:ут)?|min(?:ute)?s?)", RegexOption.IGNORE_CASE),
         Regex("(?:pon (?:un )?temporizador|temporizador|cronómetro|cronometro|поставь таймер|таймер|засеки|set (?:a )?timer|timer)\\s+(?:durante|en|на|for)?\\s*(\\d+)\\s*(?:segundo?s?|сек(?:унд)?|sec(?:ond)?s?)", RegexOption.IGNORE_CASE)
     )
 
@@ -50,7 +50,7 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
     // Camera, recorder and settings. `\p{L}` throughout, never `\w`: `\w` is
     // ASCII-only in Java regex and silently never matches a Russian ending.
     private val cameraWordPattern =
-        Regex("cámara|camara|camar|camera|fotoaparat|фотоаппарат", RegexOption.IGNORE_CASE)
+        Regex("cámara|camara|camar|camera|fotoaparat|фотоаппарат|камер\\p{L}*", RegexOption.IGNORE_CASE)
 
     /** Capture asked for without naming the camera: "сфотографируй", "селфи". */
     private val bareCapturePattern = Regex(
@@ -59,8 +59,8 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
         RegexOption.IGNORE_CASE
     )
 
-    private val videoPattern = Regex("víde|video|graba|снимай", RegexOption.IGNORE_CASE)
-    private val selfiePattern = Regex("selfi|selfie|cámara frontal|camara frontal|фронтал|front camera", RegexOption.IGNORE_CASE)
+    private val videoPattern = Regex("víde|video|graba|виде|снимай", RegexOption.IGNORE_CASE)
+    private val selfiePattern = Regex("selfi|selfie|cámara frontal|camara frontal|селфи|фронтал|front camera", RegexOption.IGNORE_CASE)
     private val photoPattern = Regex(
         "foto|fotografía|fotografia|saca una foto|haz una foto|сфотографир|снимок|снимк|photo|picture|shot", RegexOption.IGNORE_CASE
     )
@@ -313,7 +313,7 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
             val m = p.find(trimmed) ?: continue
             val value = m.groupValues[1].toIntOrNull() ?: continue
             val isMinutes = m.value.lowercase().let {
-                it.contains("мин") || it.contains("min")
+                it.contains("мин") || it.contains("minuto") || it.contains("min")
             }
             val seconds = if (isMinutes) value * 60 else value
             return CommandResult.SetTimer(seconds, null)
