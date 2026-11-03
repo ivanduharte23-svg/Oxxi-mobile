@@ -84,13 +84,13 @@ class VoskModelManager(private val context: Context) {
                 _downloadState.value = DownloadState.Extracting
             }
             _downloadState.value =
-                if (isModelReady()) DownloadState.Ready else DownloadState.Error("Model not installed")
-            Log.i(TAG, "Model installed")
+                if (isModelReady()) DownloadState.Ready else DownloadState.Error("El modelo de voz no se ha instalado.")
+            Log.i(TAG, "Modelo de voz instalado.")
         } catch (e: CancellationException) {
             throw e
         } catch (e: IOException) {
-            Log.e(TAG, "Model install failed: ${e.message}")
-            _downloadState.value = DownloadState.Error(e.message ?: "Download failed")
+            Log.e(TAG, "Error al instalar el modelo de voz: ${e.message}")
+            _downloadState.value = DownloadState.Error(e.message ?: "Error al descargar el modelo de voz.")
         }
     }
 
@@ -101,7 +101,7 @@ class VoskModelManager(private val context: Context) {
         connection.readTimeout = READ_TIMEOUT_MS
         connection.connect()
         val totalSize = connection.contentLengthLong
-        if (totalSize > ARTIFACT.maxBytes) throw ModelInstaller.Rejected("The download is larger than the model")
+        if (totalSize > ARTIFACT.maxBytes) throw ModelInstaller.Rejected("La descarga supera el tamaño permitido para el modelo.")
         connection.getInputStream().use { input ->
             FileOutputStream(target).use { output -> copyCapped(input, output, totalSize) }
         }
@@ -115,7 +115,7 @@ class VoskModelManager(private val context: Context) {
             val read = input.read(buffer)
             if (read < 0) break
             downloaded += read
-            if (downloaded > ARTIFACT.maxBytes) throw ModelInstaller.Rejected("The download is larger than the model")
+            if (downloaded > ARTIFACT.maxBytes) throw ModelInstaller.Rejected("La descarga supera el tamaño permitido para el modelo.")
             output.write(buffer, 0, read)
             if (totalSize > 0) {
                 _downloadState.value = DownloadState.Downloading((downloaded * PERCENT / totalSize).toInt())
