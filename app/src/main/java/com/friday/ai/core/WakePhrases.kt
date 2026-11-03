@@ -23,7 +23,10 @@ object WakePhrases {
         "прайдей", "прайди", "friday"
     )
 
-    /** The Russian name. */
+    /** Oxxi, including Cyrillic spellings returned by the Russian Vosk model. */
+    private val SPANISH_NAME = listOf("окси", "оккси", "оксси", "oxxi", "oksi")
+
+    /** The legacy Russian name remains accepted for compatibility. */
     private val RUSSIAN_NAME = listOf(
         "пятница", "пятницы", "пятнице", "пятницу", "пятнеца", "пятниц"
     )
@@ -36,7 +39,7 @@ object WakePhrases {
 
     /** Every accepted name, longest first so "фрайдей" wins over "фрай". */
     private val ALL_NAMES: List<String> =
-        (ENGLISH_NAME + RUSSIAN_NAME).sortedByDescending { it.length }
+        (SPANISH_NAME + ENGLISH_NAME + RUSSIAN_NAME).sortedByDescending { it.length }
 
     /**
      * Words handed to Vosk as a decoding grammar.
@@ -96,15 +99,17 @@ object WakePhrases {
         val candidate = nameIndex(words)?.let { words[it] } ?: return null
         return when {
             RUSSIAN_NAME.any { candidate.startsWith(it) } -> Language.RUSSIAN
+            SPANISH_NAME.any { candidate.startsWith(it) } -> Language.SPANISH
             else -> Language.ENGLISH
         }
     }
 
-    enum class Language { RUSSIAN, ENGLISH }
+    enum class Language { RUSSIAN, ENGLISH, SPANISH }
 
     private val leadingCall = Regex(
         "^\\s*(?:(?:окей|оке|ок|привет|слушай|эй|hey|ok|okay|hi)[\\s,!.]+)?" +
-            "(?:пятниц\\p{L}*|пятнец\\p{L}*|фрайд\\p{L}*|фрэйди|фрейди|friday)[\\s,!.:;—–-]*",
+            "(?:окси\\p{L}*|оккси\\p{L}*|оксси\\p{L}*|oxxi|oksi|пятниц\\p{L}*|пятнец\\p{L}*|" +
+            "фрайд\\p{L}*|фрэйди|фрейди|friday)[\\s,!.:;—–-]*",
         RegexOption.IGNORE_CASE
     )
 
