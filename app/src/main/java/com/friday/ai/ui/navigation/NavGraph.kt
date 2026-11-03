@@ -12,10 +12,11 @@ import androidx.navigation.compose.rememberNavController
 import com.friday.ai.MainActivity
 import com.friday.ai.core.FileAnalyzer
 import com.friday.ai.service.capture.ScreenCapture
-import com.friday.ai.ui.chat.ChatScreen
 import com.friday.ai.ui.chat.ChatViewModel
-import com.friday.ai.ui.dashboard.LazuriDashboardScreen
 import com.friday.ai.ui.diagnostics.DiagnosticsScreen
+import com.friday.ai.ui.modes.ModesScreen
+import com.friday.ai.ui.notebook.NotebookScreen
+import com.friday.ai.ui.oxxi.OxxiMainScreen
 import com.friday.ai.ui.settings.SettingsScreen
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -29,13 +30,9 @@ fun FridayNavGraph(activity: MainActivity) {
             val viewModel: ChatViewModel = koinViewModel()
             val screenCapture: ScreenCapture = koinInject()
             val fileAnalyzer: FileAnalyzer = koinInject()
-
-            // Consent, denied or given, goes to the view model: it reports a refusal and runs the capture.
             val screenCaptureLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.StartActivityForResult()
             ) { result -> viewModel.onScreenConsent(result.resultCode, result.data) }
-
-            // Only the URI is handled here; the file is read off the main thread by the view model.
             val filePickerLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.StartActivityForResult()
             ) { result ->
@@ -43,27 +40,17 @@ fun FridayNavGraph(activity: MainActivity) {
             }
 
             LaunchedEffect(Unit) {
-                activity.onWakeWordActivated = {
-                    viewModel.onMicClick()
-                }
+                activity.onWakeWordActivated = { viewModel.onMicClick() }
                 viewModel.onAnalyzeScreenRequested = {
-                    val intent = screenCapture.consentIntent(activity)
-                    screenCaptureLauncher.launch(intent)
+                    screenCaptureLauncher.launch(screenCapture.consentIntent(activity))
                 }
                 viewModel.onAnalyzeFileRequested = {
-                    val intent = fileAnalyzer.getFilePickerIntent()
-                    filePickerLauncher.launch(intent)
+                    filePickerLauncher.launch(fileAnalyzer.getFilePickerIntent())
                 }
             }
 
-            // A page asked about in the notebook arrives here when the chat comes back.
-            val inbox: com.friday.ai.ui.notebook.NotebookInbox = koinInject()
-            LaunchedEffect(Unit) { inbox.take()?.let(viewModel::onNotebook) }
-
-            ChatScreen(
+            OxxiMainScreen(
                 onNavigateToSettings = { navController.navigate("settings") },
-                onNavigateToModes = { navController.navigate("modes") },
-                onNavigateToNotebook = { navController.navigate("notebook") },
                 viewModel = viewModel
             )
         }
@@ -76,26 +63,27 @@ fun FridayNavGraph(activity: MainActivity) {
             )
         }
         composable("notebook") {
-            com.friday.ai.ui.notebook.NotebookScreen(
+            NotebookScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onAsk = { navController.popBackStack() }
             )
         }
         composable("modes") {
-            com.friday.ai.ui.modes.ModesScreen(onNavigateBack = { navController.popBackStack() })
+            ModesScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable("diagnostics") {
             DiagnosticsScreen(
                 viewModel = koinViewModel(),
                 onNavigateBack = { navController.popBackStack() },
                 onOpenSettings = {
-                    // Settings is where the screen is opened from; going "back" lands there.
-                    if (!navController.popBackStack("settings", inclusive = false)) navController.navigate("settings")
+                    if (!navController.popBackStack("settings", inclusive = false)) {
+                        navController.navigate("settings")
+                    }
                 }
             )
         }
         composable("lazuri_dashboard") {
-            LazuriDashboardScreen(onNavigateBack = { navController.popBackStack() })
+            com.friday.ai.ui.dashboard.LazuriDashboardScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }
