@@ -94,7 +94,7 @@ object SchedulePhrases {
         "(?:кажд\\p{L}*|ежедневно|по будням|в будни|по выходным|в выходные|" +
             "по (?:понедельникам|вторникам|средам|четвергам|пятницам|субботам|воскресеньям)|" +
             "cada\\s+(?:día|dia|noche|mañana|lunes|martes|miércoles|jueves|viernes|sábado|domingo)|" +
-            "diariamente|entre semana|los fines de semana|los (?:lunes|martes|miércoles|jueves|viernes|sábados|domingos)|" +
+            "diariamente|todos\\s+los\\s+días?|todos\\s+los\\s+dias?|entre semana|los fines de semana|los (?:lunes|martes|miércoles|jueves|viernes|sábados|domingos)|" +
             "every|daily|weekdays|weekends)"
     )
     private val clear = Regex("(?:расписани|по времени|horari|programaci|schedule)")
