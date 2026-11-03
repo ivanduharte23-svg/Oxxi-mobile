@@ -56,7 +56,7 @@ fun TransferSection(viewModel: TransferViewModel = koinViewModel()) {
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             HudButton(
-                onClick = { createFile.launch("friday-${today()}.friday") },
+                onClick = { createFile.launch("oxxi-${today()}.oxxi") },
                 enabled = state !is TransferViewModel.State.Working,
                 modifier = Modifier.weight(1f)
             ) { Text("Exportar") }
