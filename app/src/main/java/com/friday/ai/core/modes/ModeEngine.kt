@@ -251,7 +251,7 @@ class ModeEngine(
         store.put(
             mode.copy(undo = mode.undo ?: undo, lastRunAt = clock(), runCount = mode.runCount + 1)
         )
-        val reply = say("Режим ${mode.name}. ", "${mode.name} mode. ") + sentences(messages)
+        val reply = say("Режим ${mode.name}. ", "Modo ${mode.name}. ") + sentences(messages)
         return if (automatic) reply else reply + habitQuestion(mode, say)
     }
 
@@ -264,7 +264,7 @@ class ModeEngine(
         tags.startWriting(mode.id, mode.name)
         return say(
             "Поднесите NFC-метку к задней панели телефона. Потом касание метки будет включать и выключать режим ${mode.name}.",
-            "Hold an NFC tag to the back of the phone. Touching it will then turn ${mode.name} mode on and off."
+            "Acerca una etiqueta NFC a la parte trasera del teléfono. Después, al tocarla, se activará y desactivará el modo ${mode.name}."
         )
     }
 
@@ -591,7 +591,7 @@ class ModeEngine(
         store.delete(id)
         return say(
             "Убрала режим ${mode.name}. Опишите его ещё раз, по-другому.",
-            "Removed ${mode.name} mode. Describe it again, differently."
+            "He eliminado el modo ${mode.name}. Descríbelo de otra manera."
         )
     }
 
