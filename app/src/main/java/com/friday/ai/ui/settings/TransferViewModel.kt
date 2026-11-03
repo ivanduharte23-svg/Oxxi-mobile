@@ -44,15 +44,15 @@ class TransferViewModel(
         val bytes = transfer.export(passphrase)
         withContext(Dispatchers.IO) {
             appContext.contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes) }
-                ?: error("Не удалось открыть файл для записи")
+                ?: error("No se ha podido abrir el archivo para escribir.")
         }
-        State.Done("Сохранено (${bytes.size / KB} КБ). Храните пароль отдельно от файла.")
+        State.Done("Guardado (${bytes.size / KB} KB). Guarda la contraseña por separado.")
     }
 
     fun open(uri: Uri, passphrase: CharArray) = work {
         val bytes = withContext(Dispatchers.IO) {
             appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: error("Не удалось открыть файл")
+                ?: error("No se ha podido abrir el archivo.")
         }
         val content = transfer.read(bytes, passphrase)
         pending = content
@@ -72,7 +72,7 @@ class TransferViewModel(
                 FridayWakeWordService.stop(appContext)
                 FridayWakeWordService.start(appContext)
             }
-            State.Done("Готово: настройки перенесены.")
+            State.Done("Listo: se han transferido los ajustes.")
         }
     }
 
@@ -90,16 +90,16 @@ class TransferViewModel(
                 State.Failed(describe(e))
             } catch (e: Exception) {
                 Log.e(TAG, "Transfer failed: ${e.javaClass.simpleName}")
-                State.Failed(e.message ?: "Не получилось")
+                State.Failed(e.message ?: "No se ha podido completar la operación.")
             }
         }
     }
 
     private fun describe(failure: SettingsArchive.Failure): String = when (failure) {
-        is SettingsArchive.Failure.NotAnArchive -> "Это не файл настроек Пятницы"
-        is SettingsArchive.Failure.WrongPassphraseOrDamaged -> "Неверный пароль, или файл повреждён"
+        is SettingsArchive.Failure.NotAnArchive -> "Este no es un archivo de ajustes de Oxxi."
+        is SettingsArchive.Failure.WrongPassphraseOrDamaged -> "La contraseña no es correcta o el archivo está dañado."
         is SettingsArchive.Failure.NewerFormat ->
-            "Файл сделан более новой версией Пятницы — сначала обновите приложение"
+            "El archivo se creó con una versión más reciente de Oxxi; actualiza la aplicación primero."
     }
 
     private companion object {
