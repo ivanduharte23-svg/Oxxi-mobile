@@ -62,11 +62,11 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
     private val videoPattern = Regex("víde|video|graba|виде|снимай", RegexOption.IGNORE_CASE)
     private val selfiePattern = Regex("selfi|selfie|cámara frontal|camara frontal|селфи|фронтал|front camera", RegexOption.IGNORE_CASE)
     private val photoPattern = Regex(
-        "foto|fotografía|fotografia|saca una foto|haz una foto|сфотографир|снимок|снимк|photo|picture|shot", RegexOption.IGNORE_CASE
+        "foto|фото|fotografía|fotografia|saca una foto|haz una foto|сфотографир|снимок|снимк|photo|picture|shot", RegexOption.IGNORE_CASE
     )
 
     private val recorderPattern = Regex(
-        "grabadora|graba\\s+(?:audio|sonido|voz)|dictáfono|dictafono|диктофон|record\\s+(?:audio|sound|voice)|voice\\s+record",
+        "grabadora|graba\\s+(?:audio|sonido|voz)|запиши\\s+(?:аудио|голос)|dictáfono|dictafono|диктофон|record\\s+(?:audio|sound|voice)|voice\\s+record",
         RegexOption.IGNORE_CASE
     )
 
@@ -82,7 +82,7 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
         "anterior|previa|atrás|atras|назад|предыдущ|previous|prev|back", RegexOption.IGNORE_CASE
     )
     private val pausePattern = Regex(
-        "pausa|paus|detén|deten|pause", RegexOption.IGNORE_CASE
+        "pausa|paus|пауз|detén|deten|pause", RegexOption.IGNORE_CASE
     )
     private val stopPattern = Regex(
         "apaga|detén|deten|para|detener|desactiva|silencia|выключи|выруби|останов|прекрат|хватит|стоп|убери|заглуши|stop|turn off", RegexOption.IGNORE_CASE
@@ -140,7 +140,7 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
 
     private val calendarPatterns = listOf(
         Regex("^(?:recuérdame|recuerdame|recuérdame que|recuerdame que|pon un recordatorio|añade un recordatorio|anade un recordatorio|напомни(?:ть)?(?:\\s+мне)?|поставь напоминание|добавь напоминание)\\s+(.+)$", RegexOption.IGNORE_CASE),
-        Regex("^(?:añade|anade|crea|apunta|pon)\\s+(?:al calendario|en el calendario|un evento|una cita|una reunión|una reunion|un recordatorio|в календарь|событие|встречу|напоминание)\\s+(.+)$", RegexOption.IGNORE_CASE),
+        Regex("^(?:añade|anade|añadir|añada|crea|apunta|pon|добавь|добавить)\\s+(?:al calendario|en el calendario|un evento|una cita|una reunión|una reunion|un recordatorio|в календарь|событие|встречу|напоминание)\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("^(?:remind me(?:\\s+to)?|add (?:an? )?(?:event|reminder|meeting))\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("^(?:schedule|create (?:an? )?(?:event|meeting))\\s+(.+)$", RegexOption.IGNORE_CASE)
     )
@@ -178,6 +178,7 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
         Regex("(?:volumen|sonido|громкость|звук|volume)\\s+(?:a\\s+|en\\s+|на\\s+|to\\s+)?(?:mínimo|minimo|al mínimo|al minimo|mínima|minima|минимум|минимальн\\p{L}*|min(?:imum)?)", RegexOption.IGNORE_CASE)
 
     private val findNearbyPatterns = listOf(
+        Regex("(?:найди|найти|где|ищи)\\s+(?:самый\\s+)?ближайш\\p{L}*\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("(?:busca|encuentra|dónde está|donde esta)\\s+(?:el|la|un|una)?\\s*(?:más cercano|mas cercano|más cercana|mas cercana|ближайш\\p{L}+)\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("(?:find|show)\\s+(?:the\\s+)?nearest\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("where(?:'?s| is)\\s+the\\s+nearest\\s+(.+)$", RegexOption.IGNORE_CASE)
