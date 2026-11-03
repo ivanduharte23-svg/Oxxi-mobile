@@ -171,9 +171,7 @@ class MessageAssistant(
         if (sent) inbox.markRead(chat.key, clock())
         return when {
             sent && !echo -> "Enviado."
-            sent && russian -> "He respondido a ${chat.title}: «$text»."
             sent -> "He respondido a ${chat.title}: «$text»."
-            "La notificación ha desaparecido; no puedo responder desde ella. Abre ${chat.app}."
             else -> "La notificación ha desaparecido; no puedo responder desde ella. Abre ${chat.app}."
         }
     }
