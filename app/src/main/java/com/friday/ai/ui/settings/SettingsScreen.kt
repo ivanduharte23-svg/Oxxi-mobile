@@ -149,6 +149,7 @@ fun SettingsScreen(
                 LocationPanel()
                 QuickLinksPanel()
                 LockPanel()
+                UpdatePanel()
                 Spacer(Modifier.height(24.dp))
             }
         }
