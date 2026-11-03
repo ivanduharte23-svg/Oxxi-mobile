@@ -443,8 +443,8 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
             }
         }
 
-        val mentionsVolume = lower.contains("громкост") || lower.contains("volume") ||
-            lower.contains("звук")
+        val mentionsVolume = lower.contains("volumen") || lower.contains("громкост") ||
+            lower.contains("volume") || lower.contains("sonido") || lower.contains("звук")
 
         return when {
             volumeMaxPattern.containsMatchIn(lower) -> CommandResult.DeviceControl(DeviceAction.VOLUME_SET, 100)
@@ -457,11 +457,14 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
             lower.matches(Regex(".*(?:enciende el sonido|activa el sonido|quita el silencio|включи звук|unmute|верни звук).*")) ->
                 CommandResult.DeviceControl(DeviceAction.UNMUTE)
 
-            mentionsVolume && (lower.contains("громче") || lower.contains("прибав") ||
+            mentionsVolume && (lower.contains("sube") || lower.contains("aumenta") ||
+                lower.contains("incrementa") || lower.contains("gira") ||
+                lower.contains("громче") || lower.contains("прибав") ||
                 lower.contains("up") || lower.contains("увеличь")) ->
                 CommandResult.DeviceControl(DeviceAction.VOLUME_UP)
 
-            mentionsVolume && (lower.contains("тише") || lower.contains("убав") ||
+            mentionsVolume && (lower.contains("baja") || lower.contains("reduce") ||
+                lower.contains("disminuye") || lower.contains("тише") || lower.contains("убав") ||
                 lower.contains("down") || lower.contains("уменьш")) ->
                 CommandResult.DeviceControl(DeviceAction.VOLUME_DOWN)
 
