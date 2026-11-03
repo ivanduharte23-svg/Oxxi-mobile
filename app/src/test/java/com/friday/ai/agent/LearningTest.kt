@@ -104,7 +104,7 @@ class EscalationAndLearningTest {
         flowOf(ChatEvent.ToolCalls(c.mapIndexed { i, (n, a) -> ToolCall("c$i", function = FunctionCall(n, a)) }))
 
     private suspend fun ask(q: String) =
-        agent.reply(FridayAgent.Settings("k", "m", 100), listOf(ApiMessage("user", q)), true).toList().joinToString("")
+        agent.reply(FridayAgent.Settings("k", "m", 100), listOf(ApiMessage("user", q)), false).toList().joinToString("")
 
     @Test
     fun `a missed guess costs one round, not a refusal`() = runTest {
@@ -114,7 +114,7 @@ class EscalationAndLearningTest {
         assertEquals("Готово.", ask("хочу проснуться в полвосьмого"))
         assertTrue(offered[0]!!.contains(ToolKit.ESCALATE))
         assertTrue(offered[1]!!.contains("set_alarm"))
-        coVerify { commands.execute(CommandResult.SetAlarm(7, 30, null), true) }
+        coVerify { commands.execute(CommandResult.SetAlarm(7, 30, null), false) }
     }
 
     @Test
