@@ -112,14 +112,14 @@ class MailSpeechTest {
 
     @Test
     fun `no mail is said plainly`() {
-        assertEquals("Новых писем нет.", MailSpeech.unread(0, emptyList(), true))
+        assertEquals("No hay correos nuevos.", MailSpeech.unread(0, emptyList(), true))
     }
 
     @Test
     fun `russian counts agree`() {
-        assertTrue(MailSpeech.unread(1, listOf(mail("Иван", "А")), true).startsWith("1 непрочитанное письмо."))
-        assertTrue(MailSpeech.unread(3, List(3) { mail("Иван", "А") }, true).startsWith("3 непрочитанных письма."))
-        assertTrue(MailSpeech.unread(7, List(3) { mail("Иван", "А") }, true).startsWith("7 непрочитанных писем."))
+        assertTrue(MailSpeech.unread(1, listOf(mail("Иван", "А")), true).startsWith("1 correo sin leer."))
+        assertTrue(MailSpeech.unread(3, List(3) { mail("Иван", "А") }, true).startsWith("3 correos sin leer."))
+        assertTrue(MailSpeech.unread(7, List(3) { mail("Иван", "А") }, true).startsWith("7 correos sin leer."))
     }
 
     @Test
@@ -127,12 +127,12 @@ class MailSpeechTest {
         val s = MailSpeech.unread(5, List(5) { mail("Отправитель$it", "Тема$it") }, true)
         assertTrue(s, s.contains("Отправитель0 — «Тема0»."))
         assertFalse(s, s.contains("Отправитель3"))
-        assertTrue(s, s.endsWith("И ещё 2."))
+        assertTrue(s, s.endsWith("Y 2 más."))
     }
 
     @Test
     fun `a read-out opens with who and what`() {
-        assertEquals("Иван Петров пишет: «Встреча».", MailSpeech.header(mail("Иван Петров", "Встреча"), true))
-        assertEquals("Иван Петров пишет.", MailSpeech.header(mail("Иван Петров", ""), true))
+        assertEquals("Иван Петров ha escrito: «Встреча».", MailSpeech.header(mail("Иван Петров", "Встреча"), true))
+        assertEquals("Иван Петров ha escrito.", MailSpeech.header(mail("Иван Петров", ""), true))
     }
 }
