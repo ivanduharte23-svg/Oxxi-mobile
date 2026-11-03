@@ -3,85 +3,80 @@ package com.friday.ai.core.modes
 import com.friday.ai.domain.model.CommandResult
 
 /**
- * How modes are talked about.
- *
- * "Создай режим грусти. Это режим, где включается Spotify с грустными
- * песнями." is a creation: the name is what follows "режим" up to the first
- * pause or "это / где / в котором", the rest is the description. "Режим
- * грусти", "включи режим грусти" run it; "выключи режим грусти", "выйди из
- * режима грусти" undo it.
- *
- * Names are compared by [ModeNames].
+ * Spanish voice phrases for creating, running, editing and deleting saved modes.
+ * Russian and English aliases remain accepted for backwards compatibility.
  */
 object ModePhrases {
-
     private const val MAX_NAME_WORDS = 4
-
-    /** The description's group in [createEn]: after the two alternative name groups. */
     private const val EN_DESCRIPTION = 3
 
-    private val wake = Regex("^(?:пятница|friday|oxxi)[,!.\\s]+")
+    private val wake = Regex("^(?:oxxi|пятница|friday)[,!.\\s]+")
 
     private val create = Regex(
-        "^(?:пожалуйста\\s+)?(?:создай|сделай|заведи|добавь|запомни|настрой|придумай)\\s+(?:мне\\s+|новый\\s+)*" +
-            "режим\\s+(.+)$",
+        "^(?:por favor\\s+|пожалуйста\\s+)?(?:crea|crear|configura|configurar|prepara|preparar|añade|añadir|" +
+            "crea|создай|сделай|заведи|добавь|запомни|настрой|придумай)\\s+" +
+            "(?:(?:el|un|nuevo|me|мне|новый)\\s+)*(?:modo|режим)\\s+(.+)$",
         RegexOption.DOT_MATCHES_ALL
     )
     private val createEn = Regex(
-        "^(?:(?:please|por favor)\\s+)?(?:create|make|add|set up|crea|crear|configura|configurar)\\s+(?:(?:me|un|el|nuevo)\\s+)*" +
-            "(?:(?:mode|modo)\\s+(?:called|llamado)?\\s*(.+?)|(.+?)\\s+(?:mode|modo))" +
-            "(?:\\s*[.:;,—–-]\\s*|\\s+(?=(?:where|when|that|which|it|que|cuando|con)\\s)|$)(.*)$",
+        "^(?:please\\s+)?(?:create|make|add|set up)\\s+(?:me\\s+)?(?:a\\s+|an\\s+|new\\s+)*" +
+            "(?:mode\\s+(?:called\\s+)?(.+?)|(.+?)\\s+mode)" +
+            "(?:\\s*[.:;,—–-]\\s*|\\s+(?=(?:where|when|that|which|it)\\s)|$)(.*)$",
         RegexOption.DOT_MATCHES_ALL
     )
 
-    /** Where the name ends and the description begins. */
     private val separator = Regex(
-        "\\s*(?:[.:;!?—–]|\\s-\\s|,)\\s*|\\s+(?=(?:это|где|в котором|при котором|когда|чтобы|в нем)\\s)"
+        "\\s*(?:[.:;!?—–]|\\s-\\s|,)\\s*|\\s+(?=(?:это|где|в котором|при котором|когда|чтобы|в нем|" +
+            "que|cuando|con|donde|en el que|para)\\s)"
     )
-
     private val descriptionLead = Regex(
         "^(?:это\\s+(?:такой\\s+)?(?:режим|когда)?,?\\s*|где\\s+|в котором\\s+|при котором\\s+|когда\\s+|в нем\\s+|" +
+            "que\\s+(?:es\\s+)?(?:el\\s+)?modo\\s+|cuando\\s+|con\\s+|donde\\s+|en el que\\s+|para\\s+|" +
             "чтобы\\s+|where\\s+|when\\s+|that\\s+|which\\s+|it\\s+)+"
     )
-    private val nameLead = Regex("^(?:под названием|который называется|называется|с названием|called|named)\\s+")
+    private val nameLead = Regex(
+        "^(?:под названием|который называется|называется|с названием|llamado|llamada|denominado|called|named)\\s+"
+    )
 
     private val exit = listOf(
+        Regex("^(?:apaga|desactiva|detén|deten|termina|cancela|elimina|borra|quita)\\s+(?:el\\s+)?modo\\s+(.+)$"),
+        Regex("^(?:sal|salir)\\s+del\\s+modo\\s+(.+)$"),
         Regex("^(?:выключи|отключи|останови|заверши|отмени|сними|верни все из|убери)\\s+режим\\p{L}*\\s+(.+)$"),
         Regex("^(?:выйди|выйти|выход|выходим)\\s+из\\s+режим\\p{L}*\\s+(.+)$"),
         Regex("^(?:stop|deactivate|turn off|exit|end|disable|leave)\\s+(?:the\\s+)?(?:mode\\s+(.+)|(.+?)\\s+mode)$")
     )
     private val describe = listOf(
+        Regex("^(?:qué hace|que hace|describe|explica|muestra)\\s+(?:el\\s+)?modo\\s+(.+)$"),
         Regex("^(?:что\\s+(?:делает|включает|будет в|в)|расскажи\\s+(?:про|о)|покажи)\\s+режим\\p{L}*\\s+(.+)$"),
         Regex("^what does (?:the\\s+)?(.+?)\\s+mode do$")
     )
     private val delete = listOf(
+        Regex("^(?:elimina|borrar|borra|olvida|quita)\\s+(?:el\\s+)?modo\\s+(.+)$"),
         Regex("^(?:удали|сотри|забудь|delete|remove|forget)\\s+(?:режим\\p{L}*|(?:the\\s+)?mode)\\s+(.+)$"),
         Regex("^(?:delete|remove|forget)\\s+(?:the\\s+)?(.+?)\\s+mode$")
     )
     private val addTo = listOf(
+        Regex("^(?:añade|agrega|mete)\\s+(?:al|en el)\\s+modo\\s+(.+)$"),
         Regex("^(?:добавь|допиши|включи)\\s+в\\s+режим\\p{L}*\\s+(.+)$"),
         Regex("^add\\s+to\\s+(?:the\\s+)?mode\\s+(.+)$")
     )
     private val removeFrom = listOf(
+        Regex("^(?:quita|elimina|borra)\\s+(.+?)\\s+del\\s+modo\\s+(.+)$"),
         Regex("^(?:убери|удали|выкинь|исключи)\\s+(.+?)\\s+из\\s+режим\\p{L}*\\s+(.+)$"),
         Regex("^(?:remove|take)\\s+(.+?)\\s+(?:out\\s+)?(?:of|from)\\s+(?:the\\s+)?(.+?)\\s+mode$")
     )
 
     private val list = Regex(
-        "^(?:какие\\s+(?:у\\s+меня\\s+)?(?:есть\\s+)?режимы|мои\\s+режимы|список\\s+режимов|" +
-            "(?:list|show)\\s+(?:my\\s+)?modes|" +
-            "what modes(?: do i have)?)$"
+        "^(?:qué\\s+modos\\s+tengo|que\\s+modos\\s+tengo|mis\\s+modos|lista\\s+de\\s+modos|" +
+            "какие\\s+(?:у\\s+меня\\s+)?(?:есть\\s+)?режимы|мои\\s+режимы|список\\s+режимов|" +
+            "(?:list|show)\\s+(?:my\\s+)?modes|what modes(?: do i have)?)$"
     )
     private val run = listOf(
+        Regex("^(?:(?:activa|activar|inicia|iniciar|ejecuta|ejecutar|enciende|pon|cambia al)\\s+)?(?:el\\s+)?modo\\s+(.+)$"),
         Regex("^(?:(?:включи|запусти|активируй|вруби|давай|поставь|переключись на|перейди в)\\s+)?режим\\s+(.+)$"),
         Regex("^(?:(?:start|activate|turn on|enable|run|switch to)\\s+)?(?:the\\s+)?(.+?)\\s+mode$")
     )
 
-    /**
-     * The mode request in [text], or null if it isn't one. A run or exit with
-     * a name is only a candidate: "включи режим полета" is a system setting,
-     * so the caller checks the name against the saved modes.
-     */
     fun parse(text: String): CommandResult.Mode? {
         val t = clean(text)
         return parseCreate(t)
@@ -93,7 +88,6 @@ object ModePhrases {
             ?: firstName(t, run)?.let { CommandResult.Mode.Run(it) }
     }
 
-    /** "Добавь в режим …", "убери … из режима …". */
     private fun parseEdit(t: String): CommandResult.Mode? =
         addTo.firstNotNullOfOrNull { it.find(t) }?.let { CommandResult.Mode.AddTo(it.groupValues[1]) }
             ?: removeFrom.firstNotNullOfOrNull { it.find(t) }?.let { m ->
@@ -107,13 +101,11 @@ object ModePhrases {
                     ?.let { CommandResult.Mode.Create(it, description(m.groupValues[EN_DESCRIPTION])) }
             }
 
-    /** "грусти. это режим где …" → name "грусти", description "включается spotify …". */
     private fun split(rest: String): CommandResult.Mode.Create? {
         val cut = separator.find(rest)
         val (rawName, rawDescription) = if (cut != null) {
             rest.substring(0, cut.range.first) to rest.substring(cut.range.last + 1)
         } else {
-            // No pause: a short phrase is all name, a long one is "name + what to do".
             val words = rest.split(' ').filter { it.isNotBlank() }
             if (words.size <= MAX_NAME_WORDS - 1) rest to "" else words.first() to words.drop(1).joinToString(" ")
         }
@@ -127,8 +119,8 @@ object ModePhrases {
         return n.takeIf { words.isNotEmpty() && words.size <= MAX_NAME_WORDS }
     }
 
-    private fun description(raw: String): String? =
-        raw.trim().replace(descriptionLead, "").trim(' ', '.', ',', '!', ';', ':').takeIf { it.length > 2 }
+    private fun description(raw: String?): String? =
+        raw.orEmpty().trim().replace(descriptionLead, "").trim(' ', '.', ',', '!', ';', ':').takeIf { it.length > 2 }
 
     private fun firstName(t: String, patterns: List<Regex>): String? = patterns.firstNotNullOfOrNull { p ->
         p.find(t)?.groupValues?.drop(1)?.firstOrNull { it.isNotBlank() }?.let(::name)
