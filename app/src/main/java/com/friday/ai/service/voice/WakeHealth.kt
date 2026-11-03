@@ -31,7 +31,7 @@ data class WakeHealth(
         Status.UNAVAILABLE, Status.FAILED -> failureText(reason)
         Status.LOADING -> "Cargando el modelo de voz…"
         Status.STARTING -> "Iniciando el micrófono…"
-        Status.LISTENING -> "Listening for \"Friday\""
+        Status.LISTENING -> "Escuchando «Oxxi»"
         Status.PAUSING, Status.PAUSED_FOR_COMMAND -> "Escuchando…"
         Status.PAUSED_FOR_CALL -> "En pausa durante la llamada"
         Status.RECOVERING -> "Micrófono no disponible; nuevo intento en ${retryInMs / MS_PER_SECOND} s ($attempt/$MAX_SHOWN)"
