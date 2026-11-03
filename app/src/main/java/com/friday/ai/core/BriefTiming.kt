@@ -33,13 +33,13 @@ object BriefTiming {
     private const val AFTERNOON_FROM = 12
     private const val EVENING_FROM = 18
 
-    fun greeting(time: LocalTime, russian: Boolean): String {
+    fun greeting(time: LocalTime, @Suppress("UNUSED_PARAMETER") russian: Boolean): String {
         val h = time.hour
         return when {
-            h < MORNING_FROM -> if (russian) "Доброй ночи." else "Good evening."
-            h < AFTERNOON_FROM -> if (russian) "Доброе утро." else "Good morning."
-            h < EVENING_FROM -> if (russian) "Добрый день." else "Good afternoon."
-            else -> if (russian) "Добрый вечер." else "Good evening."
+            h < MORNING_FROM -> "Buenas noches."
+            h < AFTERNOON_FROM -> "Buenos días."
+            h < EVENING_FROM -> "Buenas tardes."
+            else -> "Buenas tardes."
         }
     }
 
