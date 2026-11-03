@@ -17,15 +17,10 @@ import java.net.URL
 
 /** Checks GitHub Releases and installs the signed APK without making the owner hunt for it. */
 object OxxiUpdateManager {
-    private const val RELEASES_URL =
-        "https://api.github.com/repos/ivanduharte23-svg/Oxxi-mobile/releases/latest"
+    private const val RELEASES_URL = "https://api.github.com/repos/ivanduharte23-svg/Oxxi-mobile/releases/latest"
     private const val APK_NAME = "Oxxi.apk"
 
-    data class UpdateInfo(
-        val versionName: String,
-        val downloadUrl: String,
-        val releaseUrl: String
-    )
+    data class UpdateInfo(val versionName: String, val downloadUrl: String, val releaseUrl: String)
 
     suspend fun check(context: Context): UpdateInfo? = withContext(Dispatchers.IO) {
         runCatching {
@@ -42,17 +37,12 @@ object OxxiUpdateManager {
                 val tag = json.optString("tag_name").removePrefix("v").trim()
                 if (compareVersions(tag, currentVersionName(context)) <= 0) return@withContext null
                 val asset = json.optJSONArray("assets")?.let { assets ->
-                    (0 until assets.length())
-                        .map { assets.getJSONObject(it) }
+                    (0 until assets.length()).map { assets.getJSONObject(it) }
                         .firstOrNull { it.optString("name").equals(APK_NAME, ignoreCase = true) }
                 } ?: return@withContext null
                 val url = asset.optString("browser_download_url").takeIf { it.isNotBlank() }
                     ?: return@withContext null
-                UpdateInfo(
-                    versionName = tag,
-                    downloadUrl = url,
-                    releaseUrl = json.optString("html_url")
-                )
+                UpdateInfo(tag, url, json.optString("html_url"))
             }
         }.getOrNull()
     }
@@ -64,26 +54,24 @@ object OxxiUpdateManager {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                     !context.packageManager.canRequestPackageInstalls()
                 ) {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                        Uri.parse("package:${context.packageName}")
-                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    context.startActivity(intent)
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                            Uri.parse("package:${context.packageName}")
+                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
                     error("Permite a Oxxi instalar actualizaciones y vuelve a intentarlo.")
                 }
 
                 val manager = context.getSystemService(DownloadManager::class.java)
                     ?: error("El gestor de descargas de Android no está disponible.")
-                val fileName = "Oxxi-update-${update.versionName}.apk"
                 val request = DownloadManager.Request(Uri.parse(update.downloadUrl))
                     .setTitle("Actualizando Oxxi")
                     .setDescription("Descargando Oxxi ${update.versionName}")
                     .setMimeType("application/vnd.android.package-archive")
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     .setDestinationInExternalFilesDir(
-                        context,
-                        Environment.DIRECTORY_DOWNLOADS,
-                        fileName
+                        context, Environment.DIRECTORY_DOWNLOADS, "Oxxi-update-${update.versionName}.apk"
                     )
                 val id = manager.enqueue(request)
                 val uri = waitForDownload(manager, id)
@@ -101,14 +89,10 @@ object OxxiUpdateManager {
             cursor.use {
                 if (it != null && it.moveToFirst()) {
                     when (it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
-                        DownloadManager.STATUS_SUCCESSFUL -> {
-                            val localUri = it.getString(
-                                it.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI)
-                            )
-                            return Uri.parse(localUri)
-                        }
-                        DownloadManager.STATUS_FAILED ->
-                            error("Android no pudo descargar la actualización.")
+                        DownloadManager.STATUS_SUCCESSFUL ->
+                            return manager.getUriForDownloadedFile(id)
+                                ?: error("Android no encontró el archivo descargado.")
+                        DownloadManager.STATUS_FAILED -> error("Android no pudo descargar la actualización.")
                     }
                 }
             }
