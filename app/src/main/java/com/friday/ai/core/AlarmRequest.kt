@@ -50,7 +50,7 @@ object AlarmRequest {
         "cuatro" to 4, "cinco" to 5, "seis" to 6, "siete" to 7, "ocho" to 8,
         "nueve" to 9, "diez" to 10, "once" to 11, "doce" to 12
     )
-    private val spokenHour = Regex("""(^|\s)(?:в|на|a(?:\s+las?)?|en)\s+(${numberWords.keys.joinToString("|")})(?=\s|$)""")
+    private val spokenHour = Regex("""(^|\s)(в|на|a(?:\s+las?)?|en)\s+(${numberWords.keys.joinToString("|")})(?=\s|$)""")
 
     fun parse(text: String, now: LocalDateTime): Alarm? {
         if (!trigger.containsMatchIn(text.trim())) return null
