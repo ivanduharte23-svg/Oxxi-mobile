@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FridayMobile"
+rootProject.name = "Oxxi"
 include(":app")
