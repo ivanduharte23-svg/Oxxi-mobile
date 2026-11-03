@@ -46,11 +46,11 @@ object AlarmRequest {
         "одиннадцать" to 11, "двенадцать" to 12, "десять" to 10, "девять" to 9, "восемь" to 8,
         "семь" to 7, "шесть" to 6, "пять" to 5, "четыре" to 4, "три" to 3, "два" to 2, "две" to 2,
         "один" to 1, "одну" to 1, "час" to 1,
-        "once" to 1, "uno" to 1, "una" to 1, "dos" to 2, "tres" to 3,
+        "uno" to 1, "una" to 1, "dos" to 2, "tres" to 3,
         "cuatro" to 4, "cinco" to 5, "seis" to 6, "siete" to 7, "ocho" to 8,
         "nueve" to 9, "diez" to 10, "once" to 11, "doce" to 12
     )
-    private val spokenHour = Regex("""(^|\s)(в|на)\s+(${numberWords.keys.joinToString("|")})(?=\s|$)""")
+    private val spokenHour = Regex("""(^|\s)(?:в|на|a(?:\s+las?)?|en)\s+(${numberWords.keys.joinToString("|")})(?=\s|$)""")
 
     fun parse(text: String, now: LocalDateTime): Alarm? {
         if (!trigger.containsMatchIn(text.trim())) return null
@@ -108,7 +108,7 @@ object AlarmRequest {
     fun reply(time: LocalTime, check: Check, russian: Boolean): String {
         val t = "%02d:%02d".format(time.hour, time.minute)
         return when (check) {
-            Check.CONFIRMED -> if (russian) "Будильник на $t поставлен." else "Alarm set for $t."
+            Check.CONFIRMED -> if (russian) "Будильник на $t поставлен." else "Alarma programada para las $t."
             Check.UNVERIFIABLE ->
                 if (russian) "Будильник на $t отправлен в Часы. Проверить не могу: раньше стоит другой."
                 else "He enviado la alarma de las $t al reloj, pero no puedo confirmarla porque hay otra anterior."
@@ -133,8 +133,8 @@ object AlarmRequest {
                 "Часы ставят будильник только на ближайшие $t, а это не тот день. " +
                     "Скажите «поставь будильник на $t», если ближайшие подходят."
             else ->
-                "Clock can only set the next $t, which isn't the day you asked for. " +
-                    "Say “set an alarm for $t” if the next one is fine."
+                "Reloj solo puede programar la próxima alarma a las $t, y no coincide con el día que has pedido. " +
+                    "Di «pon una alarma a las $t» si te sirve la próxima."
         }
     }
 }
