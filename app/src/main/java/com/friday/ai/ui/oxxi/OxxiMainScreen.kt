@@ -401,7 +401,8 @@ internal fun OxxiHologram(modifier: Modifier = Modifier, audioLevel: Float = 0f)
         val width = size.minDimension
         val cx = size.width / 2f
         val cy = size.height / 2f
-        val soundPulse = audioLevel.coerceIn(0f, 1f)\n        val radius = width * (0.315f + soundPulse * 0.028f) * breathing
+        val soundPulse = audioLevel.coerceIn(0f, 1f)
+        val radius = width * (0.315f + soundPulse * 0.028f) * breathing
         val rows = 18
         val columns = 40
         val turn = rotation
