@@ -1,9 +1,12 @@
 package com.friday.ai
 
 import android.app.Application
+import android.content.Intent
+import com.friday.ai.core.ConversationControl
 import com.friday.ai.data.local.dao.UserPreferenceDao
 import com.friday.ai.data.local.entity.UserPreferenceEntity
 import com.friday.ai.di.appModule
+import com.friday.ai.service.FridayWakeWordService
 import com.friday.ai.service.MorningBriefWorker
 import com.friday.ai.service.SessionSummarizer
 import kotlinx.coroutines.CoroutineScope
@@ -26,12 +29,27 @@ class FridayApp : Application() {
             androidContext(this@FridayApp)
             modules(appModule)
         }
+        installOxxiDeactivation()
         prefillDefaults()
         scheduleMorningBrief()
         wireSessionSummaries()
         learnOwnerFromDevice()
         bookModeSchedules()
         publishModeShortcuts()
+    }
+
+    /** Voice command "desactívate" disables background listening and removes the hologram. */
+    private fun installOxxiDeactivation() {
+        ConversationControl.onDeactivate = {
+            appScope.launch {
+                runCatching {
+                    val prefs: UserPreferenceDao =
+                        org.koin.java.KoinJavaComponent.get(UserPreferenceDao::class.java)
+                    prefs.set(UserPreferenceEntity("wake_word_enabled", "false"))
+                    stopService(Intent(this@FridayApp, FridayWakeWordService::class.java))
+                }
+            }
+        }
     }
 
     /** Long press on the icon offers the most used modes; kept in step as modes change. */
@@ -53,7 +71,7 @@ class FridayApp : Application() {
     }
 
     /**
-     * Reads the phone's own contact card so "как меня зовут?" is answerable
+     * Reads the phone's own contact card so "cómo me llamo?" is answerable
      * without the user ever having said it. Runs on every start because
      * contacts permission may only have been granted after the first one.
      */
@@ -93,25 +111,16 @@ class FridayApp : Application() {
     private fun prefillDefaults() {
         appScope.launch {
             sealStoredKeys()
-            // What works right now, before the first request needs to know.
             org.koin.java.KoinJavaComponent.get<com.friday.ai.core.DeviceContext>(
                 com.friday.ai.core.DeviceContext::class.java
             ).refresh()
-            // No key is built in: anything compiled into an APK can be read
-            // back out of it. The user enters their own in Settings.
-            // Groq retires models; picking from the live list every start
-            // replaces a retired one before the user ever hits it.
             org.koin.java.KoinJavaComponent.get<com.friday.ai.service.ModelCatalog>(
                 com.friday.ai.service.ModelCatalog::class.java
             ).refresh()
         }
     }
 
-    /**
-     * Encrypts API keys an older version stored in plain text. Overwriting a
-     * row leaves the old bytes in SQLite's free pages, so after sealing
-     * anything the file is rebuilt once to drop them.
-     */
+    /** Encrypts API keys an older version stored in plain text. */
     private suspend fun sealStoredKeys() {
         val prefs = org.koin.java.KoinJavaComponent.get<com.friday.ai.data.local.secure.SecurePreferenceDao>(
             com.friday.ai.data.local.secure.SecurePreferenceDao::class.java
