@@ -33,19 +33,22 @@ object AlarmRequest {
         // or a phrase that is itself the request ("разбуди", "будильник на 6").
         // A bare noun counts only at the very start ("будильник на 6"), so
         // "почему будильник в 7 не прозвенел?" stays a question.
-        """^(?:будильник|alarm)|^(?:\p{L}+[,\s]+)?""" +
-            """(?:(?:поставь|установи|заведи|создай|сделай|включи|set)[\s\S]*?(?:будильник|alarm)""" +
-            """|разбуди|wake\s+me)""",
+        """^(?:alarma|будильник|alarm)|^(?:\p{L}+[,\s]+)?""" +
+            """(?:(?:pon|programa|establece|configura|activa|crea|поставь|установи|заведи|создай|сделай|включи|set)[\s\S]*?(?:alarma|будильник|alarm)""" +
+            """|despiértame|despiertame|разбуди|wake\s+me)""",
         RegexOption.IGNORE_CASE
     )
 
     /** In an alarm request "на 8" is the time, not a duration. */
-    private val naBeforeNumber = Regex("""(^|\s)(?:на|for)\s+(?=\d)""")
+    private val naBeforeNumber = Regex("""(^|\s)(?:a\s+las?|en|на|for)\s+(?=\d)""")
 
     private val numberWords = mapOf(
         "одиннадцать" to 11, "двенадцать" to 12, "десять" to 10, "девять" to 9, "восемь" to 8,
         "семь" to 7, "шесть" to 6, "пять" to 5, "четыре" to 4, "три" to 3, "два" to 2, "две" to 2,
-        "один" to 1, "одну" to 1, "час" to 1
+        "один" to 1, "одну" to 1, "час" to 1,
+        "once" to 1, "uno" to 1, "una" to 1, "dos" to 2, "tres" to 3,
+        "cuatro" to 4, "cinco" to 5, "seis" to 6, "siete" to 7, "ocho" to 8,
+        "nueve" to 9, "diez" to 10, "once" to 11, "doce" to 12
     )
     private val spokenHour = Regex("""(^|\s)(в|на)\s+(${numberWords.keys.joinToString("|")})(?=\s|$)""")
 
@@ -108,10 +111,10 @@ object AlarmRequest {
             Check.CONFIRMED -> if (russian) "Будильник на $t поставлен." else "Alarm set for $t."
             Check.UNVERIFIABLE ->
                 if (russian) "Будильник на $t отправлен в Часы. Проверить не могу: раньше стоит другой."
-                else "Alarm for $t sent to Clock. I can't confirm it: an earlier alarm is next."
+                else "He enviado la alarma de las $t al reloj, pero no puedo confirmarla porque hay otra anterior."
             Check.MISSING ->
                 if (russian) "Часы не создали будильник на $t сами — открыла их, сохраните, пожалуйста."
-                else "Clock didn't create the $t alarm on its own — I've opened it for you to save."
+                else "La aplicación Reloj no ha creado la alarma de las $t. La he abierto para que la guardes."
         }
     }
 
@@ -125,7 +128,7 @@ object AlarmRequest {
         val requested = alarm.date ?: return ""
         return when {
             requested.atTime(alarm.time).isBefore(now) ->
-                if (russian) "$t уже прошло." else "$t has already passed."
+                if (russian) "$t уже прошло." else "Las $t ya han pasado."
             russian ->
                 "Часы ставят будильник только на ближайшие $t, а это не тот день. " +
                     "Скажите «поставь будильник на $t», если ближайшие подходят."
