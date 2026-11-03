@@ -27,73 +27,73 @@ object SettingsScreens {
         val keywords: List<String>
     ) {
         NFC(Settings.ACTION_NFC_SETTINGS, "NFC",
-            listOf("nfc", "нфс", "энфси")),
+            listOf("nfc", "etiqueta nfc", "нфс", "энфси")),
 
         WIFI(Settings.ACTION_WIFI_SETTINGS, "Wi-Fi",
-            listOf("wifi", "wi-fi", "вайфай", "вай-фай", "вифи")),
+            listOf("wifi", "wi-fi", "red wifi", "conexión wifi", "вайфай", "вай-фай", "вифи")),
 
         BLUETOOTH(Settings.ACTION_BLUETOOTH_SETTINGS, "Bluetooth",
-            listOf("bluetooth", "блютус", "блютуз", "блутуз")),
+            listOf("bluetooth", "activar bluetooth", "блютус", "блютуз", "блутуз")),
 
         // Not bare "интернет": "открой интернет" means a browser to most people.
-        MOBILE_DATA(Settings.ACTION_DATA_ROAMING_SETTINGS, "мобильные данные",
-            listOf("мобильные данные", "мобильный интернет", "мобильную сеть", "роуминг", "mobile data")),
+        MOBILE_DATA(Settings.ACTION_DATA_ROAMING_SETTINGS, "datos móviles",
+            listOf("datos móviles", "internet móvil", "red móvil", "itinerancia", "roaming", "mobile data", "мобильные данные", "мобильный интернет", "мобильную сеть", "роуминг")),
 
-        HOTSPOT("android.settings.TETHER_SETTINGS", "точку доступа",
-            listOf("точка доступа", "точку доступа", "модем", "hotspot", "tethering")),
+        HOTSPOT("android.settings.TETHER_SETTINGS", "punto de acceso",
+            listOf("punto de acceso", "compartir internet", "zona wifi", "hotspot", "tethering", "модем")),
 
-        AIRPLANE(Settings.ACTION_AIRPLANE_MODE_SETTINGS, "режим полёта",
-            listOf("режим полета", "режим полёта", "авиарежим", "самолет", "самолёт", "airplane")),
+        AIRPLANE(Settings.ACTION_AIRPLANE_MODE_SETTINGS, "modo avión",
+            listOf("modo avión", "modo avion", "avión", "modo vuelo", "режим полета", "режим полёта", "авиарежим", "airplane")),
 
-        LOCATION(Settings.ACTION_LOCATION_SOURCE_SETTINGS, "геолокацию",
-            listOf("геолокация", "геолокацию", "локация", "gps", "джипиэс", "местоположение", "location")),
+        LOCATION(Settings.ACTION_LOCATION_SOURCE_SETTINGS, "ubicación",
+            listOf("ubicación", "ubicacion", "localización", "localizacion", "gps", "location", "геолокация", "геолокацию", "локация", "местоположение")),
 
-        BATTERY("android.settings.BATTERY_SAVER_SETTINGS", "батарею",
-            listOf("батарея", "батарею", "аккумулятор", "энергосбережение", "battery")),
+        BATTERY("android.settings.BATTERY_SAVER_SETTINGS", "batería",
+            listOf("batería", "bateria", "ahorro de batería", "ahorro de energia", "battery", "батарея", "батарею", "аккумулятор", "энергосбережение")),
 
-        DISPLAY(Settings.ACTION_DISPLAY_SETTINGS, "экран",
-            listOf("экран", "дисплей", "яркость", "display", "brightness")),
+        DISPLAY(Settings.ACTION_DISPLAY_SETTINGS, "pantalla",
+            listOf("pantalla", "brillo", "visualización", "display", "brightness", "экран", "дисплей", "яркость")),
 
-        SOUND(Settings.ACTION_SOUND_SETTINGS, "звук",
-            listOf("звук", "звуки", "громкость", "рингтон", "sound")),
+        SOUND(Settings.ACTION_SOUND_SETTINGS, "sonido",
+            listOf("sonido", "volumen", "tono de llamada", "sonidos", "sound", "звук", "звуки", "громкость", "рингтон")),
 
         // Qualified only. Bare "приложение" would hijack "открой приложение
         // телеграм", which belongs to the app launcher.
-        APPS(Settings.ACTION_APPLICATION_SETTINGS, "настройки приложений",
-            listOf("настройки приложений", "все приложения", "диспетчер приложений", "app settings")),
+        APPS(Settings.ACTION_APPLICATION_SETTINGS, "ajustes de aplicaciones",
+            listOf("ajustes de aplicaciones", "configuración de aplicaciones", "todas las aplicaciones", "gestor de aplicaciones", "app settings", "настройки приложений", "все приложения", "диспетчер приложений")),
 
-        STORAGE(Settings.ACTION_INTERNAL_STORAGE_SETTINGS, "память",
-            listOf("память", "хранилище", "storage")),
+        STORAGE(Settings.ACTION_INTERNAL_STORAGE_SETTINGS, "almacenamiento",
+            listOf("almacenamiento", "espacio de almacenamiento", "memoria", "storage", "память", "хранилище")),
 
-        SECURITY(Settings.ACTION_SECURITY_SETTINGS, "безопасность",
-            listOf("безопасность", "блокировка", "пароль", "security")),
+        SECURITY(Settings.ACTION_SECURITY_SETTINGS, "seguridad",
+            listOf("seguridad", "bloqueo", "contraseña", "security", "безопасность", "блокировка", "пароль")),
 
-        ACCESSIBILITY(Settings.ACTION_ACCESSIBILITY_SETTINGS, "спец. возможности",
-            listOf("спец возможности", "специальные возможности", "доступность", "accessibility")),
+        ACCESSIBILITY(Settings.ACTION_ACCESSIBILITY_SETTINGS, "accesibilidad",
+            listOf("accesibilidad", "opciones de accesibilidad", "accessibility", "спец возможности", "специальные возможности", "доступность")),
 
-        DEVELOPER(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS, "для разработчиков",
-            listOf("разработчик", "разработчика", "разработчиков", "developer", "отладка")),
+        DEVELOPER(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS, "opciones de desarrollador",
+            listOf("opciones de desarrollador", "opciones para desarrolladores", "depuración", "developer", "debugging", "разработчик", "разработчика", "разработчиков", "отладка")),
 
         // "покажи время" is a question, not a request for a settings screen,
         // so the bare words are left out.
-        DATE_TIME(Settings.ACTION_DATE_SETTINGS, "дату и время",
-            listOf("дату и время", "настройки времени", "часовой пояс", "date and time")),
+        DATE_TIME(Settings.ACTION_DATE_SETTINGS, "fecha y hora",
+            listOf("fecha y hora", "ajustes de fecha", "ajustes de hora", "zona horaria", "date and time", "дату и время", "настройки времени", "часовой пояс")),
 
-        LANGUAGE(Settings.ACTION_LOCALE_SETTINGS, "язык",
-            listOf("язык", "языки", "клавиатура", "language", "keyboard")),
+        LANGUAGE(Settings.ACTION_LOCALE_SETTINGS, "idioma",
+            listOf("idioma", "idiomas", "teclado", "language", "keyboard", "язык", "языки", "клавиатура")),
 
-        NOTIFICATIONS("android.settings.NOTIFICATION_SETTINGS", "уведомления",
-            listOf("уведомления", "уведомление", "notifications")),
+        NOTIFICATIONS("android.settings.NOTIFICATION_SETTINGS", "notificaciones",
+            listOf("notificaciones", "notificación", "notifications", "уведомления", "уведомление")),
 
         VPN(Settings.ACTION_VPN_SETTINGS, "VPN",
             listOf("vpn", "впн")),
 
-        ABOUT(Settings.ACTION_DEVICE_INFO_SETTINGS, "о телефоне",
-            listOf("о телефоне", "о телефон", "версия android", "версия андроид", "about phone")),
+        ABOUT(Settings.ACTION_DEVICE_INFO_SETTINGS, "información del teléfono",
+            listOf("información del teléfono", "acerca del teléfono", "versión de android", "about phone", "о телефоне", "о телефон", "версия андроид")),
 
         /** The fallback: the settings app itself. */
-        ROOT(Settings.ACTION_SETTINGS, "настройки",
-            listOf("настройки", "настройка", "settings"));
+        ROOT(Settings.ACTION_SETTINGS, "ajustes",
+            listOf("ajustes", "configuración", "configuraciones", "settings", "настройки", "настройка"));
     }
 
     /**
