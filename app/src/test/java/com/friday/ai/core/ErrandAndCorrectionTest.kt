@@ -50,16 +50,16 @@ class ErrandPlacesTest {
     @Test
     fun `prompt matches the wording asked for`() {
         val s = ErrandPlaces.nearbyPrompt("молоко", nearestMeters = 120, placeCount = 3, russian = true)
-        assertTrue("got: $s", s.startsWith("Вы говорили купить молоко."))
-        assertTrue("got: $s", s.contains("рядом"))
-        assertTrue("got: $s", s.contains("120 метрах"))
+        assertTrue("got: $s", s.startsWith("Querías comprar молоко."))
+        assertTrue("got: $s", s.contains("cerca"))
+        assertTrue("got: $s", s.contains("120 metros"))
     }
 
     @Test
     fun `prompt reads correctly for a single place`() {
         val s = ErrandPlaces.nearbyPrompt("молоко", 90, placeCount = 1, russian = true)
-        assertTrue("got: $s", s.contains("подходящее место"))
-        assertFalse("got: $s", s.contains("места,"))
+        assertTrue("got: $s", s.contains("Hay un lugar cerca"))
+        assertFalse("got: $s", s.contains("varios lugares"))
     }
 
     @Test
