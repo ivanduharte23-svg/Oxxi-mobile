@@ -97,7 +97,11 @@ fun OxxiMainScreen(
     ) { granted -> if (granted) viewModel.onMicClick() }
 
     fun startMic() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+        val micGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+        if (micGranted) {
             viewModel.onMicClick()
         } else {
             micLauncher.launch(Manifest.permission.RECORD_AUDIO)
@@ -111,7 +115,11 @@ fun OxxiMainScreen(
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
         when (tab) {
-            OxxiTab.HOME, OxxiTab.MIC -> HomePage(state = state, onSettings = onNavigateToSettings, onMic = { startMic() })
+            OxxiTab.HOME, OxxiTab.MIC -> HomePage(
+                state = state,
+                onSettings = onNavigateToSettings,
+                onMic = { startMic() }
+            )
             OxxiTab.CHAT -> ChatPage(
                 state = state,
                 input = input,
@@ -141,7 +149,12 @@ private fun HomePage(state: ChatUiState, onSettings: () -> Unit, onMic: () -> Un
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("OXXI", color = OnBackground, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Medium)
+            Text(
+                "OXXI",
+                color = OnBackground,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Medium
+            )
             IconButton(onClick = onSettings) {
                 Icon(Icons.Filled.Settings, contentDescription = "Ajustes", tint = OnBackground.copy(alpha = 0.85f))
             }
@@ -211,7 +224,13 @@ private fun ChatPage(
 }
 
 @Composable
-private fun ChatComposer(input: String, onInput: (String) -> Unit, onSend: () -> Unit, onMic: () -> Unit, isBusy: Boolean) {
+private fun ChatComposer(
+    input: String,
+    onInput: (String) -> Unit,
+    onSend: () -> Unit,
+    onMic: () -> Unit,
+    isBusy: Boolean
+) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         TextField(
             value = input,
@@ -285,7 +304,13 @@ private fun MicButton(onClick: () -> Unit, description: String, enabled: Boolean
             .size(76.dp)
             .shadow(18.dp, CircleShape)
             .clip(CircleShape)
-            .background(Brush.radialGradient(listOf(Color.White, NeonCyan, NeonBlue).map { it.copy(alpha = if (enabled) 1f else 0.35f) }))
+            .background(
+                Brush.radialGradient(
+                    listOf(Color.White, NeonCyan, NeonBlue).map {
+                        it.copy(alpha = if (enabled) 1f else 0.35f)
+                    }
+                )
+            )
             .clickable(enabled = enabled, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center
@@ -297,7 +322,11 @@ private fun MicButton(onClick: () -> Unit, description: String, enabled: Boolean
 @Composable
 private fun OxxiBottomBar(selected: OxxiTab, onSelect: (OxxiTab) -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier.fillMaxWidth().height(74.dp).background(SurfaceDark.copy(alpha = 0.96f)).border(1.dp, Color.White.copy(alpha = 0.05f)),
+        modifier
+            .fillMaxWidth()
+            .height(74.dp)
+            .background(SurfaceDark.copy(alpha = 0.96f))
+            .border(1.dp, Color.White.copy(alpha = 0.05f)),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -317,8 +346,16 @@ private fun BottomItem(
     onSelect: (OxxiTab) -> Unit
 ) {
     val active = tab == selected
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(78.dp).clickable(onClick = { onSelect(tab) })) {
-        Icon(icon, contentDescription = label, tint = if (active) NeonCyan else OnSurfaceMuted, modifier = Modifier.size(24.dp))
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(78.dp).clickable(onClick = { onSelect(tab) })
+    ) {
+        Icon(
+            icon,
+            contentDescription = label,
+            tint = if (active) NeonCyan else OnSurfaceMuted,
+            modifier = Modifier.size(24.dp)
+        )
         Spacer(Modifier.height(3.dp))
         Text(label, color = if (active) NeonCyan else OnSurfaceMuted, style = MaterialTheme.typography.labelSmall)
     }
