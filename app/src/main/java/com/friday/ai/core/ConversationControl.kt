@@ -14,16 +14,16 @@ object ConversationControl {
     /** Single words that end a conversation when the utterance is short. */
     private val FAREWELL_WORDS = setOf(
         // Russian
-        "пока", "покеда", "стоп", "хватит", "довольно", "всё", "все",
+        "adiós", "adios", "hasta luego", "hasta pronto", "nos vemos", "ya está", "ya esta", "terminamos", "descansa", "desconéctate", "desconectate", "nada más", "nada mas", "eso es todo", "poco más", "poco mas", "пока", "покеда", "стоп", "хватит", "довольно", "всё", "все",
         "спасибо", "отбой", "закончили", "выйди", "отстань",
         // English
-        "bye", "goodbye", "stop", "enough", "thanks", "thank", "quit",
+        "bye", "goodbye", "stop", "enough", "thanks", "thank", "adiós", "adios", "quit",
         "exit", "cancel", "dismiss", "nevermind"
     )
 
     /** Multi-word endings that close a short utterance. */
     private val FAREWELL_PHRASES = listOf(
-        "that's all", "thats all", "that is all", "nothing else", "never mind", "that'll be all",
+        "that's all", "thats all", "that is all", "nothing else", "never mind", "that'll be all", "hasta luego", "hasta pronto", "nos vemos", "ya está", "ya esta", "eso es todo", "no necesito nada más", "no necesito nada mas", "hemos terminado", "terminamos", "puedes descansar", "descansa", "desconéctate", "desconectate",
         "we're done", "i'm done", "это всё", "это все", "больше ничего", "на этом всё", "на этом все",
         "на этом пока", "на сегодня всё", "на сегодня все", "спасибо всё", "спасибо все", "до свидания",
         "всего доброго", "до связи", "можешь отдыхать", "ты свободна", "отключайся"
@@ -38,12 +38,12 @@ object ConversationControl {
     private val CLOSING_WORDS = setOf("пока", "покеда", "отбой", "bye", "goodbye")
     private val CLOSING_PHRASES = listOf(
         "на этом пока", "на этом всё", "на этом все", "на сегодня всё", "на сегодня все", "до связи",
-        "до встречи", "до свидания", "спокойной ночи", "увидимся", "see you", "talk later", "good night"
+        "до встречи", "до свидания", "спокойной ночи", "увидимся", "hasta luego", "hasta pronto", "nos vemos", "buenas noches", "puedes descansar", "descansa", "eso es todo", "see you", "talk later", "good night"
     )
 
     /** Words that may stand around a closing word in its clause: "ну всё, пока", "ладно, давай пока". */
     private val CLOSING_FILLER = setOf(
-        "ну", "ладно", "тогда", "давай", "окей", "ок", "всё", "все", "хорошо", "отлично", "на", "этом", "сегодня",
+        "vale", "bueno", "de acuerdo", "entonces", "venga", "okey", "ok", "ya", "está", "esta", "eso", "todo", "gracias", "hasta", "luego", "nos", "vemos", "ну", "ладно", "тогда", "давай", "окей", "ок", "всё", "все", "хорошо", "отлично", "на", "этом", "сегодня",
         "спасибо", "ok", "okay", "alright", "thanks", "then", "for", "now"
     )
 
