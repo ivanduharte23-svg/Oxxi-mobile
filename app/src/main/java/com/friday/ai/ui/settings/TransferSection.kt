@@ -49,8 +49,8 @@ fun TransferSection(viewModel: TransferViewModel = koinViewModel()) {
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            "Ключ Groq, голосовой профиль, память, выученные команды, история и настройки — в одном " +
-                "файле, зашифрованном вашим паролем. Сохраните его и откройте на новом телефоне.",
+            "La clave de Groq, el perfil de voz, la memoria, los comandos aprendidos, el historial y los ajustes se guardan en un único " +
+                "archivo cifrado con tu contraseña. Guárdalo y ábrelo en el nuevo teléfono.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -59,12 +59,12 @@ fun TransferSection(viewModel: TransferViewModel = koinViewModel()) {
                 onClick = { createFile.launch("friday-${today()}.friday") },
                 enabled = state !is TransferViewModel.State.Working,
                 modifier = Modifier.weight(1f)
-            ) { Text("Экспорт") }
+            ) { Text("Exportar") }
             HudOutlinedButton(
                 onClick = { openFile.launch(arrayOf("*/*")) },
                 enabled = state !is TransferViewModel.State.Working,
                 modifier = Modifier.weight(1f)
-            ) { Text("Импорт") }
+            ) { Text("Importar") }
         }
         when (val s = state) {
             TransferViewModel.State.Working -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -99,26 +99,26 @@ private fun PassphraseDialog(export: Boolean, onDismiss: () -> Unit, onConfirm: 
     val ok = longEnough && (!export || pass == repeat)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (export) "Пароль для файла" else "Пароль от файла") },
+        title = { Text(if (export) "Contraseña para el archivo" else "Contraseña del archivo") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (export) {
                     Text(
-                        "Без него файл не открыть — ни вам, ни кому-то ещё. Восстановить пароль нельзя.",
+                        "Sin ella nadie podrá abrir el archivo. No es posible recuperar una contraseña olvidada.",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
                 OutlinedTextField(
                     value = pass, onValueChange = { pass = it }, singleLine = true,
-                    label = { Text("Пароль") }, visualTransformation = PasswordVisualTransformation(),
+                    label = { Text("Contraseña") }, visualTransformation = PasswordVisualTransformation(),
                     supportingText = if (export && pass.isNotEmpty() && !longEnough) {
-                        { Text("Не меньше ${SettingsArchive.MIN_PASSPHRASE} символов") }
+                        { Text("Al menos ${SettingsArchive.MIN_PASSPHRASE} caracteres") }
                     } else null
                 )
                 if (export) {
                     OutlinedTextField(
                         value = repeat, onValueChange = { repeat = it }, singleLine = true,
-                        label = { Text("Ещё раз") }, visualTransformation = PasswordVisualTransformation(),
+                        label = { Text("Repite la contraseña") }, visualTransformation = PasswordVisualTransformation(),
                         isError = repeat.isNotEmpty() && repeat != pass
                     )
                 }
@@ -126,10 +126,10 @@ private fun PassphraseDialog(export: Boolean, onDismiss: () -> Unit, onConfirm: 
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(pass.toCharArray()) }, enabled = ok) {
-                Text(if (export) "Сохранить" else "Открыть")
+                Text(if (export) "Guardar" else "Abrir")
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
     )
 }
 
@@ -137,27 +137,27 @@ private fun PassphraseDialog(export: Boolean, onDismiss: () -> Unit, onConfirm: 
 private fun ReviewDialog(summary: SettingsTransfer.Summary, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Заменить всё на этом телефоне?") },
+        title = { Text("¿Sustituir todos los datos de este teléfono?") },
         text = {
             Column {
-                Text("Файл от ${date(summary.createdAt)}, Пятница ${summary.appVersion}:")
+                Text("Archivo del ${date(summary.createdAt)}, Oxxi ${summary.appVersion}:")
                 Spacer(Modifier.height(8.dp))
-                Text("• ключ Groq: ${if (summary.hasApiKey) "есть" else "нет"}")
-                Text("• голосовой профиль: ${if (summary.hasVoiceProfile) "есть" else "нет"}")
-                Text("• фактов в памяти: ${summary.memories}")
-                Text("• выученных команд: ${summary.learnedCommands}")
-                Text("• сообщений в истории: ${summary.chatMessages}")
-                Text("• дел «по пути»: ${summary.errands}")
+                Text("• clave de Groq: ${if (summary.hasApiKey) "sí" else "no"}")
+                Text("• perfil de voz: ${if (summary.hasVoiceProfile) "sí" else "no"}")
+                Text("• datos en memoria: ${summary.memories}")
+                Text("• comandos aprendidos: ${summary.learnedCommands}")
+                Text("• mensajes en el historial: ${summary.chatMessages}")
+                Text("• recados pendientes: ${summary.errands}")
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Текущие настройки, память и история будут заменены. Gmail, если был подключён, " +
-                        "может попросить вход заново.",
+                    "Los ajustes actuales, la memoria y el historial serán sustituidos. Si Gmail estaba conectado, " +
+                        "puede pedirte que vuelvas a iniciar sesión.",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Заменить") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
+        confirmButton = { TextButton(onClick = onConfirm) { Text("Sustituir") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
     )
 }
 
