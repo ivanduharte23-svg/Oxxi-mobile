@@ -23,7 +23,6 @@ object OxxiUpdateManager {
 
     data class UpdateInfo(
         val versionName: String,
-        val versionCode: Long,
         val downloadUrl: String,
         val releaseUrl: String
     )
@@ -41,7 +40,7 @@ object OxxiUpdateManager {
                 if (response.responseCode !in 200..299) return@withContext null
                 val json = JSONObject(response.inputStream.bufferedReader().use { it.readText() })
                 val tag = json.optString("tag_name").removePrefix("v").trim()
-                val version = parseVersion(tag) ?: return@withContext null
+                if (compareVersions(tag, currentVersionName(context)) <= 0) return@withContext null
                 val asset = json.optJSONArray("assets")?.let { assets ->
                     (0 until assets.length())
                         .map { assets.getJSONObject(it) }
@@ -49,11 +48,8 @@ object OxxiUpdateManager {
                 } ?: return@withContext null
                 val url = asset.optString("browser_download_url").takeIf { it.isNotBlank() }
                     ?: return@withContext null
-                val current = currentVersion(context)
-                if (version <= current) return@withContext null
                 UpdateInfo(
                     versionName = tag,
-                    versionCode = versionCodeFor(tag),
                     downloadUrl = url,
                     releaseUrl = json.optString("html_url")
                 )
@@ -121,21 +117,18 @@ object OxxiUpdateManager {
         error("La descarga de Oxxi tardó demasiado.")
     }
 
-    private fun currentVersion(context: Context): Long =
-        context.packageManager.getPackageInfoCompat(context.packageName).longVersionCode
+    private fun currentVersionName(context: Context): String =
+        context.packageManager.getPackageInfoCompat(context.packageName).versionName.orEmpty()
 
-    private fun parseVersion(value: String): Long? =
-        value.split('.', '-', '+').takeIf { it.size >= 2 }?.let {
-            it[0].toLongOrNull()?.times(1_000_000L)?.plus(it[1].toLongOrNull()?.times(1_000L) ?: return null)
-                ?.plus(it.getOrNull(2)?.toLongOrNull() ?: 0L)
+    private fun compareVersions(a: String, b: String): Int {
+        val left = a.split('.', '-', '+').map { it.toIntOrNull() ?: 0 }
+        val right = b.split('.', '-', '+').map { it.toIntOrNull() ?: 0 }
+        for (i in 0 until maxOf(left.size, right.size)) {
+            val l = left.getOrElse(i) { 0 }
+            val r = right.getOrElse(i) { 0 }
+            if (l != r) return l.compareTo(r)
         }
-
-    private fun versionCodeFor(value: String): Long = parseVersion(value) ?: 0L
-
-    private operator fun Long.compareTo(other: Long): Int = when {
-        this < other -> -1
-        this > other -> 1
-        else -> 0
+        return 0
     }
 
     private fun PackageManager.getPackageInfoCompat(packageName: String) =
