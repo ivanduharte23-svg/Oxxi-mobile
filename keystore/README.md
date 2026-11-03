@@ -1,47 +1,50 @@
-# Signing key
+# Firma de Oxxi
 
-`friday.keystore` signs the owner's Friday builds, debug and release. It is
-**not in the repository** (see `.gitignore`), and neither are its passwords.
+La firma privada identifica la instalación Android. Para que Android actualice Oxxi sin desinstalarla ni borrar sus datos, cada APK de actualización debe estar firmado con **el mismo keystore** que se usó en el teléfono.
 
-## Configuring a machine
+El archivo privado no debe subirse al repositorio público ni enviarse por chat.
 
-Add to `local.properties` (also never committed):
+## Firma local
+
+Guarda tu keystore en una ubicación privada y añade a `local.properties` (archivo ignorado por Git):
 
 ```properties
-friday.signing.storeFile=keystore/friday.keystore
-friday.signing.storePassword=…
-friday.signing.keyAlias=…
-friday.signing.keyPassword=…
+oxxi.signing.storeFile=keystore/oxxi.keystore
+oxxi.signing.storePassword=…
+oxxi.signing.keyAlias=…
+oxxi.signing.keyPassword=…
 ```
 
-On CI, the same values come from secrets as the environment variables
-`FRIDAY_SIGNING_STORE_FILE`, `FRIDAY_SIGNING_STORE_PASSWORD`,
-`FRIDAY_SIGNING_KEY_ALIAS` and `FRIDAY_SIGNING_KEY_PASSWORD`.
+Por compatibilidad, Gradle también sigue leyendo las antiguas propiedades `friday.signing.*`. No cambies el identificador de paquete `com.friday.ai`: es la identidad técnica de las instalaciones actuales.
 
-## What gets built
+## Firma en GitHub Actions
 
-| | Signing configured | Not configured |
+El flujo **Build Oxxi APK** admite estos cuatro secretos del repositorio:
+
+- `OXXI_SIGNING_KEYSTORE_BASE64`: contenido del keystore codificado en Base64, en una sola línea.
+- `OXXI_SIGNING_STORE_PASSWORD`: contraseña del almacén.
+- `OXXI_SIGNING_KEY_ALIAS`: alias de la clave.
+- `OXXI_SIGNING_KEY_PASSWORD`: contraseña de la clave.
+
+En GitHub, abre **Settings → Secrets and variables → Actions** y créalos como Repository secrets. Para generar el valor Base64 desde un ordenador con la herramienta `base64`, usa `base64 -w 0 oxxi.keystore` (en sistemas que no admiten `-w`, ejecuta `base64 oxxi.keystore` y elimina los saltos de línea). Nunca publiques el resultado ni el archivo original.
+
+Si se configuran los cuatro secretos, el APK de CI se firma con la clave del propietario. Si no se configura ninguno, CI usa una clave de depuración almacenada en la caché de GitHub Actions para mantener la misma firma entre compilaciones mientras esa caché exista. Esa clave de respaldo sirve para pruebas; no sustituye a una clave privada de propietario para una distribución permanente.
+
+## Tipos de compilación
+
+| Tarea | Con la clave del propietario | Sin ella |
 |---|---|---|
-| `assembleDebug` | owner's key | this machine's SDK debug key — fine for trying Friday out |
-| `assembleRelease` | owner's key | **unsigned**: builds and passes the R8 checks (CI), but cannot be installed |
-| `ownerRelease` | owner's key, R8-checked | **fails** before building |
+| `assembleDebug` | APK de depuración firmado con la clave existente | APK de depuración firmado con la clave de respaldo |
+| `assembleRelease` | APK de versión firmado | APK sin firma; solo permite verificar la compilación |
+| `ownerRelease` | Genera la versión firmada y comprueba R8 | Falla intencionadamente |
 
-Releases to install or publish come from `./gradlew ownerRelease`
-(`app/build/outputs/apk/release/app-release.apk`). A debug key is generated
-per machine, so a build from another machine — or an unsigned one — can never
-update the owner's install by accident.
+La salida de `ownerRelease` es `app/build/outputs/apk/release/app-release.apk`.
 
-## Back this folder up
+## Importante antes de actualizar
 
-It is the identity of the app:
+- No desinstales una instalación existente para resolver un error de firma sin exportar antes tus datos.
+- Una instalación antigua creada con una clave temporal de CI puede no aceptar el APK de la nueva clave de respaldo. Android no permite recuperar la clave privada a partir del APK.
+- La caché de la clave de respaldo de GitHub puede caducar o eliminarse. Para actualizaciones fiables a largo plazo, configura los cuatro secretos con el mismo keystore privado que se usó para firmar la aplicación instalada.
+- Los proveedores de OAuth pueden vincular la autorización a la huella SHA-1 del certificado. Al cambiar de certificado puede ser necesario actualizar la configuración OAuth.
 
-- Android only installs an update over an existing Friday if it is signed with
-  the same key. A build signed with any other key has to replace the app, and
-  replacing it wipes its data — memory, voice profile, settings, chat history.
-- Gmail access is registered in Google Cloud against this key's SHA-1
-  (`4B:B3:CB:54:33:D6:E0:EC:B8:4B:4F:AE:F8:15:40:D7:59:F9:82:96`).
-
-The key was first generated as the Android SDK debug key on the machine Friday
-was first built on. Its private key exists only in this file and its backups;
-it is fine for an app installed on its owner's phone. A store-published build
-would need a dedicated release key.
+No guardes contraseñas, keystores ni contenido Base64 en archivos versionados.
