@@ -30,16 +30,16 @@ import org.koin.androidx.compose.koinViewModel
 
 private val choices = listOf(
     Triple(
-        LockPolicy.Level.SAFE_ONLY, "Только безопасные",
-        "Музыка, будильники, фонарик, погода. Звонки и сообщения — после разблокировки."
+        LockPolicy.Level.SAFE_ONLY, "Solo acciones seguras",
+        "Música, alarmas, linterna y tiempo. Las llamadas y los mensajes requieren desbloquear el teléfono."
     ),
     Triple(
-        LockPolicy.Level.VOICE, "После проверки голоса",
-        "Записанный голосовой профиль подтверждает вас; без него — экран разблокировки Android."
+        LockPolicy.Level.VOICE, "Tras verificar tu voz",
+        "Tu perfil de voz te identifica; si no está disponible, Android solicitará desbloquear el teléfono."
     ),
     Triple(
-        LockPolicy.Level.UNLOCK, "Только после разблокировки",
-        "Звонки и сообщения всегда сначала через отпечаток, лицо или PIN."
+        LockPolicy.Level.UNLOCK, "Solo tras desbloquear",
+        "Las llamadas y los mensajes requieren huella, reconocimiento facial o PIN."
     )
 )
 
@@ -56,10 +56,10 @@ fun LockPanel(viewModel: LockLevelViewModel = koinViewModel()) {
         onPauseOrDispose { }
     }
 
-    HudPanel("Заблокированный экран", index = 14) {
+    HudPanel("Pantalla de bloqueo", index = 14) {
         HudNote(
-            "Что Пятница делает, пока телефон заблокирован. Разблокировка — экран самого Android: " +
-                "Пятница не видит и не хранит ваш PIN."
+            "Qué puede hacer Oxxi cuando el teléfono está bloqueado. El desbloqueo corresponde a Android: " +
+                "Oxxi no ve ni almacena tu PIN."
         )
         choices.forEach { (option, title, note) ->
             HudSwitchRow(
@@ -71,27 +71,27 @@ fun LockPanel(viewModel: LockLevelViewModel = koinViewModel()) {
             )
         }
         HudNote(
-            "На экране блокировки видно только, что Пятница делает: слушает, обрабатывает, отвечает. " +
-                "Ваши слова и ответ — после «Разблокировать для деталей»."
+            "En la pantalla de bloqueo solo se muestra qué hace Oxxi: escucha, procesa o responde. " +
+                "Tus palabras y la respuesta se muestran después de «Desbloquear para ver detalles»."
         )
         HudReadout(
-            "Уведомления",
-            if (notifications) "РАЗРЕШЕНЫ" else "ВЫКЛЮЧЕНЫ",
+            "Notificaciones",
+            if (notifications) "PERMITIDAS" else "DESACTIVADAS",
             valueColor = if (notifications) ArcCyan else ErrorColor
         )
         HudReadout(
-            "Полноэкранные уведомления",
-            if (fullScreen) "РАЗРЕШЕНЫ" else "НЕ РАЗРЕШЕНЫ",
+            "Notificaciones a pantalla completa",
+            if (fullScreen) "PERMITIDAS" else "NO PERMITIDAS",
             valueColor = if (fullScreen) ArcCyan else ErrorColor
         )
-        HudReadout("Последний показ", outcomeText(outcome))
+        HudReadout("Última visualización", outcomeText(outcome))
         if (!fullScreen || !notifications) {
             HudNote(
-                "Чтобы показывать ответы и экран разблокировки поверх блокировки, " +
-                    "разрешите Friday полноэкранные уведомления."
+                "Para mostrar respuestas y la pantalla de desbloqueo sobre la pantalla bloqueada, " +
+                    "permite a Oxxi mostrar notificaciones a pantalla completa."
             )
             HudOutlinedButton(onClick = { openFullScreenSettings(context) }, modifier = Modifier.fillMaxWidth()) {
-                Text("Разрешить полноэкранные уведомления")
+                Text("Permitir notificaciones a pantalla completa")
             }
         }
     }
@@ -99,12 +99,12 @@ fun LockPanel(viewModel: LockLevelViewModel = koinViewModel()) {
 
 /** What the last attempt really showed — an allowed permission alone proves nothing. */
 private fun outcomeText(outcome: LockScreen.Outcome?): String = when (outcome) {
-    null -> "ЕЩЁ НЕ БЫЛО"
-    LockScreen.Outcome.ACTIVITY_VISIBLE -> "ПАНЕЛЬ НА ЭКРАНЕ"
-    LockScreen.Outcome.NOTIFICATION_ONLY -> "ТОЛЬКО УВЕДОМЛЕНИЕ"
-    LockScreen.Outcome.FSI_DENIED -> "УВЕДОМЛЕНИЕ (НЕТ ПОЛНОЭКРАННЫХ)"
-    LockScreen.Outcome.NOTIFICATIONS_BLOCKED -> "ТОЛЬКО ГОЛОС"
-    LockScreen.Outcome.FAILED -> "НЕ УДАЛОСЬ"
+    null -> "AÚN NO SE HA MOSTRADO"
+    LockScreen.Outcome.ACTIVITY_VISIBLE -> "PANEL EN PANTALLA"
+    LockScreen.Outcome.NOTIFICATION_ONLY -> "SOLO NOTIFICACIÓN"
+    LockScreen.Outcome.FSI_DENIED -> "NOTIFICACIÓN (SIN PANTALLA COMPLETA)"
+    LockScreen.Outcome.NOTIFICATIONS_BLOCKED -> "SOLO VOZ"
+    LockScreen.Outcome.FAILED -> "NO SE HA PODIDO MOSTRAR"
 }
 
 private fun openFullScreenSettings(context: Context) {
