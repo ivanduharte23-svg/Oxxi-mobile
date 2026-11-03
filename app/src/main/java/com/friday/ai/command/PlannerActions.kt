@@ -31,15 +31,15 @@ class PlannerActions(
         is CommandResult.CreateErrand -> {
             errandDao.insert(ErrandEntity(what = c.what))
             watchErrands()
-            if (russian) "Напомню, когда будете рядом" else "I'll remind you when you're nearby"
+            if (russian) "Напомню, когда будете рядом" else "Te avisaré cuando estés cerca."
         }
         // Notes go to Lazuri so they show up on the PC too.
         is CommandResult.CreateNote ->
-            if (memory.saveNote(c.text)) "Noted" else "Saved locally — Lazuri isn't connected"
+            if (memory.saveNote(c.text)) "Anotado." else "Guardado en el teléfono; Lazuri no está conectado."
     }
 
     private fun createEvent(c: CommandResult.CreateEvent): String {
-        val local = parseWhen(c.whenText) ?: return "I couldn't work out when that should be"
+        val local = parseWhen(c.whenText) ?: return "No he podido determinar cuándo debe ser."
         val start = millis(local)
         return apps.createCalendarEvent(
             title = c.title,
@@ -51,7 +51,7 @@ class PlannerActions(
     }
 
     private fun reschedule(c: CommandResult.RescheduleEvent): String {
-        val local = parseWhen(c.whenText) ?: return "I couldn't work out the new time"
+        val local = parseWhen(c.whenText) ?: return "No he podido determinar la nueva hora."
         return apps.rescheduleEvent(c.titleHint, millis(local))
     }
 
