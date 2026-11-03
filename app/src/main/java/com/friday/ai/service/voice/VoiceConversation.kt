@@ -77,7 +77,7 @@ class VoiceConversation(
      * What this conversation is transcribed in: Russian when the owner called
      * "Пятница", Whisper's own guess when they called "Friday".
      */
-    private var language: String? = "ru"
+    private var language: String? = "es"
 
     /** True while Friday is talking, so a wake word means "interrupt". */
     @Volatile
@@ -200,7 +200,7 @@ class VoiceConversation(
         WakePhrases.Language.RUSSIAN -> "ru"
         WakePhrases.Language.SPANISH -> "es"
         // The side button, the tile: no name was said, so the owner's usual language.
-        null -> if (session.russian()) "ru" else null
+        null -> if (session.russian()) "ru" else "es"
     }
 
     private suspend fun next(
@@ -218,12 +218,26 @@ class VoiceConversation(
                 listen(mine, isFollowUp = false, attempt = attempt + 1)
             }
             VoiceTurn.Next.END_QUIETLY -> {
-                if (outcome is VoiceTurn.Outcome.Stranger) Log.i(TAG, "Follow-up from another voice ignored")
-                // "Отправить?" with no answer heard: it does not wait for a "да" said later.
-                if (commands.dropPending()) {
-                    io.overlay.showResult("Не расслышала ответ — ничего не отправила", NOTICE_MS)
+                if (isFollowUp && outcome is VoiceTurn.Outcome.Nothing &&
+                    attempt < FOLLOW_UP_SILENCE_ATTEMPTS
+                ) {
+                    // One quiet pause must not force the owner to tap the
+                    // microphone again during a natural back-and-forth.
+                    io.overlay.listening()
+                    listen(mine, isFollowUp = true, attempt = attempt + 1)
                 } else {
-                    io.overlay.dismiss()
+                    if (outcome is VoiceTurn.Outcome.Stranger) {
+                        Log.i(TAG, "Follow-up from another voice ignored")
+                    }
+                    // "Send?" with no answer heard: nothing is sent later.
+                    if (commands.dropPending()) {
+                        io.overlay.showResult(
+                            "No he oído tu confirmación; no he enviado nada.",
+                            NOTICE_MS
+                        )
+                    } else {
+                        io.overlay.dismiss()
+                    }
                 }
             }
             // On screen only: saying it aloud adds noise to a turn that
@@ -273,7 +287,7 @@ class VoiceConversation(
         if (outcome is CommandExecutor.Outcome.Conversation) {
             when (val r = answers.answer(outcome.text, language)) {
                 is SpokenAnswer.Result.Finished ->
-                    if (mine == turn) afterSpeaking(mine, r.response, r.followUp && !last)
+                    if (mine == turn) afterSpeaking(mine, r.response, allowFollowUp = !last)
                 is SpokenAnswer.Result.Failed -> if (mine == turn) speakAndContinue(mine, r.message, false)
             }
             return
