@@ -34,7 +34,7 @@ object DateTimeParser {
     const val DEFAULT_REMINDER_MINUTES = 60
 
     private val LEAD_TIME = Regex(
-        """(?:за|)\s*(\d+)?\s*(минут\p{L}*|мин|час\p{L}*|hours?|minutes?|mins?)\s*(?:до|before)""",
+        """(?:(?:con\s+)?(?:\d+\s*)?(?:minuto\p{L}*|hora\p{L}*)\s+antes\s+de|(?:за|)\s*(\d+)?\s*(minuto\p{L}*|hora\p{L}*|минут\p{L}*|мин|час\p{L}*|hours?|minutes?|mins?)\s*(?:до|before))""",
         RegexOption.IGNORE_CASE
     )
 
@@ -77,7 +77,7 @@ object DateTimeParser {
     )
 
     private val RELATIVE_UNITS = Regex(
-        """(?:через|in)\s+(\d+)\s*(минут\w*|мин|час\w*|дн\w*|день|недел\w*|minutes?|mins?|hours?|days?|weeks?)""",
+        """(?:через|in|en|dentro de)\s+(\d+)\s*(minuto\p{L}*|min|hora\p{L}*|día\p{L}*|dia\p{L}*|semana\p{L}*|минут\w*|мин|час\w*|дн\w*|день|недел\w*|minutes?|mins?|hours?|days?|weeks?)""",
         RegexOption.IGNORE_CASE
     )
 
