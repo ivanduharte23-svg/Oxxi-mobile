@@ -191,7 +191,7 @@ private fun ChatPage(
 ) {
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp).padding(bottom = 92.dp)) {
         Spacer(Modifier.height(20.dp))
-        NexusBlob(modifier = Modifier.align(Alignment.CenterHorizontally).size(220.dp))
+        OxxiHologram(modifier = Modifier.align(Alignment.CenterHorizontally).size(220.dp))
         Spacer(Modifier.height(18.dp))
         Text(
             when {
@@ -370,7 +370,7 @@ private data class OrbProjection(
 )
 
 @Composable
-private fun NexusBlob(modifier: Modifier = Modifier) {
+internal fun OxxiHologram(modifier: Modifier = Modifier, audioLevel: Float = 0f) {
     val motion = rememberInfiniteTransition(label = "oxxi_hologram")
     val rotation by motion.animateFloat(
         initialValue = 0f,
@@ -395,7 +395,7 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
         val width = size.minDimension
         val cx = size.width / 2f
         val cy = size.height / 2f
-        val radius = width * 0.315f * breathing
+        val soundPulse = audioLevel.coerceIn(0f, 1f)\n        val radius = width * (0.315f + soundPulse * 0.028f) * breathing
         val rows = 18
         val columns = 40
         val turn = rotation
@@ -421,7 +421,7 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
             val pulse = ((turn / (2f * PI.toFloat()) + wave / 3f) % 1f)
             val waveRadius = radius * (1.10f + pulse * 0.34f)
             drawCircle(
-                color = NeonCyan.copy(alpha = (1f - pulse) * 0.16f),
+                color = NeonCyan.copy(alpha = (1f - pulse) * (0.16f + soundPulse * 0.12f)),
                 radius = waveRadius,
                 center = Offset(cx, cy),
                 style = Stroke(width = 1.15f - pulse * 0.35f)
