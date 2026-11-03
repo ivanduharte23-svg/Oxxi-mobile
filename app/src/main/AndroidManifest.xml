@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- An always-listening assistant must not be put to sleep by battery optimisation. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
@@ -31,8 +32,6 @@
          enough — this only ranks places a few hundred metres apart. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <!-- No media-library permission: files and photos come through the system
-         picker (SAF), which grants access to the one chosen item. -->
     <!-- A dictated SMS is read back and sent only after a spoken "да"
          (SmsConfirmation); without this grant the SMS app opens with the text. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
@@ -135,7 +134,7 @@
             android:excludeFromRecents="true"
             android:noHistory="true"
             android:taskAffinity=""
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:theme="@android:style/Theme.FridayMobile" />
 
         <!-- "Пятница" in Quick Settings: tap and talk. -->
         <service
@@ -178,7 +177,7 @@
         <!-- Lets Friday answer "what did I miss". The user must switch this on
              in system settings; declaring it is not enough to read anything. -->
         <!-- Time zone and manual clock changes are exempt from the implicit-
-             broadcast limits, so a manifest receiver still gets them. -->
+        broadcast limits, so a manifest receiver still gets them. -->
         <receiver
             android:name=".service.TimeZoneReceiver"
             android:exported="false">
