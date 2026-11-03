@@ -118,7 +118,7 @@ class VoiceConversation(
                 return@launch
             }
 
-            val greeting = acknowledgements.next(WakePhrases.detectLanguage(heard))
+            val greeting = acknowledgements.next(WakePhrases.Language.SPANISH)
             // Shown before it is spoken: the panel appears at once, while the
             // voice still needs a round-trip.
             io.overlay.greet(greeting)
@@ -196,13 +196,7 @@ class VoiceConversation(
         else next(mine, outcome, command, isFollowUp, attempt)
     }
 
-    private suspend fun transcriptionLanguage(heard: String): String? = when (WakePhrases.detectLanguage(heard)) {
-        WakePhrases.Language.ENGLISH -> null
-        WakePhrases.Language.RUSSIAN -> "ru"
-        WakePhrases.Language.SPANISH -> "es"
-        // The side button, the tile: no name was said, so the owner's usual language.
-        null -> if (session.russian()) "ru" else "es"
-    }
+    private fun transcriptionLanguage(@Suppress("UNUSED_PARAMETER") heard: String): String = "es"
 
     private suspend fun next(
         mine: Int,
