@@ -33,7 +33,7 @@ class DeviceController(private val knobs: DeviceKnobs) {
         private const val MIN_BRIGHTNESS = 1
     }
 
-    fun perform(action: DeviceAction, level: Int?, russian: Boolean = true): String =
+    fun perform(action: DeviceAction, level: Int?, russian: Boolean = false): String =
         apply(action, level, russian).message
 
     fun apply(action: DeviceAction, level: Int?, russian: Boolean): DeviceActionResult = try {
@@ -64,13 +64,13 @@ class DeviceController(private val knobs: DeviceKnobs) {
         Log.w(TAG, "$action refused: ${e.message}")
         DeviceActionResult(
             DeviceActionResult.Mode.NEEDS_PERMISSION, null,
-            Say(russian)("Android не разрешил это изменение", "Android refused that change")
+            Say(russian)("Android не разрешил это изменение", "Android no ha permitido ese cambio.")
         )
     } catch (e: Exception) {
         Log.e(TAG, "$action failed: ${e.message}")
         DeviceActionResult(
             DeviceActionResult.Mode.FAILED, null,
-            Say(russian)("Не получилось изменить настройку", "Couldn't change that setting")
+            Say(russian)("Не получилось изменить настройку", "No he podido cambiar ese ajuste.")
         )
     }
 
@@ -87,7 +87,7 @@ class DeviceController(private val knobs: DeviceKnobs) {
         return when {
             before.fixed -> fixedVolume(say)
             !raise && before.muted ->
-                DeviceActionResult.direct(true, say("Звук медиа и так выключен", "Media is already muted"), null)
+                DeviceActionResult.direct(true, say("Звук медиа и так выключен", "El volumen multimedia ya está silenciado."), null)
             else -> step(before, raise, say)
         }
     }
@@ -102,8 +102,8 @@ class DeviceController(private val knobs: DeviceKnobs) {
         }
         val atEdge = if (raise) base.atMax else base.atMin
         if (atEdge) {
-            val edge = if (raise) say("Громкость медиа уже на максимуме", "Media volume is already at maximum")
-            else say("Громкость медиа уже на минимуме", "Media volume is already at minimum")
+            val edge = if (raise) say("Громкость медиа уже на максимуме", "El volumen multimedia ya está al máximo.")
+            else say("Громкость медиа уже на минимуме", "El volumen multimedia ya está al mínimo.")
             return DeviceActionResult.direct(!base.muted, edge, restore(before).takeIf { before != base })
         }
         knobs.stepMediaVolume(raise)
@@ -131,8 +131,8 @@ class DeviceController(private val knobs: DeviceKnobs) {
             verified -> volumeText(after, true, say)
             after.index != before.index ->
                 say("Получилось только ${after.percent}% вместо ${before.percentOf(wanted)}%",
-                    "Only got to ${after.percent}% instead of ${before.percentOf(wanted)}%")
-            else -> say("Громкость не изменилась", "The volume didn't change")
+                    "Solo he podido ajustar el volumen al ${after.percent}% en lugar del ${before.percentOf(wanted)}%.")
+            else -> say("Громкость не изменилась", "El volumen no ha cambiado.")
         }
         // Not what was asked, but something did change: that part can still be put back.
         val undo = restore(before).takeIf { after != before }
@@ -149,8 +149,8 @@ class DeviceController(private val knobs: DeviceKnobs) {
         }
         knobs.setMediaMuted(true)
         val verified = knobs.mediaVolume().muted
-        val message = if (verified) say("Звук медиа выключен", "Media muted")
-        else say("Звук не выключился", "Media didn't mute")
+        val message = if (verified) say("Звук медиа выключен", "Volumen multimedia silenciado.")
+        else say("Звук не выключился", "No se ha podido silenciar el volumen multimedia.")
         return DeviceActionResult.direct(verified, message, undo(DeviceAction.UNMUTE))
     }
 
@@ -160,7 +160,7 @@ class DeviceController(private val knobs: DeviceKnobs) {
         if (before.fixed) return fixedVolume(say)
         if (!before.muted) {
             val text = if (before.index > 0) {
-                say("Звук медиа уже включён, ${before.percent}%", "Media is already on, ${before.percent}%")
+                say("Звук медиа уже включён, ${before.percent}%", "El volumen multimedia ya está activado al ${before.percent}%.")
             } else {
                 silentText(say)
             }
@@ -170,9 +170,9 @@ class DeviceController(private val knobs: DeviceKnobs) {
         val after = knobs.mediaVolume()
         val verified = !after.muted
         val message = when {
-            !verified -> say("Звук не включился", "Media didn't unmute")
+            !verified -> say("Звук не включился", "No se ha podido activar el volumen multimedia.")
             after.index == 0 -> silentText(say)
-            else -> callNote(after, say("Звук медиа включён, ${after.percent}%", "Media on, ${after.percent}%"), say)
+            else -> callNote(after, say("Звук медиа включён, ${after.percent}%", "Volumen multimedia activado al ${after.percent}%."), say)
         }
         return DeviceActionResult.direct(verified, message, undo(DeviceAction.MUTE))
     }
@@ -181,25 +181,25 @@ class DeviceController(private val knobs: DeviceKnobs) {
         val text = when {
             !verified -> say("Громкость не изменилась", "The volume didn't change")
             v.index == 0 || v.muted -> say("Звук медиа выключен", "Media muted")
-            already -> say("Громкость уже ${v.percent}%", "Volume is already ${v.percent}%")
-            else -> say("Громкость ${v.percent}%", "Volume ${v.percent}%")
+            already -> say("Громкость уже ${v.percent}%", "El volumen ya está al ${v.percent}%.")
+            else -> say("Громкость ${v.percent}%", "Volumen al ${v.percent}%.")
         }
         return if (verified) callNote(v, text, say) else text
     }
 
     /** During a call the media slider is not the call's: say which one moved. */
     private fun callNote(v: MediaVolume, text: String, say: Say): String =
-        if (v.duringCall) text + say(" (медиа; громкость разговора не менялась)", " (media; call volume unchanged)")
+        if (v.duringCall) text + say(" (медиа; громкость разговора не менялась)", " (multimedia; el volumen de la llamada no ha cambiado)")
         else text
 
     private fun silentText(say: Say) =
         say("Звук медиа включён, но громкость на нуле — скажите, например, «громкость 50»",
-            "Media is unmuted but its volume is zero — say, for example, \"volume 50\"")
+            "El volumen multimedia está activado, pero está al 0 %. Di, por ejemplo, «volumen 50».")
 
     private fun fixedVolume(say: Say) = DeviceActionResult(
         DeviceActionResult.Mode.FAILED, false,
         say("На этом выходе звука громкость фиксирована — Android её не меняет",
-            "This audio output has fixed volume — Android won't change it")
+            "Esta salida de audio tiene el volumen fijo; Android no permite modificarlo.")
     )
 
     /** Puts back [before]: its level, then its mute flag. */
@@ -216,7 +216,7 @@ class DeviceController(private val knobs: DeviceKnobs) {
             return DeviceActionResult(
                 DeviceActionResult.Mode.NEEDS_PERMISSION, null,
                 say("Нужен доступ к «Не беспокоить» — открыла настройку, включите Friday",
-                    "I need Do Not Disturb access — I've opened the setting")
+                    "Necesito permiso para No molestar; he abierto los ajustes correspondientes.")
             )
         }
         val before = knobs.dndOn()
@@ -224,16 +224,16 @@ class DeviceController(private val knobs: DeviceKnobs) {
         knobs.setDnd(on)
         val verified = knobs.dndOn() == on
         val message = if (verified) dndText(on, say, already = false)
-        else say("Режим «Не беспокоить» не переключился", "Do Not Disturb didn't change")
+        else say("Режим «Не беспокоить» не переключился", "El modo No molestar no ha cambiado.")
         val undo = undo(if (before) DeviceAction.DND_ON else DeviceAction.DND_OFF)
         return DeviceActionResult.direct(verified, message, undo)
     }
 
     private fun dndText(on: Boolean, say: Say, already: Boolean): String = when {
-        on && already -> say("«Не беспокоить» уже включён", "Do Not Disturb is already on")
-        !on && already -> say("«Не беспокоить» уже выключен", "Do Not Disturb is already off")
-        on -> say("«Не беспокоить» включён", "Do Not Disturb on")
-        else -> say("«Не беспокоить» выключен", "Do Not Disturb off")
+        on && already -> say("«Не беспокоить» уже включён", "No molestar ya está activado.")
+        !on && already -> say("«Не беспокоить» уже выключен", "No molestar ya está desactivado.")
+        on -> say("«Не беспокоить» включён", "No molestar activado.")
+        else -> say("«Не беспокоить» выключен", "No molestar desactivado.")
     }
 
     // --- ringer --------------------------------------------------------------
@@ -247,23 +247,23 @@ class DeviceController(private val knobs: DeviceKnobs) {
             return DeviceActionResult(
                 DeviceActionResult.Mode.NEEDS_PERMISSION, null,
                 say("Для беззвучного режима нужен доступ к «Не беспокоить» — открыла настройку",
-                    "Silent mode needs Do Not Disturb access — I've opened the setting")
+                    "El modo silencio necesita permiso para No molestar; he abierto los ajustes correspondientes.")
             )
         }
         knobs.setRinger(mode)
         val verified = knobs.ringer() == mode
         val message = if (verified) ringerText(mode, say, already = false)
-        else say("Режим звонка не переключился", "The ringer didn't change")
+        else say("Режим звонка не переключился", "El timbre no ha cambiado.")
         return DeviceActionResult.direct(verified, message, undo(before.action))
     }
 
     private fun ringerText(mode: Ringer, say: Say, already: Boolean): String {
         val name = when (mode) {
-            Ringer.NORMAL -> say("звонок со звуком", "ringer on")
-            Ringer.VIBRATE -> say("только вибрация", "vibrate only")
-            Ringer.SILENT -> say("полностью беззвучно", "fully silent")
+            Ringer.NORMAL -> say("звонок со звуком", "sonido del timbre activado")
+            Ringer.VIBRATE -> say("только вибрация", "solo vibración")
+            Ringer.SILENT -> say("полностью беззвучно", "silencio total")
         }
-        return if (already) say("Уже $name", "Already $name") else name.replaceFirstChar(Char::uppercase)
+        return if (already) say("Уже $name", "Ya está: $name") else name.replaceFirstChar(Char::uppercase)
     }
 
     // --- brightness ------------------------------------------------------------
@@ -277,7 +277,7 @@ class DeviceController(private val knobs: DeviceKnobs) {
         knobs.setBrightnessPercent(wanted)
         val now = knobs.brightnessPercent()
         val verified = !knobs.brightnessAuto() && kotlin.math.abs(now - wanted) <= 1
-        val message = if (verified) say("Яркость $now%", "Brightness $now%")
+        val message = if (verified) say("Яркость $now%", "Brillo al $now %.")
         else say("Яркость не изменилась", "The brightness didn't change")
         val undo = if (wasAuto) undo(DeviceAction.BRIGHTNESS_AUTO) else undo(DeviceAction.BRIGHTNESS_SET, before)
         return DeviceActionResult.direct(verified, message, undo)
@@ -286,14 +286,14 @@ class DeviceController(private val knobs: DeviceKnobs) {
     private fun autoBrightness(say: Say): DeviceActionResult {
         if (!knobs.canWriteSettings()) return needsWriteSettings(say)
         if (knobs.brightnessAuto()) {
-            val already = say("Автояркость уже включена", "Auto-brightness is already on")
+            val already = say("Автояркость уже включена", "El brillo automático ya está activado.")
             return DeviceActionResult.direct(true, already, null)
         }
         val before = knobs.brightnessPercent()
         knobs.setBrightnessAuto(true)
         val verified = knobs.brightnessAuto()
-        val message = if (verified) say("Автояркость включена", "Auto-brightness on")
-        else say("Автояркость не включилась", "Auto-brightness didn't turn on")
+        val message = if (verified) say("Автояркость включена", "Brillo automático activado.")
+        else say("Автояркость не включилась", "No se ha podido activar el brillo automático.")
         return DeviceActionResult.direct(verified, message, undo(DeviceAction.BRIGHTNESS_SET, before))
     }
 
@@ -302,7 +302,7 @@ class DeviceController(private val knobs: DeviceKnobs) {
         return DeviceActionResult(
             DeviceActionResult.Mode.NEEDS_PERMISSION, null,
             say("Чтобы менять яркость, разрешите Friday изменять системные настройки — открыла этот экран",
-                "To change brightness, allow Friday to modify system settings — I've opened that screen")
+                "Para cambiar el brillo, permite que Oxxi modifique los ajustes del sistema. He abierto esa pantalla.")
         )
     }
 
@@ -312,16 +312,16 @@ class DeviceController(private val knobs: DeviceKnobs) {
         val name = radio.label
         val state = knobs.radioOn(radio)
         if (state == on) {
-            val already = if (on) say("$name уже включён", "$name is already on")
-            else say("$name уже выключен", "$name is already off")
+            val already = if (on) say("$name уже включён", "$name ya está activado.")
+            else say("$name уже выключен", "$name ya está desactivado.")
             return DeviceActionResult.direct(true, already, null)
         }
         knobs.openPanel(radio)
-        val wanted = if (on) say("включить", "turn on") else say("выключить", "turn off")
+        val wanted = if (on) say("включить", "activar") else say("выключить", "desactivar")
         return DeviceActionResult(
             DeviceActionResult.Mode.OPENED_SYSTEM_UI, null,
             say("Android не даёт приложениям переключать $name — открыла настройку, осталось $wanted",
-                "Android doesn't let apps switch $name — I've opened its settings for you to $wanted")
+                "Android no permite que las aplicaciones cambien $name directamente. He abierto sus ajustes para que puedas $wanted.")
         )
     }
 
@@ -329,14 +329,14 @@ class DeviceController(private val knobs: DeviceKnobs) {
         knobs.openPanel(radio)
         return DeviceActionResult(
             DeviceActionResult.Mode.OPENED_SYSTEM_UI, null,
-            say("Открыла настройки ${radio.label}", "Opened ${radio.label} settings")
+            say("Открыла настройки ${radio.label}", "He abierto los ajustes de ${radio.label}.")
         )
     }
 
     private fun undo(action: DeviceAction, level: Int? = null) = DeviceActionResult.Undo(action, level)
 
-    private class Say(private val russian: Boolean) {
-        operator fun invoke(ru: String, en: String) = if (russian) ru else en
+    private class Say(@Suppress("UNUSED_PARAMETER") russian: Boolean) {
+        operator fun invoke(@Suppress("UNUSED_PARAMETER") ru: String, es: String) = es
     }
 }
 
