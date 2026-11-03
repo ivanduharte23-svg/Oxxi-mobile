@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -22,6 +22,17 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+
+      - name: Set CI version
+        shell: bash
+        run: |
+          set -euo pipefail
+          CODE=$((100000 + GITHUB_RUN_NUMBER))
+          NAME="0.20.${GITHUB_RUN_NUMBER}"
+          sed -i -E "s/versionCode = [0-9]+/versionCode = ${CODE}/; s/versionName = \"[^\"]+\"/versionName = \"${NAME}\"/" app/build.gradle.kts
+          echo "OXXI_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
+          echo "OXXI_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
+          echo "Building Oxxi $NAME ($CODE)"
 
       - name: Set up Gradle wrapper
         uses: gradle/actions/setup-gradle@v4
@@ -39,12 +50,7 @@ jobs:
           OXXI_SIGNING_KEY_PASSWORD: ${{ secrets.OXXI_SIGNING_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          values=(
-            "$OXXI_SIGNING_KEYSTORE_BASE64"
-            "$OXXI_SIGNING_STORE_PASSWORD"
-            "$OXXI_SIGNING_KEY_ALIAS"
-            "$OXXI_SIGNING_KEY_PASSWORD"
-          )
+          values=("$OXXI_SIGNING_KEYSTORE_BASE64" "$OXXI_SIGNING_STORE_PASSWORD" "$OXXI_SIGNING_KEY_ALIAS" "$OXXI_SIGNING_KEY_PASSWORD")
           present=0
           for value in "${values[@]}"; do
             if [[ -n "$value" ]]; then present=$((present + 1)); fi
@@ -56,9 +62,7 @@ jobs:
           if [[ "$present" -eq "${#values[@]}" ]]; then
             key="$RUNNER_TEMP/oxxi-owner.keystore"
             printf '%s' "$OXXI_SIGNING_KEYSTORE_BASE64" | base64 --decode > "$key"
-            keytool -list -keystore "$key" \
-              -storepass "$OXXI_SIGNING_STORE_PASSWORD" \
-              -alias "$OXXI_SIGNING_KEY_ALIAS" >/dev/null
+            keytool -list -keystore "$key" -storepass "$OXXI_SIGNING_STORE_PASSWORD" -alias "$OXXI_SIGNING_KEY_ALIAS" >/dev/null
             {
               echo "FRIDAY_SIGNING_STORE_FILE=$key"
               echo "FRIDAY_SIGNING_STORE_PASSWORD=$OXXI_SIGNING_STORE_PASSWORD"
@@ -72,8 +76,6 @@ jobs:
             echo "No owner signing key configured; using a stable CI debug key."
           fi
 
-      # Fallback signing is for testing only. Caching the generated key keeps
-      # subsequent CI APKs compatible instead of generating a new key each run.
       - name: Cache fallback debug signing key
         id: debug-key-cache
         if: env.OXXI_OWNER_SIGNING != 'true'
@@ -88,16 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.android"
-          keytool -genkeypair \
-            -keystore "$HOME/.android/debug.keystore" \
-            -storepass android \
-            -keypass android \
-            -alias androiddebugkey \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Oxxi Android Debug,O=Oxxi,C=US" \
-            -noprompt
+          keytool -genkeypair -keystore "$HOME/.android/debug.keystore" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Oxxi Android Debug,O=Oxxi,C=US" -noprompt
 
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace
@@ -115,27 +108,31 @@ jobs:
           test -x "$APKSIGNER"
           if ! "$APKSIGNER" verify "$APK" >/dev/null 2>&1; then
             if [[ "${OXXI_OWNER_SIGNING:-false}" == "true" ]]; then
-              "$APKSIGNER" sign \
-                --ks "$FRIDAY_SIGNING_STORE_FILE" \
-                --ks-pass env:FRIDAY_SIGNING_STORE_PASSWORD \
-                --key-pass env:FRIDAY_SIGNING_KEY_PASSWORD \
-                --ks-key-alias "$FRIDAY_SIGNING_KEY_ALIAS" \
-                "$APK"
+              "$APKSIGNER" sign --ks "$FRIDAY_SIGNING_STORE_FILE" --ks-pass env:FRIDAY_SIGNING_STORE_PASSWORD --key-pass env:FRIDAY_SIGNING_KEY_PASSWORD --ks-key-alias "$FRIDAY_SIGNING_KEY_ALIAS" "$APK"
             else
-              "$APKSIGNER" sign \
-                --ks "$HOME/.android/debug.keystore" \
-                --ks-pass pass:android \
-                --key-pass pass:android \
-                --ks-key-alias androiddebugkey \
-                "$APK"
+              "$APKSIGNER" sign --ks "$HOME/.android/debug.keystore" --ks-pass pass:android --key-pass pass:android --ks-key-alias androiddebugkey "$APK"
             fi
           fi
           "$APKSIGNER" verify --verbose "$APK"
+          cp "$APK" "Oxxi.apk"
 
       - name: Publish APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Oxxi-Android-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: Oxxi.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish GitHub release for Oxxi updater
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${OXXI_VERSION_NAME}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" Oxxi.apk --clobber
+          else
+            gh release create "$TAG" Oxxi.apk --title "Oxxi $OXXI_VERSION_NAME" --generate-notes
+          fi
