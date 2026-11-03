@@ -2,6 +2,7 @@ package com.friday.ai
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import com.friday.ai.ui.voice.InAppVoiceLayer
 import androidx.activity.ComponentActivity
@@ -13,6 +14,7 @@ import com.friday.ai.data.local.dao.UserPreferenceDao
 import com.friday.ai.service.FridayWakeWordService
 import com.friday.ai.ui.navigation.FridayNavGraph
 import com.friday.ai.ui.theme.FridayTheme
+import com.friday.ai.ui.update.UpdateDialogHost
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -31,10 +33,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FridayTheme {
-                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize()) {
+                Box(Modifier.fillMaxSize()) {
                     FridayNavGraph(activity = this@MainActivity)
-                    // A spoken exchange while Friday is open shows here, not in a window over her.
                     InAppVoiceLayer()
+                    UpdateDialogHost()
                 }
             }
         }
