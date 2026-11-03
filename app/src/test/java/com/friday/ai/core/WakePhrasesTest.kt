@@ -27,6 +27,15 @@ class WakePhrasesTest {
     }
 
     @Test
+    fun `oxxi wakes the assistant and strips the call from a command`() {
+        listOf("окси", "оккси", "оксси", "oxxi", "oksi", "окси открой ватсап").forEach {
+            assertTrue("'$it' should wake", wakes(it))
+        }
+        assertEquals(WakePhrases.Language.SPANISH, WakePhrases.detectLanguage("окси abre WhatsApp"))
+        assertEquals("abre WhatsApp", WakePhrases.stripCall("окси, abre WhatsApp"))
+    }
+
+    @Test
     fun `wake word followed by a command still wakes`() {
         assertTrue(wakes("пятница открой камеру"))
         assertTrue(wakes("фрайдей какая погода"))
@@ -105,6 +114,7 @@ class WakePhrasesTest {
         val vocab = WakePhrases.grammarVocabulary()
         assertTrue("Russian name missing from grammar", vocab.contains("пятница"))
         assertTrue("English name missing from grammar", vocab.contains("фрайдей"))
+        assertTrue("Oxxi name missing from grammar", vocab.contains("окси"))
         assertTrue("attention prefix missing from grammar", vocab.contains("окей"))
     }
 
