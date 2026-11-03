@@ -90,9 +90,9 @@ class FridayWakeWordService : Service() {
         internal fun startFailure(e: Exception): String = when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                 e is android.app.ForegroundServiceStartNotAllowedException ->
-                "Android не дал запустить прослушивание из фона — откройте Friday"
-            e is SecurityException -> "Android не дал службе микрофон в фоне — откройте Friday"
-            else -> "Прослушивание не запустилось (${e.javaClass.simpleName}) — откройте Friday"
+                "Android no pudo iniciar la escucha en segundo plano. Abre Oxxi."
+            e is SecurityException -> "Android no concedió acceso al micrófono en segundo plano. Abre Oxxi."
+            else -> "No se pudo iniciar la escucha (${e.javaClass.simpleName}). Abre Oxxi."
         }
 
         private const val ACTION_INVOKE = "com.friday.ai.INVOKE"
@@ -177,7 +177,7 @@ class FridayWakeWordService : Service() {
         notifier = ServiceNotifier(this)
         try {
             notifier.createChannel()
-            startForeground(ServiceNotifier.NOTIFICATION_ID, notifier.build("Initializing..."))
+            startForeground(ServiceNotifier.NOTIFICATION_ID, notifier.build("Preparando Oxxi..."))
             WakeStatus.startFailed(null)
         } catch (e: Exception) {
             // Android 14+: a microphone service started from the background is refused here.
