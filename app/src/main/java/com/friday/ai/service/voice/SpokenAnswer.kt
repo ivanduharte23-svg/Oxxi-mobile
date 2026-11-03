@@ -52,11 +52,9 @@ class SpokenAnswer(
         const val HISTORY_TURNS = 5
 
         const val VOICE_RULE =
-            "\n\nYou are Oxxi, a feminine voice assistant. Answer in ONE short, natural " +
-                "sentence — this is a spoken conversation, not a chat window. Use Spanish " +
-                "from Spain when the user speaks Spanish; otherwise respond in the same " +
-                "language as the user's latest message. Only go longer when the user asks " +
-                "for detail or the request genuinely requires steps."
+            "\n\nEres Oxxi, una asistente de voz femenina. Responde siempre en español de España, " +
+                "con una frase breve y natural: es una conversación hablada, no una ventana de chat. " +
+                "Amplía la respuesta solo cuando el usuario pida detalles o la petición requiera pasos."
     }
 
     suspend fun answer(userText: String, language: String? = null): Result {
@@ -89,7 +87,7 @@ class SpokenAnswer(
             remember(userText, response, assistantSpokeBefore = history.isNotEmpty())
             speech.endInput()
             speech.awaitCompletion()
-            // If Friday herself just said goodbye the exchange is over: don't
+            // If Oxxi herself just said goodbye the exchange is over: don't
             // reopen the microphone and sit there in the user's way.
             Result.Finished(response, followUp = !ConversationControl.isFarewell(response))
         } catch (e: CancellationException) {
