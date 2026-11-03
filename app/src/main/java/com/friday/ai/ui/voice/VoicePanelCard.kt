@@ -105,7 +105,7 @@ fun VoicePanelCard(
     ) {
         Column(Modifier.padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OxxiHologram(Modifier.size(VoiceTokens.Reactor))
+                OxxiHologram(Modifier.size(VoiceTokens.Reactor), audioLevel = level())
                 Column(
                     Modifier
                         .weight(1f)
