@@ -21,14 +21,20 @@ class Acknowledgements(private val random: () -> Double = Math::random) {
             "Да, сэр?"
         )
         private val ENGLISH = listOf(
-            "At your service, sir",
-            "Yes, sir?",
+            "At your service",
+            "Yes?",
             "How can I help?",
             "Listening"
         )
+        private val SPANISH = listOf(
+            "Aquí estoy. ¿Qué necesitas?",
+            "Dime, te escucho.",
+            "A tu servicio.",
+            "¿En qué te ayudo?"
+        )
 
         /** Every greeting, for synthesising them before they are needed. */
-        val all: List<String> get() = RUSSIAN + ENGLISH
+        val all: List<String> get() = RUSSIAN + ENGLISH + SPANISH
     }
 
     private var lastSpoken: String? = null
@@ -39,7 +45,11 @@ class Acknowledgements(private val random: () -> Double = Math::random) {
      * assistant sound like a doorbell.
      */
     fun next(language: WakePhrases.Language?): String {
-        val pool = if (language == WakePhrases.Language.ENGLISH) ENGLISH else RUSSIAN
+        val pool = when (language) {
+            WakePhrases.Language.ENGLISH -> ENGLISH
+            WakePhrases.Language.SPANISH -> SPANISH
+            else -> RUSSIAN
+        }
         val choices = pool.filter { it != lastSpoken }.ifEmpty { pool }
         val picked = choices[(random() * choices.size).toInt().coerceIn(0, choices.lastIndex)]
         lastSpoken = picked
