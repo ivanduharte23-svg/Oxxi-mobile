@@ -139,9 +139,9 @@ class ModeEngineTest {
     private val runner: suspend (CommandResult) -> String = { c ->
         ran += c
         when (c) {
-            is CommandResult.PlayMedia -> "Играет «${c.query}» в Spotify"
-            is CommandResult.MediaControl -> "Пауза"
-            else -> "Готово"
+            is CommandResult.PlayMedia -> "Reproduciendo «${c.query}» en Spotify."
+            is CommandResult.MediaControl -> "Música en pausa."
+            else -> "Hecho."
         }
     }
 
@@ -168,8 +168,8 @@ class ModeEngineTest {
     fun `creating reads the steps back and saves them`() = runTest {
         compiled["включается spotify с грустными песнями"] = ModeCompiler.Result.Steps(sad, emptyList())
         val reply = say("Создай режим грусти. Это режим, где включается Spotify с грустными песнями.")!!
-        assertTrue(reply, reply.startsWith("Режим грусти: включу «грустные песни» в Spotify."))
-        assertTrue(reply.contains("«отмена»"))
+        assertTrue(reply, reply.startsWith("Modo грусти: reproducir «грустные песни» en Spotify."))
+        assertTrue(reply.contains("cancelar"))
         assertEquals(1, dao.rows.value.size)
         assertTrue("creating must not run anything", ran.isEmpty())
     }
@@ -181,8 +181,8 @@ class ModeEngineTest {
         assertEquals(Ringer.SILENT, phone.ringerMode)
         assertTrue(phone.dndState)
         assertEquals(5, phone.brightness)
-        assertTrue(reply, reply.startsWith("Режим отдыха. Полностью беззвучно."))
-        assertTrue(reply.contains("Яркость 5%"))
+        assertTrue(reply, reply.startsWith("Modo отдыха."))
+        assertTrue(reply.contains("Brillo al 5 %"))
         assertTrue(store.all().single().active)
     }
 
@@ -194,7 +194,7 @@ class ModeEngineTest {
         assertEquals(Ringer.NORMAL, phone.ringerMode)
         assertFalse(phone.dndState)
         assertEquals(60, phone.brightness)
-        assertTrue(reply, reply.startsWith("Режим отдыха выключен."))
+        assertTrue(reply, reply.startsWith("Modo отдыха."))
         assertFalse(store.all().single().active)
     }
 
@@ -235,16 +235,16 @@ class ModeEngineTest {
     fun `a failed step is not undone, and is said`() = runTest {
         compiled["включается spotify с грустными песнями"] = ModeCompiler.Result.Steps(sad, emptyList())
         say("Создай режим грусти. Это режим, где включается Spotify с грустными песнями.")
-        val failing: suspend (CommandResult) -> String = { "Не получилось: нет сети" }
+        val failing: suspend (CommandResult) -> String = { "No he podido realizar la acción: no hay conexión." }
         val reply = engine.handle(CommandResult.Mode.Run("грусти"), russian = true, runner = failing)
-        assertTrue(reply.contains("Не получилось"))
+        assertTrue(reply.contains("no hay conexión"))
         assertTrue("nothing started, nothing to pause", store.all().single().undo!!.isEmpty())
     }
 
     @Test
     fun `cancel right after creating removes the mode, later it does not`() = runTest {
         createRest()
-        assertEquals("Убрала режим отдыха. Опишите его ещё раз, по-другому.", say("нет, не так"))
+        assertEquals("He eliminado el modo отдыха. Descríbelo de otra manera.", say("нет, не так"))
         assertTrue(store.all().isEmpty())
 
         createRest()
@@ -263,25 +263,25 @@ class ModeEngineTest {
     @Test
     fun `a description the model can't use is said, nothing saved`() = runTest {
         val reply = say("создай режим хаоса: сделай что-нибудь")!!
-        assertTrue(reply.startsWith("Не поняла"))
+        assertTrue(reply.startsWith("No he podido determinar"))
         assertTrue(store.all().isEmpty())
     }
 
     @Test
     fun `no description is asked for`() = runTest {
-        assertTrue(say("создай режим отдыха")!!.startsWith("Что должно происходить в режиме отдыха?"))
+        assertTrue(say("создай режим отдыха")!!.startsWith("¿Qué debe hacer el modo отдыха?"))
     }
 
     @Test
     fun `describe, list, delete`() = runTest {
         createRest()
         assertEquals(
-            "Режим отдыха: полностью беззвучно, «Не беспокоить», яркость 5 %. Сейчас выключен.",
+            "Modo отдыха: modo silencio, activar No molestar, brillo al 5 %. Está desactivado.",
             say("что делает режим отдыха")
         )
-        assertEquals("Ваши режимы: отдыха.", say("какие у меня режимы"))
-        assertEquals("Удалила режим отдыха.", say("удали режим отдыха"))
-        assertTrue(say("какие у меня режимы")!!.startsWith("Режимов пока нет"))
+        assertEquals("Tus modos son: отдыха.", say("какие у меня режимы"))
+        assertEquals("He eliminado el modo отдыха.", say("удали режим отдыха"))
+        assertTrue(say("какие у меня режимы")!!.startsWith("Todavía no has creado ningún modo"))
     }
 
     @Test
@@ -291,7 +291,7 @@ class ModeEngineTest {
             listOf(envelope("phone_control", """{"target":"ringer","state":"vibrate"}""")), emptyList()
         )
         val reply = say("создай режим отдыха: только вибрация")!!
-        assertTrue(reply.startsWith("Обновила режим отдыха"))
+        assertTrue(reply.startsWith("He actualizado el modo отдыха"))
         assertEquals(1, store.all().size)
         assertEquals(1, store.all().single().steps.size)
     }
@@ -310,11 +310,11 @@ class ModeEngineTest {
         sayRouted("Создай режим грусти. Это режим, где включается Spotify с грустными песнями.")
         sayRouted("режим грусти")
         val reply = sayRouted("нет, включи lofi в spotify")!!
-        assertTrue(reply, reply.endsWith("Запомнить это для режима грусти вместо «включу «грустные песни» в Spotify»?"))
+        assertTrue(reply, reply.endsWith("¿Quieres guardar este cambio en el modo грусти en lugar de «reproducir «грустные песни» en Spotify»?"))
         assertTrue(ran.last() is CommandResult.PlayMedia)
 
         val yes = sayRouted("да")!!
-        assertTrue(yes, yes.startsWith("Запомнила."))
+        assertTrue(yes, yes.startsWith("Entendido."))
         val step = store.all().single().steps.single()
         assertEquals("lofi", (step.args["query"] as kotlinx.serialization.json.JsonPrimitive).content)
     }
@@ -324,9 +324,9 @@ class ModeEngineTest {
         compiled["включается spotify с грустными песнями"] = ModeCompiler.Result.Steps(sad, emptyList())
         sayRouted("Создай режим грусти. Это режим, где включается Spotify с грустными песнями.")
         sayRouted("режим грусти")
-        assertTrue(sayRouted("нет, включи не беспокоить")!!.endsWith("Добавить это в режим грусти?"))
+        assertTrue(sayRouted("нет, включи не беспокоить")!!.endsWith("¿Quieres añadirlo al modo грусти?"))
         assertTrue(phone.dndState)
-        assertEquals("Хорошо, режим остаётся как был.", sayRouted("нет"))
+        assertEquals("De acuerdo, el modo se queda como estaba.", sayRouted("нет"))
         assertEquals(1, store.all().single().steps.size)
     }
 
@@ -345,7 +345,7 @@ class ModeEngineTest {
             listOf(envelope("set_alarm", """{"hour":8,"minute":0}""")), emptyList()
         )
         val reply = say("добавь в режим отдыха будильник на 8")!!
-        assertTrue(reply, reply.startsWith("Добавила в режим отдыха: будильник на 8:00."))
+        assertTrue(reply, reply.startsWith("He añadido esto al modo отдыха: alarma a las 8:00."))
         assertEquals(4, store.all().single().steps.size)
     }
 
@@ -353,9 +353,9 @@ class ModeEngineTest {
     fun `removing a step by what it sounds like`() = runTest {
         createRest()
         val reply = say("убери яркость из режима отдыха")!!
-        assertTrue(reply, reply.startsWith("Убрала из режима отдыха: яркость 5 %."))
+        assertTrue(reply, reply.startsWith("He quitado del modo отдыха: brillo al 5 %."))
         assertEquals(listOf("ringer", "dnd"), store.all().single().steps.map { (it.args["target"] as kotlinx.serialization.json.JsonPrimitive).content })
-        assertTrue(say("убери кофеварку из режима отдыха")!!.startsWith("В режиме отдыха такого нет."))
+        assertTrue(say("убери кофеварку из режима отдыха")!!.startsWith("El modo отдыха no incluye esa acción."))
     }
 
     @Test
