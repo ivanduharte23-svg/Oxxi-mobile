@@ -247,7 +247,7 @@ class ChatViewModel(
     fun onScreenConsent(resultCode: Int, data: Intent?) {
         val capture = screen ?: return
         if (resultCode != Activity.RESULT_OK || data == null) {
-            showError("Доступ к экрану не дан — анализ отменён")
+            showError("No se ha concedido acceso a la pantalla; análisis cancelado.")
             return
         }
         if (!begin {
@@ -273,7 +273,7 @@ class ChatViewModel(
                 stream(analyzeContent.analyzeImage(file.jpegBase64, "Analyze this image (${file.name}):"))
             is FileAnalyzer.Outcome.Text -> {
                 val text = if (file.truncated) {
-                    file.text + "\n\n[…обрезано: показаны первые ${FileAnalyzer.MAX_TEXT_CHARS} символов]"
+                    file.text + "\n\n[…recortado: se muestran los primeros ${FileAnalyzer.MAX_TEXT_CHARS} caracteres]"
                 } else {
                     file.text
                 }
@@ -281,14 +281,14 @@ class ChatViewModel(
             }
             is FileAnalyzer.Outcome.Unsupported -> fail(
                 if (file.mimeType == "application/pdf") {
-                    "PDF пока не поддерживается — пришлите текст или снимок страницы"
+                    "Todavía no se admiten archivos PDF; envía el texto o una captura de la página."
                 } else {
-                    "Этот тип файла не поддерживается: «${file.name}»"
+                    "Este tipo de archivo no es compatible: «${file.name}»."
                 }
             )
             is FileAnalyzer.Outcome.TooLarge ->
-                fail("Файл «${file.name}» слишком большой (больше ${file.limitBytes / (1024 * 1024)} МБ)")
-            is FileAnalyzer.Outcome.Unreadable -> fail("Не удалось прочитать файл «${file.name}»")
+                fail("El archivo «${file.name}» es demasiado grande (supera ${file.limitBytes / (1024 * 1024)} MB).")
+            is FileAnalyzer.Outcome.Unreadable -> fail("No se ha podido leer el archivo «${file.name}».")
         }
     }
 
@@ -298,7 +298,7 @@ class ChatViewModel(
      */
     fun onNotebook(page: com.friday.ai.ui.notebook.NotebookInbox.Page) {
         val started = begin {
-            persist("[Блокнот] " + page.question.ifBlank { "что здесь написано?" }, MessageRole.USER)
+            persist("[Bloc de notas] " + page.question.ifBlank { "¿Qué pone aquí?" }, MessageRole.USER)
             stream(analyzeContent.analyzeImage(page.imageBase64, notebookPrompt(page.question)))
         }
         if (!started) busy()
@@ -347,7 +347,7 @@ class ChatViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                request.fail(e.message ?: "Ошибка")
+                request.fail(e.message ?: "Error")
             } finally {
                 request.streamId?.let(::removeStreamingMessage)
                 if (active === request) finishLoading(request)
@@ -407,7 +407,7 @@ class ChatViewModel(
         _uiState.update { it.copy(error = reason) }
     }
 
-    private fun busy() = showError("Пятница ещё отвечает — подождите немного")
+    private fun busy() = showError("Oxxi todavía está respondiendo; espera un momento.")
 
     private fun updateStreamingMessage(id: String, content: String) {
         _uiState.update { state ->
