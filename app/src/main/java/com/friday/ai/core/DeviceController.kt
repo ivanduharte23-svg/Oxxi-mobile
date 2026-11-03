@@ -145,7 +145,7 @@ class DeviceController(private val knobs: DeviceKnobs) {
         val before = knobs.mediaVolume()
         if (before.fixed) return fixedVolume(say)
         if (before.muted) {
-            return DeviceActionResult.direct(true, say("Звук медиа уже выключен", "Media is already muted"), null)
+            return DeviceActionResult.direct(true, say("Звук медиа уже выключен", "El volumen multimedia ya está silenciado."), null)
         }
         knobs.setMediaMuted(true)
         val verified = knobs.mediaVolume().muted
@@ -179,8 +179,8 @@ class DeviceController(private val knobs: DeviceKnobs) {
 
     private fun volumeText(v: MediaVolume, verified: Boolean, say: Say, already: Boolean = false): String {
         val text = when {
-            !verified -> say("Громкость не изменилась", "The volume didn't change")
-            v.index == 0 || v.muted -> say("Звук медиа выключен", "Media muted")
+            !verified -> say("Громкость не изменилась", "El volumen no ha cambiado.")
+            v.index == 0 || v.muted -> say("Звук медиа выключен", "Volumen multimedia silenciado.")
             already -> say("Громкость уже ${v.percent}%", "El volumen ya está al ${v.percent}%.")
             else -> say("Громкость ${v.percent}%", "Volumen al ${v.percent}%.")
         }
@@ -278,7 +278,7 @@ class DeviceController(private val knobs: DeviceKnobs) {
         val now = knobs.brightnessPercent()
         val verified = !knobs.brightnessAuto() && kotlin.math.abs(now - wanted) <= 1
         val message = if (verified) say("Яркость $now%", "Brillo al $now %.")
-        else say("Яркость не изменилась", "The brightness didn't change")
+        else say("Яркость не изменилась", "El brillo no ha cambiado.")
         val undo = if (wasAuto) undo(DeviceAction.BRIGHTNESS_AUTO) else undo(DeviceAction.BRIGHTNESS_SET, before)
         return DeviceActionResult.direct(verified, message, undo)
     }
