@@ -20,7 +20,7 @@ object ModePhrases {
     /** The description's group in [createEn]: after the two alternative name groups. */
     private const val EN_DESCRIPTION = 3
 
-    private val wake = Regex("^(?:пятница|friday)[,!.\\s]+")
+    private val wake = Regex("^(?:пятница|friday|oxxi)[,!.\\s]+")
 
     private val create = Regex(
         "^(?:пожалуйста\\s+)?(?:создай|сделай|заведи|добавь|запомни|настрой|придумай)\\s+(?:мне\\s+|новый\\s+)*" +
@@ -28,9 +28,9 @@ object ModePhrases {
         RegexOption.DOT_MATCHES_ALL
     )
     private val createEn = Regex(
-        "^(?:please\\s+)?(?:create|make|add|set up)\\s+(?:me\\s+)?(?:a\\s+|an\\s+|new\\s+)*" +
-            "(?:mode\\s+(?:called\\s+)?(.+?)|(.+?)\\s+mode)" +
-            "(?:\\s*[.:;,—–-]\\s*|\\s+(?=(?:where|when|that|which|it)\\s)|$)(.*)$",
+        "^(?:(?:please|por favor)\\s+)?(?:create|make|add|set up|crea|crear|configura|configurar)\\s+(?:(?:me|un|el|nuevo)\\s+)*" +
+            "(?:(?:mode|modo)\\s+(?:called|llamado)?\\s*(.+?)|(.+?)\\s+(?:mode|modo))" +
+            "(?:\\s*[.:;,—–-]\\s*|\\s+(?=(?:where|when|that|which|it|que|cuando|con)\\s)|$)(.*)$",
         RegexOption.DOT_MATCHES_ALL
     )
 
