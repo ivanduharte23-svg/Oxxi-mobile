@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.friday.ai.service.FridayWakeWordService
+import com.friday.ai.service.voice.VoiceUi
 import com.friday.ai.domain.model.ChatUiState
 import com.friday.ai.domain.model.MessageRole
 import com.friday.ai.ui.chat.ChatViewModel
@@ -189,9 +190,13 @@ private fun ChatPage(
     onSend: () -> Unit,
     onMic: () -> Unit
 ) {
+    val audioLevel by VoiceUi.store.level.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp).padding(bottom = 92.dp)) {
         Spacer(Modifier.height(20.dp))
-        OxxiHologram(modifier = Modifier.align(Alignment.CenterHorizontally).size(220.dp))
+        OxxiHologram(
+            modifier = Modifier.align(Alignment.CenterHorizontally).size(220.dp),
+            audioLevel = audioLevel
+        )
         Spacer(Modifier.height(18.dp))
         Text(
             when {
