@@ -198,7 +198,7 @@ class FridayNotificationListener : NotificationListenerService() {
         return !dnd && !onCall
     }
 
-    private suspend fun russian(): Boolean = (prefs.get("prefer_russian") ?: "true") == "true"
+    private suspend fun russian(): Boolean = false
 
     private fun resolveAppName(packageName: String): String = runCatching {
         val pm = packageManager
