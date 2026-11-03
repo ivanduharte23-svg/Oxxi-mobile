@@ -1,22 +1,24 @@
 package com.friday.ai.core
 
 /**
- * The words people put in front of a request in conversation: "Хорошо, но
- * во сколько ждать дождь?", "Ладно, а теперь открой ютуб". Left in, the
- * request was split at the comma, "хорошо" matched nothing, and the whole
- * phrase went to the model instead of the command it was.
+ * Removes conversational lead-ins before command routing. Speech recognition
+ * often returns "vale, ahora abre YouTube" or "bueno Oxxi, enciende la linterna";
+ * those lead-ins must not make an otherwise valid command fall through to chat.
  */
 object Filler {
-
     private val leading = Regex(
-        """^(?:хорошо|ладно|окей|ок|отлично|понятно|ясно|спасибо|ok|okay|alright|thanks|great)""" +
-            """[,.!]?\s+(?:(?:а|но|и|тогда|so|and|but|then)\s+)?(?:(?:теперь|now)\s+)?""",
+        """^(?:(?:bueno|buena|vale|okey|ok|de acuerdo|perfecto|genial|bien|claro|entendido|exacto|gracias|por favor|oye|oye oxxi|hey|hey oxxi|bueno oxxi|vale oxxi|ok oxxi|gracias oxxi|""" +
+            """хорошо|ладно|окей|ок|отлично|понятно|ясно|спасибо|ok|okay|alright|thanks|great)""" +
+            """[,.!?:]?\s+(?:(?:ahora|entonces|pues|y|pero|también|tambien|so|and|but|then|а|но|и|тогда)\s+)?(?:(?:ahora|ahora mismo|ahorita|теперь|сейчас|now)\s+)?""",
         RegexOption.IGNORE_CASE
     )
 
     /** [text] without its lead-in; unchanged when nothing would be left. */
     fun strip(text: String): String {
-        val rest = leading.replaceFirst(text.trim(), "").trim()
-        return if (rest.isEmpty()) text.trim() else rest.replaceFirstChar { it.uppercase() }
+        val original = text.trim()
+        var rest = leading.replaceFirst(original, "").trim()
+        // Common ASR punctuation can leave a second comma before the command.
+        rest = rest.trimStart(',', '.', '!', '?', ':', ';', '—', '-')
+        return if (rest.isEmpty()) original else rest.replaceFirstChar { it.uppercase() }
     }
 }
