@@ -49,6 +49,7 @@ class Announcer {
  * word in a message sent in the user's name cannot be taken back. A reply to
  * someone with no recent chat is an e-mail reply, as "ответь Ивану" always was.
  */
+@Suppress("UNUSED_PARAMETER")
 class MessageAssistant(
     private val context: Context,
     private val inbox: MessengerInbox,
@@ -78,15 +79,15 @@ class MessageAssistant(
         val chats = inbox.chats(clock())
         if (who != null && !Conversations.isPronoun(who)) {
             val chat = Conversations.find(who, chats)
-                ?: return if (russian) "От «$who» новых сообщений нет." else "Nothing new from $who."
+                ?: return "No hay mensajes nuevos de $who."
             return tell(chat, russian)
         }
         return when (chats.size) {
-            0 -> if (russian) "Непрочитанных сообщений нет." else "No unread messages."
+            0 -> "No tienes mensajes sin leer."
             1 -> tell(chats.single(), russian)
             else -> {
                 askedAt = clock()
-                Unread.whoWrote(chats, russian)
+                Unread.whoWrote(chats, false)
             }
         }
     }
@@ -96,12 +97,12 @@ class MessageAssistant(
 
     /** Reads one chat and marks it read; names the ones still waiting. */
     private suspend fun tell(chat: Conversation, russian: Boolean): String {
-        val summary = if (Unread.isLong(chat)) summarize(chat, russian) else null
+        val summary = if (Unread.isLong(chat)) summarize(chat, false) else null
         inbox.markRead(chat.key, clock())
-        val told = Unread.tell(chat, summary, russian)
+        val told = Unread.tell(chat, summary, false)
         val rest = inbox.chats(clock())
         askedAt = if (rest.isEmpty()) null else clock()
-        return if (rest.isEmpty()) told else told + " " + Unread.stillUnread(rest, russian)
+        return if (rest.isEmpty()) told else told + " " + Unread.stillUnread(rest, false)
     }
 
     /**
@@ -114,12 +115,11 @@ class MessageAssistant(
         val chat = choice?.chat
         return when {
             chat == null && ReplyTarget.isMailFor(who, loose) ->
-                mail.handle(MailCommands.Request.Reply(who.orEmpty(), text), russian).text
-            chat == null -> if (russian) "Не знаю, кому ответить: новых сообщений нет." else "Nobody to reply to."
+                mail.handle(MailCommands.Request.Reply(who.orEmpty(), text), false).text
+            chat == null -> "No hay mensajes recientes a los que responder."
             !chat.canReply ->
-                if (russian) "${chat.app} не даёт ответить из уведомления — откройте чат."
-                else "${chat.app} doesn't allow replies from its notification — open the chat."
-            choice.text.isBlank() -> if (russian) "Что ответить?" else "What should I reply?"
+                "No se puede responder a ${chat.app} desde la notificación; abre el chat."
+            choice.text.isBlank() -> "¿Qué quieres que responda?"
             choice.sendNow -> send(chat, choice.text, russian)
             else -> {
                 pending = Pending(chat, choice.text, now)
@@ -142,7 +142,7 @@ class MessageAssistant(
             Confirmation.Answer.YES -> Conversations.find(null, unread)
             Confirmation.Answer.NO -> {
                 askedAt = null
-                return if (russian) "Хорошо, позже." else "Okay, later."
+                return "Vale, cuando quieras."
             }
             Confirmation.Answer.OTHER -> null
         } ?: return null
@@ -156,7 +156,7 @@ class MessageAssistant(
             Confirmation.Answer.OTHER -> null
             Confirmation.Answer.NO -> {
                 pending = null
-                if (russian) "Не отправляю." else "Not sent."
+                "No lo he enviado."
             }
             Confirmation.Answer.YES -> {
                 pending = null
@@ -170,11 +170,11 @@ class MessageAssistant(
         val sent = inbox.reply(context, chat, text)
         if (sent) inbox.markRead(chat.key, clock())
         return when {
-            sent && !echo -> if (russian) "Отправила." else "Sent."
-            sent && russian -> "Отправила «${chat.title}»: «$text»."
-            sent -> "Sent to ${chat.title}: \"$text\"."
-            russian -> "Уведомление уже закрыто — ответить из него нельзя. Откройте ${chat.app}."
-            else -> "The notification is gone, so I can't reply from it. Open ${chat.app}."
+            sent && !echo -> "Enviado."
+            sent && russian -> "He respondido a ${chat.title}: «$text»."
+            sent -> "He respondido a ${chat.title}: «$text»."
+            "La notificación ha desaparecido; no puedo responder desde ella. Abre ${chat.app}."
+            else -> "La notificación ha desaparecido; no puedo responder desde ella. Abre ${chat.app}."
         }
     }
 }
