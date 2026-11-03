@@ -70,9 +70,13 @@ class CommandExecutor(
         private const val TAG = "CommandExecutor"
         private const val FAILED_RU = "Не получилось: "
         private const val FAILED_EN = "No he podido completar la acción: "
+        private const val FAILED_EN_ALT = "No he podido realizar la acción: "
 
-        /** Whether [reply] is this executor's report of a command that threw. */
-        fun isFailure(reply: String): Boolean = reply.startsWith(FAILED_RU) || reply.startsWith(FAILED_EN)
+        /** Whether [reply] reports a command failure, including the older Spanish wording. */
+        fun isFailure(reply: String): Boolean =
+            reply.trimStart().startsWith(FAILED_RU) ||
+                reply.trimStart().startsWith(FAILED_EN) ||
+                reply.trimStart().startsWith(FAILED_EN_ALT)
     }
 
     /** True when the last [route] was answered from what the model taught, not the patterns. */

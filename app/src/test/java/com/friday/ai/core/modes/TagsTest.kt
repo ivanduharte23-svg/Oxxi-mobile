@@ -110,16 +110,16 @@ class ModeTagEngineTest {
     @Test
     fun `linking a mode to a tag opens the writer`() = runTest {
         say("создай режим отдыха: не беспокоить")
-        assertTrue(say("привяжи режим отдыха к метке")!!.startsWith("Поднесите NFC-метку"))
+        assertTrue(say("привяжи режим отдыха к метке")!!.startsWith("Acerca una etiqueta NFC"))
         assertEquals(listOf("отдыха"), nfc.writing)
-        assertTrue(say("сделай метку для режима отдыха")!!.startsWith("Поднесите"))
+        assertTrue(say("сделай метку для режима отдыха")!!.startsWith("Acerca una etiqueta NFC"))
     }
 
     @Test
     fun `without nfc, it says so`() = runTest {
         nfc.on = false
         say("создай режим отдыха: не беспокоить")
-        assertTrue(say("привяжи режим отдыха к метке")!!.startsWith("NFC выключен"))
+        assertTrue(say("привяжи режим отдыха к метке")!!.startsWith("El NFC está desactivado"))
         assertTrue(nfc.writing.isEmpty())
     }
 
@@ -127,14 +127,14 @@ class ModeTagEngineTest {
     fun `touching the tag toggles the mode`() = runTest {
         say("создай режим отдыха: не беспокоить")
         val id = store.all().single().id
-        assertTrue(engine.toggle(id, true, runner).startsWith("Режим отдыха."))
+        assertTrue(engine.toggle(id, true, runner).startsWith("Modo отдыха."))
         assertTrue(knobs.on)
-        assertTrue(engine.toggle(id, true, runner).startsWith("Режим отдыха выключен."))
+        assertTrue(engine.toggle(id, true, runner).startsWith("El modo отдыха está desactivado."))
         assertFalse(knobs.on)
     }
 
     @Test
     fun `a tag for a deleted mode says so`() = runTest {
-        assertEquals("Эта метка была для режима, которого больше нет.", engine.toggle("gone", true, runner))
+        assertEquals("Esta etiqueta estaba vinculada a un modo que ya no existe.", engine.toggle("gone", true, runner))
     }
 }

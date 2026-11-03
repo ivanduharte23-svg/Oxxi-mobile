@@ -80,6 +80,8 @@ class ModePhrasesTest {
         assertFalse(ModeNames.same("грустный", "отдых"))
         assertFalse(ModeNames.same("работы", "отдыха"))
         assertFalse("too many extra words", ModeNames.same("грусти и ещё что-то", "грусти"))
+        assertEquals(1.0, ModeNames.overlap("яркость", "brillo al 5 % brightness"), 0.0)
+        assertEquals(1.0, ModeNames.overlap("громкость", "volumen al 40 % volume"), 0.0)
     }
 }
 
@@ -194,7 +196,7 @@ class ModeEngineTest {
         assertEquals(Ringer.NORMAL, phone.ringerMode)
         assertFalse(phone.dndState)
         assertEquals(60, phone.brightness)
-        assertTrue(reply, reply.startsWith("Modo отдыха."))
+        assertTrue(reply, reply.startsWith("El modo отдыха está desactivado."))
         assertFalse(store.all().single().active)
     }
 
