@@ -198,6 +198,7 @@ class VoiceConversation(
     private suspend fun transcriptionLanguage(heard: String): String? = when (WakePhrases.detectLanguage(heard)) {
         WakePhrases.Language.ENGLISH -> null
         WakePhrases.Language.RUSSIAN -> "ru"
+        WakePhrases.Language.SPANISH -> "es"
         // The side button, the tile: no name was said, so the owner's usual language.
         null -> if (session.russian()) "ru" else null
     }
@@ -233,7 +234,11 @@ class VoiceConversation(
     }
 
     private suspend fun heard(mine: Int, text: String) {
-        val russian = session.russian()
+        val russian = when (language) {
+            "ru" -> true
+            "es" -> false
+            else -> session.russian()
+        }
         // A pending "Отправить?" is answered before anything else — in
         // particular before "нет" can be taken for a goodbye.
         val confirmed = commands.answerPending(text, russian)
