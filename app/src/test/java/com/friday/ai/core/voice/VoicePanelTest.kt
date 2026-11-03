@@ -99,7 +99,7 @@ class VoicePresentationTest {
     fun `withheld content can be revealed only through unlocking`() {
         val locked = VoicePresentation.locked(secret, unlocked = false)
         assertTrue(locked.canReveal)
-        assertEquals("Отвечаю", locked.status)
+        assertEquals("Respondiendo", locked.status)
         val unlocked = VoicePresentation.locked(secret, unlocked = true)
         assertEquals(secret.answer, unlocked.body)
         assertFalse(VoicePresentation.locked(secret.copy(phase = VoicePhase.LISTENING, answer = null), false).canReveal)
@@ -108,17 +108,17 @@ class VoicePresentationTest {
     @Test
     fun `the unlocked panel says the stage in words, never blank`() {
         val listening = VoicePresentation.open(secret.copy(phase = VoicePhase.LISTENING, answer = null))
-        assertEquals("Слушаю", listening.status)
+        assertEquals("Te escucho", listening.status)
         assertEquals(PanelView.Tone.CYAN, listening.tone)
         val hearing = VoicePresentation.open(secret.copy(phase = VoicePhase.LISTENING, hearing = true))
-        assertEquals("Слышу вас…", hearing.body)
+        assertEquals("Te oigo…", hearing.body)
         val transcribing = VoicePresentation.open(secret.copy(phase = VoicePhase.PROCESSING, heard = null, answer = null))
-        assertEquals("Распознаю", transcribing.status)
+        assertEquals("Reconociendo voz", transcribing.status)
         assertNull("no made-up transcript before there is one", transcribing.body)
         val thinking = VoicePresentation.open(secret.copy(phase = VoicePhase.PROCESSING, answer = null))
         assertEquals("«${secret.heard}»", thinking.body)
         assertEquals(PanelView.Tone.AMBER, thinking.tone)
-        assertEquals("Пятница · команда", VoicePresentation.open(secret).status)
+        assertEquals("Oxxi · comando", VoicePresentation.open(secret).status)
         val error = VoicePresentation.open(secret.copy(phase = VoicePhase.ERROR, answer = "Нет сети"))
         assertEquals(PanelView.Tone.ERROR, error.tone)
     }
