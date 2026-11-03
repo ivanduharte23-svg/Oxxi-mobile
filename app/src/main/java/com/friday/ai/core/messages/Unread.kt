@@ -11,7 +11,8 @@ object Unread {
 
     private val PICK_FILLER = setOf(
         "vamos", "primero", "empieza", "empecemos", "con", "de", "lee", "leer", "léelo", "por", "favor",
-        "first", "from", "read", "please", "start", "with"
+        "давай", "сначала", "от", "с", "читай", "читать", "прочитай", "первым", "первой", "начни", "пожалуйста",
+        "first", "from", "read", "please", "start", "with", "the", "messages"
     )
 
     @Suppress("UNUSED_PARAMETER")
