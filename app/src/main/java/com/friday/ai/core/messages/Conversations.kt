@@ -19,7 +19,7 @@ data class Conversation(
 
 /** Finding and retelling chats, with Oxxi's Spanish wording. */
 object Conversations {
-    private val PRONOUNS = setOf("le", "les", "él", "ella", "ellos", "ellas", "him", "her", "them", "он", "она", "они")
+    private val PRONOUNS = setOf("le", "les", "él", "ella", "ellos", "ellas", "him", "her", "them", "он", "она", "они", "ему", "ей", "его", "её", "него", "неё", "ним", "ней", "ними")
     private const val SPOKEN_MESSAGE_CHARS = 160
     private const val SPOKEN_MESSAGES = 3
 
