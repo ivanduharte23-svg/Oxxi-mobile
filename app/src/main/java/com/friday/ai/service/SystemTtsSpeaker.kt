@@ -97,7 +97,6 @@ class SystemTtsSpeaker(context: Context) {
     /** Picks a voice language so Russian isn't read with an English accent. */
     private fun applyLanguageFor(text: String) {
         val cyrillic = text.count { it in 'Ѐ'..'ӿ' }
-        val latin = text.count { it in 'A'..'Z' || it in 'a'..'z' }
         val locale = when {
             cyrillic > latin -> Locale("ru", "RU")
             EdgeTtsProtocol.detectVoice(text) == EdgeTtsProtocol.VOICE_ES -> Locale("es", "ES")
