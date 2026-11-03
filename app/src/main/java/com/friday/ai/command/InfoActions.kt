@@ -31,16 +31,16 @@ class InfoActions(
         val saved = weather.setHomeCity(said, russian)
         return when {
             saved == null && russian -> "Не нашла город «$said»."
-            saved == null -> "I couldn't find a city called $said."
+            saved == null -> "No he encontrado la ciudad $said."
             russian -> "Запомнила: ваш город — $saved."
-            else -> "Got it: your city is $saved."
+            else -> "Entendido: tu ciudad es $saved."
         }
     }
 
     private fun tellTime(russian: Boolean): String {
         val t = java.time.LocalTime.now()
         val hhmm = "%02d:%02d".format(t.hour, t.minute)
-        return if (russian) "Сейчас $hhmm" else "It's $hhmm"
+        return if (russian) "Сейчас $hhmm" else "Son las $hhmm."
     }
 
     /**
@@ -51,8 +51,8 @@ class InfoActions(
     private suspend fun weather(c: CommandResult.Weather, russianSpeaker: Boolean): String {
         // A Cyrillic place name means a Russian answer whatever else is set.
         val russian = russianSpeaker || c.place.orEmpty().any { it in 'а'..'я' || it in 'А'..'Я' }
-        val where = c.place ?: if (russian) "вашего места" else "where you are"
+        val where = c.place ?: if (russian) "вашего места" else "tu ubicación"
         return weather.summary(c.place, c.dayOffset, russian)
-            ?: if (russian) "Не смогла получить погоду для «$where»" else "Couldn't get the weather for $where"
+            ?: if (russian) "Не смогла получить погоду для «$where»" else "No he podido obtener el tiempo de $where."
     }
 }
