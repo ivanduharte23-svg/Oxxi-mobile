@@ -62,7 +62,7 @@ class VoiceConversationTest {
         every { offline.isOffline() } returns false
         every { gate.commandCheck() } returns null
         coEvery { session.apiKey() } returns "key"
-        coEvery { session.russian() } returns true
+        coEvery { session.russian() } returns false
         coEvery { commands.answerPending(any(), any()) } returns null
         every { speaker.speak(any(), any()) } answers {
             said += firstArg<String>() to secondArg<(() -> Unit)?>()
@@ -96,7 +96,7 @@ class VoiceConversationTest {
         hears(VoiceTurn.Outcome.Heard("пока"))
         val c = conversation()
 
-        c.onWake("пятница")
+        c.onWake("oxxi")
         advanceUntilIdle()
         assertEquals(1, said.size)
         coVerify(exactly = 0) { transcriber.recordAndTranscribe(any(), any()) }
@@ -110,9 +110,9 @@ class VoiceConversationTest {
         var callActive = false
         hears(VoiceTurn.Outcome.Heard("позвони маме"), VoiceTurn.Outcome.Nothing)
         every { commands.route("позвони маме") } returns CommandResult.PhoneCall("маме")
-        coEvery { commands.execute(CommandResult.PhoneCall("маме"), true) } answers {
+        coEvery { commands.execute(CommandResult.PhoneCall("маме"), false) } answers {
             callActive = true
-            CommandExecutor.Outcome.Reply("Звоню «Мама» в WhatsApp")
+            CommandExecutor.Outcome.Reply("Llamando a mamá por WhatsApp.")
         }
         val c = conversation(inCall = { callActive })
 
@@ -121,25 +121,25 @@ class VoiceConversationTest {
         finishSpeaking(0)
 
         assertEquals("only the greeting is spoken", 1, said.size)
-        verify { overlay.showResult("Звоню «Мама» в WhatsApp", any()) }
+        verify { overlay.showResult("Llamando a mamá por WhatsApp.", any()) }
         coVerify(exactly = 1) { transcriber.recordAndTranscribe(any(), any()) }
     }
 
     @Test
     fun `a command is carried out, spoken, recorded, and the conversation stays open`() = runTest {
-        hears(VoiceTurn.Outcome.Heard("включи фонарик"), VoiceTurn.Outcome.Nothing)
-        every { commands.route("включи фонарик") } returns CommandResult.ToggleFlashlight
-        coEvery { commands.execute(CommandResult.ToggleFlashlight, true) } returns
-            CommandExecutor.Outcome.Reply("Фонарик включён")
+        hears(VoiceTurn.Outcome.Heard("enciende la linterna"), VoiceTurn.Outcome.Nothing)
+        every { commands.route("enciende la linterna") } returns CommandResult.ToggleFlashlight
+        coEvery { commands.execute(CommandResult.ToggleFlashlight, false) } returns
+            CommandExecutor.Outcome.Reply("Linterna encendida.")
         val c = conversation()
 
         c.onWake("пятница")
         advanceUntilIdle()
         finishSpeaking(0)
 
-        assertEquals("Фонарик включён", said[1].first)
-        coVerify { session.log("включи фонарик", "Фонарик включён", "ToggleFlashlight") }
-        coVerify { session.mirror("включи фонарик", "Фонарик включён") }
+        assertEquals("Linterna encendida.", said[1].first)
+        coVerify { session.log("enciende la linterna", "Linterna encendida.", "ToggleFlashlight") }
+        coVerify { session.mirror("enciende la linterna", "Linterna encendida.") }
         // The wake word stays live while she talks, so it can interrupt.
         verify { wake.listen() }
 
@@ -209,31 +209,31 @@ class VoiceConversationTest {
     @Test
     fun `an answer to a pending send is handled before anything else`() = runTest {
         // "нет" is also a goodbye word; here it must cancel the draft instead.
-        hears(VoiceTurn.Outcome.Heard("нет"))
-        coEvery { commands.answerPending("нет", true) } returns "Отменила."
+        hears(VoiceTurn.Outcome.Heard("no"))
+        coEvery { commands.answerPending("no", false) } returns "Lo he cancelado."
         val c = conversation()
 
         c.onWake("пятница")
         advanceUntilIdle()
         finishSpeaking(0)
 
-        assertEquals("Отменила.", said[1].first)
+        assertEquals("Lo he cancelado.", said[1].first)
         verify(exactly = 0) { commands.route(any()) }
         finishSpeaking(1)
         // No follow-up after a confirmation: shown briefly, then gone.
-        verify { overlay.showResult("Отменила.", any()) }
+        verify { overlay.showResult("Lo he cancelado.", any()) }
         coVerify(exactly = 1) { transcriber.recordAndTranscribe(any(), any()) }
     }
 
     @Test
     fun `plain conversation goes to the model and ends when Friday says goodbye`() = runTest {
-        hears(VoiceTurn.Outcome.Heard("расскажи анекдот"))
-        every { commands.route(any()) } returns CommandResult.ChatMessage("расскажи анекдот")
-        coEvery { commands.execute(any(), any()) } returns CommandExecutor.Outcome.Conversation("расскажи анекдот")
+        hears(VoiceTurn.Outcome.Heard("cuéntame un chiste"))
+        every { commands.route(any()) } returns CommandResult.ChatMessage("cuéntame un chiste")
+        coEvery { commands.execute(any(), any()) } returns CommandExecutor.Outcome.Conversation("cuéntame un chiste")
         coEvery {
-            answers.answer("расскажи анекдот", "ru")
+            answers.answer("cuéntame un chiste", "es")
         } returns SpokenAnswer.Result.Finished(
-            "Вот анекдот. Пока!", false
+            "Aquí tienes un chiste. Hasta luego.", false
         )
         val c = conversation()
 
@@ -241,7 +241,7 @@ class VoiceConversationTest {
         advanceUntilIdle()
         finishSpeaking(0)
 
-        verify { overlay.showResult("Вот анекдот. Пока!", any()) }
+        verify { overlay.showResult("Aquí tienes un chiste. Hasta luego.", any()) }
         coVerify(exactly = 1) { transcriber.recordAndTranscribe(any(), any()) }
     }
 
@@ -249,8 +249,8 @@ class VoiceConversationTest {
     fun `offline, a request that needs the network is refused plainly`() = runTest {
         every { offline.isOffline() } returns true
         every { wake.modelPath } returns "/model"
-        coEvery { offline.listenForCommand("/model") } returns "какая погода"
-        every { commands.route("какая погода") } returns CommandResult.Weather(null)
+        coEvery { offline.listenForCommand("/model") } returns "qué tiempo hace"
+        every { commands.route("qué tiempo hace") } returns CommandResult.Weather(null)
         val c = conversation()
 
         c.onWake("пятница")
@@ -270,7 +270,7 @@ class VoiceConversationTest {
         advanceUntilIdle()
         finishSpeaking(0)
 
-        verify { overlay.error("Не задан ключ Groq — откройте настройки Friday", any()) }
+        verify { overlay.error("Falta la clave de Groq. Abre los ajustes de Oxxi.", any()) }
         coVerify(exactly = 0) { transcriber.recordAndTranscribe(any(), any()) }
     }
 
@@ -278,24 +278,24 @@ class VoiceConversationTest {
     fun `a command said in the same breath as the name skips the greeting and keeps its first words`() = runTest {
         val lead = FloatArray(16_000)
         coEvery { transcriber.recordAndTranscribe(any(), any(), lead) } returns
-            VoiceTurn.Outcome.Heard("Пятница, включи фонарик.")
-        every { commands.route("включи фонарик.") } returns CommandResult.ToggleFlashlight
+            VoiceTurn.Outcome.Heard("Oxxi, enciende la linterna.")
+        every { commands.route("enciende la linterna.") } returns CommandResult.ToggleFlashlight
         coEvery { commands.execute(CommandResult.ToggleFlashlight, true) } returns
             CommandExecutor.Outcome.Reply("Фонарик включён")
         val c = conversation()
 
-        c.onWake("пятница", continuing = true, lead = lead)
+        c.onWake("oxxi", continuing = true, lead = lead)
         advanceUntilIdle()
 
-        assertEquals("no greeting, straight to the answer", "Фонарик включён", said.first().first)
+        assertEquals("no greeting, straight to the answer", "Linterna encendida.", said.first().first)
         coVerify { transcriber.recordAndTranscribe(any(), any(), lead) }
-        verify { commands.route("включи фонарик.") }
+        verify { commands.route("enciende la linterna.") }
     }
 
     @Test
     fun `only the name in one breath falls back to the greeting`() = runTest {
         val lead = FloatArray(16_000)
-        coEvery { transcriber.recordAndTranscribe(any(), any(), lead) } returns VoiceTurn.Outcome.Heard("Пятница.")
+        coEvery { transcriber.recordAndTranscribe(any(), any(), lead) } returns VoiceTurn.Outcome.Heard("Oxxi.")
         val c = conversation()
 
         c.onWake("пятница", continuing = true, lead = lead)
