@@ -227,7 +227,7 @@ class FridayAgentTest {
     private fun text(vararg t: String) = flowOf(*t.map { ChatEvent.Text(it) }.toTypedArray())
 
     private suspend fun ask(q: String) =
-        agent.reply(FridayAgent.Settings("k", "m", 100), listOf(ApiMessage("user", q)), russian = true)
+        agent.reply(FridayAgent.Settings("k", "m", 100), listOf(ApiMessage("user", q)), russian = false)
             .toList().joinToString("")
 
     @Test
@@ -240,7 +240,7 @@ class FridayAgentTest {
     @Test
     fun `the reply is written from what the tool actually did`() = runTest {
         replies(calls("set_alarm" to """{"hour":7,"minute":30}"""), text("Часы открыты — сохраните будильник."))
-        coEvery { commands.execute(CommandResult.SetAlarm(7, 30, null), true) } returns
+        coEvery { commands.execute(CommandResult.SetAlarm(7, 30, null), false) } returns
             CommandExecutor.Outcome.Reply("Часы не создали будильник на 07:30 сами — открыла их")
 
         assertEquals("Часы открыты — сохраните будильник.", ask("Закинь будильник на полвосьмого"))
@@ -263,8 +263,8 @@ class FridayAgentTest {
         )
         coEvery { commands.execute(any(), any()) } returns CommandExecutor.Outcome.Reply("ok")
         ask("Поставь будильник на 7:30 и напиши маме, что опоздаю")
-        coVerify { commands.execute(CommandResult.SetAlarm(7, 30, null), true) }
-        coVerify { commands.execute(CommandResult.SendMessage("мама", "Опоздаю"), true) }
+        coVerify { commands.execute(CommandResult.SetAlarm(7, 30, null), false) }
+        coVerify { commands.execute(CommandResult.SendMessage("мама", "Опоздаю"), false) }
         assertEquals(2, sent[1].count { it.role == "tool" })
     }
 
@@ -289,7 +289,7 @@ class FridayAgentTest {
 
         assertEquals("Отправить SMS? Да или нет.", ask("Напиши Фердавсу, что буду поздно вечером"))
         coVerify(exactly = 0) { commands.execute(CommandResult.SendMessage("Фирдавс", "я свободен"), any()) }
-        coVerify { commands.execute(CommandResult.SendMessage("Фирдавс", "буду поздно вечером"), true) }
+        coVerify { commands.execute(CommandResult.SendMessage("Фирдавс", "буду поздно вечером"), false) }
         assertTrue(sent[1].last().content.startsWith("Error: \"text\" must be the message the user dictated"))
     }
 
@@ -304,7 +304,7 @@ class FridayAgentTest {
     fun `arithmetic never reaches the phone`() = runTest {
         replies(calls("calculate" to """{"expression":"17*23"}"""), text("391."))
         assertEquals("391.", ask("Сколько будет 17 на 23"))
-        assertEquals("17*23 = 391\n(Tell the user in Russian.)", sent[1].last().content)
+        assertEquals("17*23 = 391\n(Responde siempre en español de España.)", sent[1].last().content)
         coVerify(exactly = 0) { commands.execute(any(), any()) }
     }
 
@@ -314,9 +314,9 @@ class FridayAgentTest {
         replies(calls("flashlight" to "{}"), text("Включила."), calls("flashlight" to "{}"), text("Done."))
         coEvery { commands.execute(any(), any()) } returns CommandExecutor.Outcome.Reply("Flashlight on")
         ask("Включи фонарик")
-        assertTrue(sent[1].last().content.endsWith("(Tell the user in Russian.)"))
+        assertTrue(sent[1].last().content.endsWith("(Responde siempre en español de España.)"))
         ask("Turn on the flashlight")
-        assertTrue(sent[3].last().content.endsWith("(Tell the user in English.)"))
+        assertTrue(sent[3].last().content.endsWith("(Responde siempre en español de España.)"))
     }
 
     @Test
@@ -500,8 +500,8 @@ class ToolPromptTest {
     @Test
     fun `with tools the model may act but only reports what the tools said`() {
         val prompt = SystemPromptBuilder().build(AssistantMode.DEFAULT, withTools = true)
-        assertTrue(prompt.contains("only by calling the provided tools"))
-        assertTrue(prompt.contains("unless a tool result"))
+        assertTrue(prompt.contains("únicamente mediante las herramientas disponibles"))
+        assertTrue(prompt.contains("Nunca digas que una acción se ha realizado"))
         assertFalse(prompt.contains("You cannot operate the phone"))
     }
 }
