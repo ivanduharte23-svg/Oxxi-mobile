@@ -162,7 +162,7 @@ private fun HomePage(state: ChatUiState, onSettings: () -> Unit, onMic: () -> Un
         }
         Text("Tu asistente inteligente", color = NeonBlue, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.weight(1f))
-        OxxiHologram(modifier = Modifier.size(310.dp))
+        OxxiHologram(modifier = Modifier.size(310.dp), audioLevel = audioLevel)
         Spacer(Modifier.height(10.dp))
         Text(
             when {
