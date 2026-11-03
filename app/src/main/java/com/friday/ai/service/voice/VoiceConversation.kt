@@ -60,7 +60,8 @@ class VoiceConversation(
         const val TAG = "VoiceConversation"
 
         /** One retry. A third silent window is just the overlay hanging there. */
-        const val MAX_LISTEN_ATTEMPTS = 2\n        const val FOLLOW_UP_SILENCE_ATTEMPTS = 2
+        const val MAX_LISTEN_ATTEMPTS = 2
+        const val FOLLOW_UP_SILENCE_ATTEMPTS = 2
 
         /** How long a final answer stays on screen before the panel closes. */
         const val RESULT_LINGER_MS = 1500L
