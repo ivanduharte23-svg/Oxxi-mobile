@@ -501,25 +501,25 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
         val cleaned = text
             .replace(
                 Regex(
-                    """(?:сегодня|завтра|послезавтра|today|tomorrow|day after tomorrow)""",
+                    """(?:hoy|mañana|pasado\s+mañana|сегодня|завтра|послезавтра|today|tomorrow|day after tomorrow)""",
                     RegexOption.IGNORE_CASE
                 ), " "
             )
             .replace(
                 Regex(
-                    """(?:в|во|at|к|on)\s*\d{1,2}(?:[:.]\d{2})?\s*(?:утра|дня|вечера|ночи|am|pm)?""",
+                    """(?:a\s+las?|en|в|во|at|к|on)\s*\d{1,2}(?:[:.]\d{2})?\s*(?:de\s+la\s+mañana|de\s+la\s+tarde|de\s+la\s+noche|madrugada|mañana|tarde|noche|утра|дня|вечера|ночи|am|pm)?""",
                     RegexOption.IGNORE_CASE
                 ), " "
             )
             .replace(
                 Regex(
-                    """(?:через|in)\s+\d+\s*(?:минут\p{L}*|мин|час\p{L}*|дн\p{L}*|день|недел\p{L}*|minutes?|mins?|hours?|days?|weeks?)""",
+                    """(?:en|dentro de|через|in)\s+\d+\s*(?:minuto\p{L}*|min|hora\p{L}*|día\p{L}*|dia\p{L}*|semana\p{L}*|минут\p{L}*|мин|час\p{L}*|дн\p{L}*|день|недел\p{L}*|minutes?|mins?|hours?|days?|weeks?)""",
                     RegexOption.IGNORE_CASE
                 ), " "
             )
             .replace(
                 Regex(
-                    """(?:понедельник|вторник|сред\p{L}|четверг|пятниц\p{L}|суббот\p{L}|воскресень\p{L}|monday|tuesday|wednesday|thursday|friday|saturday|sunday)""",
+                    """(?:lunes|martes|miércol(?:es)?|jueves|viernes|sábado|sabado|domingo|понедельник|вторник|сред\p{L}|четверг|пятниц\p{L}|суббот\p{L}|воскресень\p{L}|monday|tuesday|wednesday|thursday|friday|saturday|sunday)""",
                     RegexOption.IGNORE_CASE
                 ), " "
             )
@@ -535,8 +535,8 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
 private fun dayOffsetOf(text: String): Int {
     val lower = text.lowercase()
     return when {
-        lower.contains("послезавтра") || lower.contains("day after tomorrow") -> 2
-        lower.contains("завтра") || lower.contains("tomorrow") -> 1
+        lower.contains("pasado mañana") || lower.contains("послезавтра") || lower.contains("day after tomorrow") -> 2
+        lower.contains("mañana") || lower.contains("завтра") || lower.contains("tomorrow") -> 1
         else -> 0
     }
 }
