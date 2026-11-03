@@ -1,213 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <!-- An always-listening assistant must not be put to sleep by battery optimisation. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
-    <!-- Calls and the torch are extras, not requirements: without telephony the
-         call intent fails into the caller's error message, without a camera the
-         torch says there is none. CALL_PHONE and CAMERA would otherwise imply both. -->
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
-    <!-- Resolving "позвони папе" to a number; read-only, never uploaded. -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <!-- Saving reminders straight to the calendar instead of making the user
-         confirm in the calendar app. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
-    <!-- Listing installed apps so "открой X" can find anything, not just the
-         hardcoded aliases. Android 11+ hides the app list without this. -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
-    <!-- Errand reminders: noticing you're near a shop you needed. Coarse is
-         enough — this only ranks places a few hundred metres apart. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <!-- A dictated SMS is read back and sent only after a spoken "да"
-         (SmsConfirmation); without this grant the SMS app opens with the text. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
-    <!-- Friday's panel over the lock screen, and Android's unlock screen on request:
-         a background service can bring an activity there only through a full-screen
-         notification, as alarms and calls do (LockScreen). -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <!-- The real name: "android.permission.SET_ALARM" does not exist, and
-         Samsung's Clock refuses ACTION_SET_ALARM without this one. -->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <!-- Without it Friday isn't listed under "Do Not Disturb access", so DND and silent mode can't be granted. -->
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-    <!-- Brightness: granted by the user once, on the system's "Modify system settings" screen. -->
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"
-        tools:ignore="ProtectedPermissions" />
-    <!-- Reading whether Wi-Fi / Bluetooth are already on, to say so instead of opening their panel. -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!-- Modes on a schedule: alarms are re-booked after a reboot. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- NFC tags that toggle a mode. Not required: phones without NFC just don't offer it. -->
     <uses-permission android:name="android.permission.NFC" />
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-    <!-- Modes started by a Bluetooth device (the car, headphones): its name, and paired devices. -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-
-    <application
-        android:name=".FridayApp"
-        android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:usesCleartextTraffic="false"
-        android:theme="@style/Theme.FridayMobile">
-
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.FridayMobile">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <!-- "The assistant": side button (Samsung: press and hold → Digital assistant), assist
-             gesture, a headset's voice button. Declaring it makes Friday selectable as the
-             phone's digital assistant. No screen of its own: it starts a conversation and closes. -->
-        <activity
-            android:name=".service.lock.LockScreenActivity"
-            android:exported="false"
-            android:showWhenLocked="true"
-            android:excludeFromRecents="true"
-            android:taskAffinity="com.friday.ai.lockscreen"
-            android:launchMode="singleTask"
-            android:theme="@style/Theme.FridayMobile.LockPanel" />
-
-        <activity
-            android:name=".AssistActivity"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:taskAffinity=""
-            android:launchMode="singleInstance"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <intent-filter>
-                <action android:name="android.intent.action.ASSIST" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VOICE_COMMAND" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <!-- A Friday NFC tag touched: toggles its mode, even with Friday closed. -->
-        <activity
-            android:name=".service.NfcTagActivity"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:taskAffinity=""
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="application/vnd.friday.mode" />
-            </intent-filter>
-        </activity>
-
-        <!-- A mode's launcher shortcut (long press on the icon): toggles it. -->
-        <activity
-            android:name=".service.ModeShortcutActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:taskAffinity=""
-            android:theme="@android:style/Theme.FridayMobile" />
-
-        <!-- "Пятница" in Quick Settings: tap and talk. -->
-        <service
-            android:name=".service.FridayTileService"
-            android:exported="true"
-            android:icon="@drawable/ic_reactor_small"
-            android:label="@string/app_name"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-
-        <!-- "Поднесите метку": writes a mode's tag. -->
-        <activity
-            android:name=".service.NfcWriteActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:theme="@style/Theme.FridayMobile" />
-
-        <service
-            android:name=".service.FridayWakeWordService"
-            android:exported="false"
-            android:foregroundServiceType="microphone" />
-
-        <!-- One screenshot for analysis: Android 14+ requires a mediaProjection
-             foreground service around it. It lives for a single frame. -->
-        <service
-            android:name=".service.capture.ScreenCaptureService"
-            android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
-
-        <!-- Captura solo audio multimedia que otras aplicaciones permiten compartir,
-             después de la autorización explícita del usuario. -->
-        <service
-            android:name=".service.visualizer.AudioVisualizerService"
-            android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
-
-        <!-- Lets Friday answer "what did I miss". The user must switch this on
-             in system settings; declaring it is not enough to read anything. -->
-        <!-- Time zone and manual clock changes are exempt from the implicit-
-        broadcast limits, so a manifest receiver still gets them. -->
-        <receiver
-            android:name=".service.TimeZoneReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
-                <action android:name="android.intent.action.TIME_SET" />
-            </intent-filter>
-        </receiver>
-
-        <!-- Mode schedules: fires a mode at its time, re-books after reboot or a clock change. -->
-        <receiver
-            android:name=".service.ModeAlarmReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
-                <action android:name="android.intent.action.TIME_SET" />
-            </intent-filter>
-        </receiver>
-
-        <service
-            android:name=".service.FridayNotificationListener"
-            android:exported="false"
-            android:label="Oxxi"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
+    <application android:name=".FridayApp" android:allowBackup="false" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:supportsRtl="true" android:usesCleartextTraffic="false" android:theme="@style/Theme.FridayMobile">
+        <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.FridayMobile"><intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter></activity>
+        <activity android:name=".service.lock.LockScreenActivity" android:exported="false" android:showWhenLocked="true" android:excludeFromRecents="true" android:taskAffinity="com.friday.ai.lockscreen" android:launchMode="singleTask" android:theme="@style/Theme.FridayMobile.LockPanel" />
+        <activity android:name=".AssistActivity" android:exported="true" android:excludeFromRecents="true" android:noHistory="true" android:taskAffinity="" android:launchMode="singleInstance" android:theme="@android:style/Theme.Translucent.NoTitleBar"><intent-filter><action android:name="android.intent.action.ASSIST" /><category android:name="android.intent.category.DEFAULT" /></intent-filter><intent-filter><action android:name="android.intent.action.VOICE_COMMAND" /><category android:name="android.intent.category.DEFAULT" /></intent-filter></activity>
+        <activity android:name=".service.NfcTagActivity" android:exported="true" android:excludeFromRecents="true" android:noHistory="true" android:taskAffinity="" android:theme="@android:style/Theme.Translucent.NoTitleBar"><intent-filter><action android:name="android.nfc.action.NDEF_DISCOVERED" /><category android:name="android.intent.category.DEFAULT" /><data android:mimeType="application/vnd.friday.mode" /></intent-filter></activity>
+        <activity android:name=".service.ModeShortcutActivity" android:exported="false" android:excludeFromRecents="true" android:noHistory="true" android:taskAffinity="" android:theme="@style/Theme.FridayMobile" />
+        <service android:name=".service.FridayTileService" android:exported="true" android:icon="@drawable/ic_reactor_small" android:label="@string/app_name" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"><intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter></service>
+        <activity android:name=".service.NfcWriteActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@style/Theme.FridayMobile" />
+        <service android:name=".service.FridayWakeWordService" android:exported="false" android:foregroundServiceType="microphone" />
+        <service android:name=".service.capture.ScreenCaptureService" android:exported="false" android:foregroundServiceType="mediaProjection" />
+        <service android:name=".service.visualizer.AudioVisualizerService" android:exported="false" android:foregroundServiceType="mediaProjection" />
+        <receiver android:name=".service.TimeZoneReceiver" android:exported="false"><intent-filter><action android:name="android.intent.action.TIMEZONE_CHANGED" /><action android:name="android.intent.action.TIME_SET" /></intent-filter></receiver>
+        <receiver android:name=".service.ModeAlarmReceiver" android:exported="false"><intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.TIMEZONE_CHANGED" /><action android:name="android.intent.action.TIME_SET" /></intent-filter></receiver>
+        <service android:name=".service.FridayNotificationListener" android:exported="false" android:label="Oxxi" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"><intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter></service>
     </application>
-
 </manifest>
