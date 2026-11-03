@@ -122,6 +122,19 @@ class DateTimeParserTest {
     }
 
     @Test
+    fun `Spanish morning is not confused with tomorrow`() {
+        val early = LocalDateTime.of(2026, 7, 30, 7, 0)
+        assertEquals(
+            LocalDateTime.of(2026, 7, 30, 8, 0),
+            DateTimeParser.parse("a las 8 de la mañana", early)!!.instant
+        )
+        assertEquals(
+            LocalDateTime.of(2026, 7, 31, 8, 0),
+            DateTimeParser.parse("mañana a las 8 de la mañana", early)!!.instant
+        )
+    }
+
+    @Test
     fun `Spanish reminder lead time is understood`() {
         assertEquals(10, DateTimeParser.parseReminderLeadMinutes("avísame 10 minutos antes de la reunión"))
         assertEquals(60, DateTimeParser.parseReminderLeadMinutes("avísame una hora antes de la reunión"))
