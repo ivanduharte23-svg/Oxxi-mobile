@@ -39,7 +39,7 @@ object BriefTiming {
             h < MORNING_FROM -> "Buenas noches."
             h < AFTERNOON_FROM -> "Buenos días."
             h < EVENING_FROM -> "Buenas tardes."
-            else -> "Buenas tardes."
+            else -> "Buenas noches."
         }
     }
 
