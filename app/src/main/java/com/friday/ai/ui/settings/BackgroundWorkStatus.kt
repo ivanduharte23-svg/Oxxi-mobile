@@ -25,14 +25,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.friday.ai.service.voice.WakeHealth
 import com.friday.ai.service.voice.WakeStatus
 
-/** Whether the system may stop Friday's always-on listener to save battery. */
+/** Whether the system may stop Oxxi's always-on listener to save battery. */
 fun isBatteryRestricted(context: Context): Boolean {
     val power = context.getSystemService(Context.POWER_SERVICE) as PowerManager
     return !power.isIgnoringBatteryOptimizations(context.packageName)
 }
 
 /**
- * Asks Android to exempt Friday from battery optimisation. An assistant that
+ * Asks Android to exempt Oxxi from battery optimisation. An assistant that
  * must hear its name at any moment cannot be put to sleep, and Samsung's
  * battery manager is known for stopping exactly this kind of service.
  */
@@ -59,15 +59,15 @@ fun BackgroundWorkStatus(visible: Boolean) {
     Column {
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            "Android может усыплять Friday ради экономии батареи — тогда она перестаёт слышать «Пятница». " +
+            "Android puede suspender Oxxi para ahorrar batería; entonces dejará de escuchar «Oxxi». " +
                 "Разрешите работу в фоне. На Samsung также: Настройки → Батарея → Ограничения фоновой " +
-                "работы → «Приложения без спящего режима» → добавьте Friday.",
+                "работы → «Приложения без спящего режима» → добавьте Oxxi.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.tertiary
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(onClick = { requestBatteryExemption(context) }) {
-            Text("Разрешить работу в фоне")
+            Text("Permitir funcionamiento en segundo plano")
         }
     }
 }
@@ -86,7 +86,7 @@ fun WakeHealthStatus(visible: Boolean) {
         Spacer(modifier = Modifier.height(8.dp))
         val listening = health.status == WakeHealth.Status.LISTENING
         Text(
-            if (listening) "Микрофон: слушает" else "Микрофон: ${health.describe()}",
+            if (listening) "Micrófono: escuchando" else "Микрофон: ${health.describe()}",
             style = MaterialTheme.typography.bodySmall,
             color = if (listening) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
         )
