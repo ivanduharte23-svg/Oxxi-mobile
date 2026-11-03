@@ -127,7 +127,7 @@ class VoiceConversationTest {
 
     @Test
     fun `a command is carried out, spoken, recorded, and the conversation stays open`() = runTest {
-        hears(VoiceTurn.Outcome.Heard("enciende la linterna"), VoiceTurn.Outcome.Nothing)
+        hears(VoiceTurn.Outcome.Heard("enciende la linterna"), VoiceTurn.Outcome.Nothing, VoiceTurn.Outcome.Nothing)
         every { commands.route("enciende la linterna") } returns CommandResult.ToggleFlashlight
         coEvery { commands.execute(CommandResult.ToggleFlashlight, false) } returns
             CommandExecutor.Outcome.Reply("Linterna encendida.")
@@ -145,7 +145,7 @@ class VoiceConversationTest {
 
         finishSpeaking(1)
         // Follow-up turn, then silence: the conversation closes quietly.
-        coVerify(exactly = 2) { transcriber.recordAndTranscribe(any(), any()) }
+        coVerify(exactly = 3) { transcriber.recordAndTranscribe(any(), any()) }
         verify { overlay.dismiss() }
     }
 
