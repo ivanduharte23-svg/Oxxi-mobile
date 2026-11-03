@@ -44,10 +44,10 @@ class GroqFailuresTest {
     @Test
     fun `each failure says something the user can act on`() {
         // Before, every one of these was "Something went wrong".
-        assertTrue(VoiceErrors.spoken(retired, true).contains("сменил модель"))
-        assertTrue(VoiceErrors.spoken(GroqApiException(401, "x"), true).contains("Ключ Groq"))
-        assertTrue(VoiceErrors.spoken(GroqApiException(429, "x"), true).contains("лимит"))
-        assertTrue(VoiceErrors.spoken(IOException("timeout"), true).contains("интернет"))
+        assertTrue(VoiceErrors.spoken(retired, true).contains("he seleccionado otro"))
+        assertTrue(VoiceErrors.spoken(GroqApiException(401, "x"), true).contains("La clave de Groq"))
+        assertTrue(VoiceErrors.spoken(GroqApiException(429, "x"), true).contains("límite de solicitudes"))
+        assertTrue(VoiceErrors.spoken(IOException("timeout"), true).contains("internet"))
         assertTrue(VoiceErrors.spoken(GroqApiException(500, "boom"), false).contains("boom"))
     }
 
@@ -101,18 +101,17 @@ class QuickWinsTest {
     @Test
     fun `the persona speaks of herself in the feminine and follows the user's language`() {
         val prompt = SystemPromptBuilder().build(AssistantMode.DEFAULT)
-        assertTrue(prompt.contains("feminine"))
-        assertTrue(prompt.contains("Spanish from Spain"))
-        assertTrue(prompt.contains("latest message"))
-        assertTrue(prompt.contains("Never invent"))
+        assertTrue(prompt.contains("femenina"))
+        assertTrue(prompt.contains("español de España"))
+        assertTrue(prompt.contains("Mantén el hilo"))
+        assertTrue(prompt.contains("No inventes hechos"))
     }
 
     @Test
-    fun `the voice is female in both languages`() {
-        // Every fixed phrase is feminine ("не расслышала"); a male voice clashed.
-        assertEquals("ru-RU-SvetlanaNeural", EdgeTtsProtocol.VOICE_RU)
-        assertEquals("en-IE-EmilyNeural", EdgeTtsProtocol.VOICE_EN)
+    fun `every spoken answer uses Oxxi's Spanish female voice`() {
         assertEquals("es-ES-ElviraNeural", EdgeTtsProtocol.VOICE_ES)
+        assertEquals(EdgeTtsProtocol.VOICE_ES, EdgeTtsProtocol.detectVoice("Hola, estoy lista."))
+        assertEquals(EdgeTtsProtocol.VOICE_ES, EdgeTtsProtocol.detectVoice("Hello, world."))
     }
 
     @Test
