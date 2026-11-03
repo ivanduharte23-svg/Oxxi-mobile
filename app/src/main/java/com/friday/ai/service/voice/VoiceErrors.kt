@@ -13,12 +13,12 @@ object VoiceErrors {
 
     fun spoken(e: Throwable, russian: Boolean, spanish: Boolean = false): String = when {
         e is GroqApiException && e.modelMissing -> when {
-            russian -> "Groq сменил модель, я уже переключилась. Повторите, пожалуйста."
+            russian -> "Groq ha cambiado sus modelos; ya he seleccionado otro. Repítemelo, por favor."
             spanish -> "Groq ha cambiado sus modelos; ya he seleccionado otro. Repítemelo, por favor."
             else -> "Groq changed its models; I've switched over. Please say that again."
         }
         e is GroqApiException && e.code == UNAUTHORISED -> when {
-            russian -> "Ключ Groq не подходит. Проверьте его в настройках."
+            russian -> "La clave de Groq no es válida. Revísala en los ajustes."
             spanish -> "La clave de Groq no es válida. Revísala en los ajustes."
             else -> "The Groq key was rejected. Please check it in settings."
         }
