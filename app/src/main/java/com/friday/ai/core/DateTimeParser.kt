@@ -39,7 +39,7 @@ object DateTimeParser {
     )
 
     private val SPANISH_LEAD = Regex(
-        """(?:con\s+)?(\d+)?\s*(minuto\p{L}*|hora\p{L}*)\s+antes\s+de""",
+        """(?:con\s+)?(?:(\d+|un|uno|una)\s+)?(minuto\p{L}*|hora\p{L}*)\s+antes\s+de""",
         RegexOption.IGNORE_CASE
     )
 
