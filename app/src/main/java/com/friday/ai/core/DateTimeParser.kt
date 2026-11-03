@@ -138,7 +138,7 @@ object DateTimeParser {
         // "mañana" is both tomorrow and the morning. Remove time-of-day
         // phrases first so "a las 8 de la mañana" stays on today's date.
         val dayText = text.replace(
-            Regex("""(?:de|por)\\s+la\\s+mañana"""),
+            Regex("""(?:de|por)\s+la\s+mañana"""),
             " "
         )
         return when {
