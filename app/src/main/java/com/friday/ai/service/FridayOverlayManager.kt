@@ -12,9 +12,12 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Alignment
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +43,7 @@ import com.friday.ai.core.voice.Surfaces
 import com.friday.ai.service.lock.LockScreen
 import com.friday.ai.service.voice.VoiceUi
 import com.friday.ai.ui.theme.FridayTheme
+import com.friday.ai.ui.oxxi.OxxiHologram
 import com.friday.ai.ui.voice.PanelAction
 import com.friday.ai.ui.voice.VoicePanelCard
 import kotlinx.coroutines.CoroutineScope
@@ -77,6 +81,7 @@ class FridayOverlayManager(private val context: Context) {
     private var window: OverlayWindow? = null
     private var autoDismiss: Runnable? = null
     private var lastSession = -1L
+    @Volatile private var backgroundListening = false
 
     var onDismissed: (() -> Unit)? = null
 
@@ -88,7 +93,15 @@ class FridayOverlayManager(private val context: Context) {
         scope.launch { combine(store.state, AppVisibility.foreground) { p, _ -> p }.collect(::render) }
     }
 
-    /** Opens a session: [userInitiated] when the owner called, false for Friday's own announcements. */
+    /** Keeps the small animated Oxxi hologram visible while wake-word listening runs in background. */
+    fun setBackgroundListening(enabled: Boolean) {
+        handler.post {
+            backgroundListening = enabled
+            render(store.state.value)
+        }
+    }
+
+    /** Opens a session: [userInitiated] when the owner called, false for Oxxi's own announcements. */
     fun begin(userInitiated: Boolean) {
         store.begin(userInitiated)
     }
@@ -157,9 +170,13 @@ class FridayOverlayManager(private val context: Context) {
 
     private fun render(panel: VoicePanel?) {
         if (panel == null) {
-            removeWindow()
             LockScreen.close(context)
             lastSession = -1
+            val showBackgroundOrb = backgroundListening &&
+                !AppVisibility.foreground.value &&
+                Settings.canDrawOverlays(context) &&
+                !LockScreen.locked(context)
+            if (showBackgroundOrb) addWindow() else removeWindow()
             return
         }
         val surface = Surfaces.choose(conditions(panel))
@@ -230,7 +247,16 @@ private class OverlayWindow(
         val compose = ComposeView(context).apply {
             setViewTreeLifecycleOwner(this@OverlayWindow)
             setViewTreeSavedStateRegistryOwner(this@OverlayWindow)
-            setContent { FridayTheme { FloatingPanel(onInteract) { openFriday() } } }
+            setContent {
+                FridayTheme {
+                    val panel by VoiceUi.store.state.collectAsState()
+                    if (panel == null) {
+                        BackgroundHologram { openFriday() }
+                    } else {
+                        FloatingPanel(onInteract) { openFriday() }
+                    }
+                }
+            }
             // Attached = a window Android counts as visible, which lets Friday start apps from the background.
             addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
                 override fun onViewAttachedToWindow(v: View) = AppVisibility.overlay(true)
@@ -268,6 +294,19 @@ private class OverlayWindow(
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
         PixelFormat.TRANSLUCENT
     ).apply { gravity = Gravity.BOTTOM }
+}
+
+/** Idle background state: the same moving hologram used on Oxxi's home screen. */
+@Composable
+private fun BackgroundHologram(onOpenOxxi: () -> Unit) {
+    Box(
+        Modifier.fillMaxWidth().padding(bottom = 24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(Modifier.size(126.dp).clickable(onClick = onOpenOxxi)) {
+            OxxiHologram(Modifier.fillMaxWidth())
+        }
+    }
 }
 
 /** The floating capsule: the session as the unlocked phone shows it. */
