@@ -9,6 +9,7 @@ import com.friday.ai.command.CommandExecutor
 import com.friday.ai.core.CorrectionDetector
 import com.friday.ai.core.FileAnalyzer
 import com.friday.ai.core.VoiceInputManager
+import com.friday.ai.service.EdgeTtsSpeaker
 import com.friday.ai.data.local.dao.ChatSessionSummary
 import com.friday.ai.domain.model.AssistantMode
 import com.friday.ai.domain.model.ChatUiState
@@ -57,7 +58,8 @@ class ChatViewModel(
     private val commands: CommandExecutor,
     private val memory: FridayMemory,
     private val files: FileAnalyzer? = null,
-    private val screen: ScreenCapture? = null
+    private val screen: ScreenCapture? = null,
+    private val speaker: EdgeTtsSpeaker? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -80,7 +82,11 @@ class ChatViewModel(
      * One request: where it belongs, the history it was asked with, its job
      * and the id of the answer being drawn. Touched on the main thread only.
      */
-    private class Request(var sessionId: String?, val history: List<Message>) {
+    private class Request(
+        var sessionId: String?,
+        val history: List<Message>,
+        val speakReplies: Boolean
+    ) {
         var job: Job? = null
         var streamId: String? = null
     }
@@ -156,8 +162,8 @@ class ChatViewModel(
     private fun observeVoiceInput() {
         viewModelScope.launch {
             voiceInput.recognizedText.filterNotNull().collect { text ->
-                _inputText.value = text
                 voiceInput.clearResult()
+                onVoiceText(text)
             }
         }
         viewModelScope.launch {
@@ -177,15 +183,28 @@ class ChatViewModel(
     }
 
     fun onSend() {
-        val text = _inputText.value.trim()
+        submit(_inputText.value, speakReplies = false)
+    }
+
+    /** A recognised utterance is a complete voice turn: send it without a second tap. */
+    private fun onVoiceText(text: String) {
+        val clean = text.trim()
+        if (clean.isBlank()) return
+        _inputText.value = clean
+        submit(clean, speakReplies = true)
+    }
+
+    private fun submit(rawText: String, speakReplies: Boolean) {
+        val text = rawText.trim()
         if (text.isBlank() || active != null) return
         _inputText.value = ""
-        begin {
-            // An answer to "Отправить?" is not a new request.
+        begin(speakReplies = speakReplies) {
+            // An answer to a pending confirmation is not a new command.
             val confirmed = commands.answerPending(text, isRussian(text))
             if (confirmed != null) {
                 persist(text, MessageRole.USER)
                 persist(confirmed, MessageRole.ASSISTANT)
+                if (speakReplies) speak(confirmed)
             } else {
                 dispatch(text)
             }
@@ -210,7 +229,10 @@ class ChatViewModel(
             return
         }
         when (val outcome = commands.execute(command, isRussian(text))) {
-            is CommandExecutor.Outcome.Reply -> persist(outcome.text, MessageRole.ASSISTANT)
+            is CommandExecutor.Outcome.Reply -> {
+                persist(outcome.text, MessageRole.ASSISTANT)
+                if (speakReplies) speak(outcome.text)
+            }
             is CommandExecutor.Outcome.Conversation -> reply(outcome.text)
             CommandExecutor.Outcome.NeedsScreen -> onAnalyzeScreenRequested?.invoke()
             is CommandExecutor.Outcome.NeedsFile -> onAnalyzeFileRequested?.invoke(outcome.hint)
@@ -307,9 +329,13 @@ class ChatViewModel(
      * Starts [work] as the one request, if none is running. Its conversation
      * is fixed now; loading is turned off only by the request that turned it on.
      */
-    private fun begin(work: suspend Request.() -> Unit): Boolean {
+    private fun begin(speakReplies: Boolean = false, work: suspend Request.() -> Unit): Boolean {
         if (active != null) return false
-        val request = Request(_currentSessionId.value, _uiState.value.messages.filterNot { it.isStreaming })
+        val request = Request(
+            _currentSessionId.value,
+            _uiState.value.messages.filterNot { it.isStreaming },
+            speakReplies
+        )
         active = request
         _uiState.update { it.copy(isLoading = true, error = null) }
         request.job = viewModelScope.launch {
@@ -357,7 +383,19 @@ class ChatViewModel(
             text.append(token)
             if (sessionId == _currentSessionId.value) updateStreamingMessage(id, text.toString())
         }
-        if (text.isNotEmpty()) persist(text.toString(), MessageRole.ASSISTANT)
+        if (text.isNotEmpty()) {
+            persist(text.toString(), MessageRole.ASSISTANT)
+            if (speakReplies) speak(text.toString())
+        }
+    }
+
+    /** Use the assistant's neural Spanish voice, with Android TTS as its offline fallback. */
+    private suspend fun Request.speak(text: String) {
+        val voice = speaker ?: return
+        val speech = voice.beginSpeech()
+        speech.offer(text)
+        speech.endInput()
+        speech.awaitCompletion()
     }
 
     /** An error belongs to the conversation it happened in; another one on screen is left alone. */
