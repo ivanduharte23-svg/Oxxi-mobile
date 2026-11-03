@@ -205,9 +205,13 @@ class FridayAgent(
      */
     private fun languageNote(said: String): String {
         val russian = said.any { it in 'а'..'я' || it in 'А'..'Я' || it == 'ё' || it == 'Ё' }
+        val spanishWords = Regex(
+            """\b(?:hola|gracias|quiero|puedes|necesito|abre|llama|envía|""" +
+                """manda|lee|dime|dónde|cuándo|estás|tienes|por favor|mañana)\b""",
+            RegexOption.IGNORE_CASE
+        )
         val spanish = said.any { it in "áéíóúüñÁÉÍÓÚÜÑ¿¡" } ||
-            Regex("""\b(?:hola|gracias|quiero|puedes|necesito|abre|llama|envía|manda|lee|dime|dónde|cuándo|estás|tienes|por favor|mañana)\b""", RegexOption.IGNORE_CASE)
-                .containsMatchIn(said)
+            spanishWords.containsMatchIn(said)
         return when {
             russian -> "\n(Tell the user in Russian.)"
             spanish -> "\n(Tell the user in Spanish from Spain.)"
