@@ -9,7 +9,7 @@ import com.friday.ai.core.VoiceTurn
 import com.friday.ai.core.WakePhrases
 import com.friday.ai.domain.model.CommandResult
 import com.friday.ai.service.EdgeTtsSpeaker
-import com.friday.ai.service.OxxiOverlayManager
+import com.friday.ai.service.FridayOverlayManager
 import com.friday.ai.service.OfflineCommandRecognizer
 import com.friday.ai.service.WhisperTranscriber
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 // A holder: one field per device the conversation uses, nothing to group.
 @Suppress("LongParameterList")
 class VoiceIO(
-    val overlay: OxxiOverlayManager,
+    val overlay: FridayOverlayManager,
     val speaker: EdgeTtsSpeaker,
     val transcriber: WhisperTranscriber,
     val offline: OfflineCommandRecognizer,
@@ -60,7 +60,7 @@ class VoiceConversation(
         const val TAG = "VoiceConversation"
 
         /** One retry. A third silent window is just the overlay hanging there. */
-        const val MAX_LISTEN_ATTEMPTS = 2
+        const val MAX_LISTEN_ATTEMPTS = 2\n        const val FOLLOW_UP_SILENCE_ATTEMPTS = 2
 
         /** How long a final answer stays on screen before the panel closes. */
         const val RESULT_LINGER_MS = 1500L
