@@ -59,17 +59,17 @@ class VoiceInputManager(
         scope.launch {
             val apiKey = prefDao.get("groq_api_key") ?: ""
             if (apiKey.isBlank()) {
-                _error.value = "API key not set. Go to Settings."
+                _error.value = "Falta la clave de Groq. Añádela en Ajustes."
                 _isListening.value = false
                 return@launch
             }
 
-            transcriber.language = if ((prefDao.get("prefer_russian") ?: "true") == "true") "ru" else null
+            transcriber.language = if (prefDao.get("prefer_russian") == "true") "ru" else "es"
             // No speaker check here: pressing the mic button in the open app
             // is already proof of who is asking.
             val result = transcriber.recordAndTranscribe(apiKey)
             if (result !is VoiceTurn.Outcome.Heard && _error.value == null) {
-                _error.value = "No speech detected. Try again."
+                _error.value = "No he detectado voz. Pulsa el micrófono y vuelve a hablar."
             }
             _isListening.value = false
         }
