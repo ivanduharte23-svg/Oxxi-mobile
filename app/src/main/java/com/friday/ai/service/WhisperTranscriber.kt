@@ -114,7 +114,7 @@ class WhisperTranscriber(
             // VOICE_RECOGNITION rather than MIC: it is the tuned path, and it
             // is what the hardware effects below expect to sit on.
             audioRecord = openVoiceRecord(SAMPLE_RATE, bufferSize, TAG) ?: run {
-                withContext(Dispatchers.Main) { listener?.onError("Microphone unavailable") }
+                withContext(Dispatchers.Main) { listener?.onError("El micrófono no está disponible.") }
                 return@withContext VoiceTurn.Outcome.Nothing
             }
             effects = AudioEffects.attach(audioRecord.audioSessionId)
@@ -129,7 +129,7 @@ class WhisperTranscriber(
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "Transcription error: ${e.message}")
-            withContext(Dispatchers.Main) { listener?.onError(e.message ?: "Transcription failed") }
+            withContext(Dispatchers.Main) { listener?.onError("No se ha podido transcribir el audio. Comprueba la conexión y vuelve a intentarlo.") }
             VoiceTurn.Outcome.Nothing
         } finally {
             // Effects first: one outliving its audio session leaks.
