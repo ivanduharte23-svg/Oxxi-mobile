@@ -139,18 +139,7 @@ object EdgeTtsProtocol {
         return digest.joinToString("") { "%02x".format(it) } + ".mp3"
     }
 
-    /** Picks a voice by script, so a Russian reply isn't read with an English accent. */
-    fun detectVoice(text: String): String {
-        val cyrillic = text.count { it in 'Ѐ'..'ӿ' }
-        val latin = text.count { it in 'A'..'Z' || it in 'a'..'z' }
-        if (cyrillic > latin) return VOICE_RU
-        val spanishWords = Regex(
-            """\b(?:hola|gracias|quiero|puedes|necesito|abre|llama|envía|""" +
-                """manda|lee|dime|dónde|cuándo|estás|tienes|por favor|mañana)\b""",
-            RegexOption.IGNORE_CASE
-        )
-        val spanish = text.any { it in "áéíóúüñÁÉÍÓÚÜÑ¿¡" } ||
-            spanishWords.containsMatchIn(text)
-        return if (spanish) VOICE_ES else VOICE_EN
-    }
+    /** Oxxi speaks Spanish (Spain), even when a name or quoted text uses another script. */
+    @Suppress("UNUSED_PARAMETER")
+    fun detectVoice(text: String): String = VOICE_ES
 }
