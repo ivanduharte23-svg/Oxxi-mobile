@@ -109,6 +109,7 @@ object EventPhrases {
     private fun cleanTarget(target: String): String = target
         .replace(wifiWords, "")
         .replace(btWords, "")
+        .trim()
         .replace(Regex("^(?:(?:de la|del|de|la|el)\\s+)+"), "")
         .replace(spaces, " ")
         .trim()
