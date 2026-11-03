@@ -23,7 +23,8 @@ val ownerSigning: OwnerSigning? = run {
     }
     // local.properties for a developer machine, the environment for CI secrets.
     fun value(key: String, env: String): String? =
-        local.getProperty("friday.signing.$key")?.takeIf { it.isNotBlank() }
+        local.getProperty("oxxi.signing.$key")?.takeIf { it.isNotBlank() }
+            ?: local.getProperty("friday.signing.$key")?.takeIf { it.isNotBlank() }
             ?: System.getenv(env)?.takeIf { it.isNotBlank() }
     val store = value("storeFile", "FRIDAY_SIGNING_STORE_FILE")?.let { rootProject.file(it) }?.takeIf { it.exists() }
     val storePassword = value("storePassword", "FRIDAY_SIGNING_STORE_PASSWORD")
@@ -51,12 +52,12 @@ android {
         applicationId = "com.friday.ai"
         minSdk = 26
         targetSdk = 35
-        versionCode = 24
-        versionName = "0.19.0"
+        versionCode = 25
+        versionName = "0.20.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Every phone Friday runs on is 64-bit ARM. The x86 and 32-bit copies
+        // The current Oxxi device target is 64-bit ARM. The x86 and 32-bit copies
         // of the ONNX Runtime and Vosk libraries were a third of the APK.
         ndk { abiFilters += "arm64-v8a" }
     }
@@ -64,7 +65,7 @@ android {
     // The owner's signing key and its passwords are never committed: they come
     // from local.properties or the environment (see keystore/README.md). With
     // them, debug and release builds are signed as the owner's. Without them,
-    // a debug build uses this machine's SDK debug key (fine for trying Friday
+    // a debug build uses this machine's SDK debug key (fine for trying Oxxi
     // out) and a release build is left unsigned — it builds and passes the R8
     // checks, but cannot be installed, so nothing ships signed by the wrong key.
     // Installable releases come from ownerRelease, which fails without the key.
