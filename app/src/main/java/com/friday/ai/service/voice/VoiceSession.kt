@@ -36,8 +36,8 @@ class VoiceSession(
         catalog.refresh()
     }
 
-    /** Spanish is the default; Russian is used only when explicitly selected. */
-    suspend fun russian(): Boolean = prefDao.get("prefer_russian") == "true"
+    /** Oxxi is configured entirely in Spanish. */
+    suspend fun russian(): Boolean = false
 
     suspend fun id(): String = memory.getOrCreateSessionId()
 
