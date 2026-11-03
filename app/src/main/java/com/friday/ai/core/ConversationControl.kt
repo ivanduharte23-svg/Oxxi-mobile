@@ -4,20 +4,32 @@ package com.friday.ai.core
  * Decides when a spoken conversation is over.
  *
  * The voice loop keeps listening after each reply so you can talk naturally
- * without repeating the wake word. That only works if ending the conversation
- * is reliable — otherwise the overlay keeps popping back up and gets in the
- * way, which is exactly what an exact-match stop word list caused: "bye bye",
- * "ok bye" and "спасибо, пока" all slipped through.
+ * without repeating the wake word. This also owns the explicit Oxxi shutdown
+ * phrases so "desactívate" really turns the background listener off.
  */
 object ConversationControl {
 
+    /** Called by the application when the owner explicitly asks Oxxi to deactivate. */
+    @Volatile
+    var onDeactivate: (() -> Unit)? = null
+
+    private val DEACTIVATION_PHRASES = setOf(
+        "desactívate", "desactivate", "desactivaste",
+        "apágate", "apagate",
+        "desactiva oxxi", "desactive oxxi", "desactivar oxxi",
+        "apaga oxxi", "apague oxxi", "apagar oxxi",
+        "desconéctate oxxi", "desconectate oxxi",
+        "cállate oxxi", "callate oxxi",
+        "detente oxxi", "detente, oxxi",
+        "oxxi desactívate", "oxxi desactivate", "oxxi desactivaste",
+        "oxxi apágate", "oxxi apagate"
+    )
+
     /** Single words that end a conversation when the utterance is short. */
     private val FAREWELL_WORDS = setOf(
-        // Russian
         "adiós", "adios", "hasta luego", "hasta pronto", "nos vemos", "ya está", "ya esta", "terminamos", "descansa", "desconéctate", "desconectate", "nada más", "nada mas", "eso es todo", "poco más", "poco mas", "пока", "покеда", "стоп", "хватит", "довольно", "всё", "все",
         "спасибо", "отбой", "закончили", "выйди", "отстань",
-        // English
-        "bye", "goodbye", "stop", "enough", "thanks", "thank", "adiós", "adios", "quit",
+        "bye", "goodbye", "stop", "enough", "thanks", "thank", "quit",
         "exit", "cancel", "dismiss", "nevermind"
     )
 
@@ -29,39 +41,38 @@ object ConversationControl {
         "всего доброго", "до связи", "можешь отдыхать", "ты свободна", "отключайся"
     )
 
-    /**
-     * A goodbye at the end of a longer utterance, after a comma or a full
-     * stop: "Отлично, работаю в фоне, на этом пока." Only these close a
-     * clause — "пока" in "пока я готовлю" is a conjunction, and "спасибо"
-     * after "открой камеру" is manners, not goodbye.
-     */
     private val CLOSING_WORDS = setOf("пока", "покеда", "отбой", "bye", "goodbye")
     private val CLOSING_PHRASES = listOf(
         "на этом пока", "на этом всё", "на этом все", "на сегодня всё", "на сегодня все", "до связи",
         "до встречи", "до свидания", "спокойной ночи", "увидимся", "hasta luego", "hasta pronto", "nos vemos", "buenas noches", "puedes descansar", "descansa", "eso es todo", "see you", "talk later", "good night"
     )
 
-    /** Words that may stand around a closing word in its clause: "ну всё, пока", "ладно, давай пока". */
     private val CLOSING_FILLER = setOf(
         "vale", "bueno", "de acuerdo", "entonces", "venga", "okey", "ok", "ya", "está", "esta", "eso", "todo", "gracias", "hasta", "luego", "nos", "vemos", "ну", "ладно", "тогда", "давай", "окей", "ок", "всё", "все", "хорошо", "отлично", "на", "этом", "сегодня",
-        "спасибо", "ok", "okay", "alright", "thanks", "then", "for", "now"
+        "спасибо", "okay", "alright", "thanks", "then", "for", "now"
     )
 
-    /** Phrases in a longer sentence are a request that mentions them ("напомни до встречи…"). */
     private const val MAX_WORDS_FOR_PHRASE = 6
-
+    private const val MAX_WORDS_FOR_SHORT_FAREWELL = 4
     private val clauseEnd = Regex("""[,.;!?…—]+""")
 
-    /**
-     * Beyond this many words we assume it's a real request that merely
-     * contains a polite word, e.g. "thanks, now open YouTube".
-     */
-    private const val MAX_WORDS_FOR_SHORT_FAREWELL = 4
+    /** True when the utterance explicitly asks Oxxi to deactivate. */
+    fun isDeactivation(text: String): Boolean {
+        val normalized = normalize(text)
+        if (normalized.isEmpty()) return false
+        return normalized in DEACTIVATION_PHRASES ||
+            normalized.matches(Regex("^oxxi\\s+(?:desactiva|desactive|desactivar|apaga|apague|apagar|desconecta|desconectate|callate|cállate|detente)\\s*$"))
+    }
 
     /** True when [text] is the user (or the assistant) closing the conversation. */
     fun isFarewell(text: String): Boolean {
-        val normalized = text.lowercase().trim()
+        val normalized = normalize(text)
         if (normalized.isEmpty()) return false
+
+        if (isDeactivation(normalized)) {
+            onDeactivate?.invoke()
+            return true
+        }
 
         val words = words(normalized)
         if (words.size <= MAX_WORDS_FOR_PHRASE && FAREWELL_PHRASES.any { normalized.contains(it) }) return true
@@ -70,19 +81,13 @@ object ConversationControl {
         return words.any { it in FAREWELL_WORDS }
     }
 
-    /**
-     * What was said before a closing goodbye — "Открой камеру, на этом пока"
-     * → "Открой камеру" — or null when [text] doesn't end with one. The
-     * request is still carried out; the conversation then ends instead of
-     * listening on and catching whatever is said in the room next.
-     */
+    /** What was said before a closing goodbye. */
     fun beforeFarewell(text: String): String? {
         var (rest, last) = lastClause(text) ?: return null
         val lastWords = words(last)
         val closes = CLOSING_PHRASES.any { last == it || last.endsWith(" $it") || last.startsWith("$it ") } ||
             (lastWords.any { it in CLOSING_WORDS } && lastWords.all { it in CLOSING_WORDS || it in CLOSING_FILLER })
         if (!closes) return null
-        // "…, ну всё, пока": the words leading up to the goodbye go with it.
         while (true) {
             val (before, clause) = lastClause(rest) ?: break
             if (!words(clause).all { it in CLOSING_FILLER }) break
@@ -91,13 +96,18 @@ object ConversationControl {
         return rest.takeIf { it.isNotEmpty() }
     }
 
-    /** ("Открой камеру", "на этом пока") from "Открой камеру, на этом пока."; null with no clause break. */
     private fun lastClause(text: String): Pair<String, String>? {
         val trimmed = text.trim().trimEnd { it in ",.;!?…—" || it.isWhitespace() }
         val cut = clauseEnd.findAll(trimmed).lastOrNull() ?: return null
         val before = trimmed.substring(0, cut.range.first).trim()
         return before to trimmed.substring(cut.range.last + 1).lowercase().trim()
     }
+
+    private fun normalize(text: String): String = text
+        .lowercase()
+        .trim()
+        .replace(Regex("[.,!?…]+$"), "")
+        .replace(Regex("\\s+"), " ")
 
     private fun words(text: String): List<String> =
         text.lowercase().split(Regex("[^\\p{L}\\p{N}']+")).filter { it.isNotBlank() }
