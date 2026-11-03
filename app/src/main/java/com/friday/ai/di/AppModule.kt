@@ -78,6 +78,7 @@ val appModule = module {
     // Tool-carrying prompts get the phone's context: country, installed apps.
     single { SystemPromptBuilder(deviceContext = { get<com.friday.ai.core.DeviceContext>().describe() }) }
     single { VoiceInputManager(androidContext(), get(), get(), get()) }
+    single { com.friday.ai.service.EdgeTtsSpeaker(androidContext()) }
     single { CommandRouter() }
     single { ContactsReader(androidContext()) }
     single { CalendarWriter(androidContext()) }
@@ -249,7 +250,8 @@ val appModule = module {
             commands = get(),
             memory = get(),
             files = get(),
-            screen = get()
+            screen = get(),
+            speaker = get()
         )
     }
     viewModel { com.friday.ai.ui.diagnostics.DiagnosticsViewModel(get()) }
