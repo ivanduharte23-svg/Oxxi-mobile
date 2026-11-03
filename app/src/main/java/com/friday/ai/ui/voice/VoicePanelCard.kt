@@ -38,13 +38,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.friday.ai.core.voice.PanelView
-import com.friday.ai.ui.overlay.ArcReactorView
 import com.friday.ai.ui.theme.ArcAmber
 import com.friday.ai.ui.theme.ArcCyan
 import com.friday.ai.ui.theme.ErrorColor
 import com.friday.ai.ui.theme.OnBackground
+import com.friday.ai.ui.oxxi.OxxiHologram
 
 /**
  * Design tokens shared by every Friday voice surface: the floating panel,
@@ -106,7 +105,7 @@ fun VoicePanelCard(
     ) {
         Column(Modifier.padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Reactor(view.mood, level)
+                OxxiHologram(Modifier.size(VoiceTokens.Reactor))
                 Column(
                     Modifier
                         .weight(1f)
@@ -182,26 +181,6 @@ private fun ActionButton(action: PanelAction) {
             border = BorderStroke(1.dp, VoiceTokens.Edge)
         ) { Text(action.label, color = OnBackground) }
     }
-}
-
-@Composable
-private fun Reactor(mood: PanelView.Mood, level: () -> Float) {
-    AndroidView(
-        factory = { ArcReactorView(it) },
-        modifier = Modifier.size(VoiceTokens.Reactor),
-        update = { view ->
-            view.setMood(
-                when (mood) {
-                    PanelView.Mood.LISTENING -> ArcReactorView.Mood.LISTENING
-                    PanelView.Mood.THINKING -> ArcReactorView.Mood.THINKING
-                    PanelView.Mood.SPEAKING -> ArcReactorView.Mood.SPEAKING
-                    PanelView.Mood.IDLE -> ArcReactorView.Mood.IDLE
-                }
-            )
-            view.level(level())
-        },
-        onRelease = { it.stop() }
-    )
 }
 
 private const val COMPACT_LINES = 2
