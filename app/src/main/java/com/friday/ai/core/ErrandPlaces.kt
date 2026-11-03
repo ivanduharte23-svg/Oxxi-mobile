@@ -82,20 +82,11 @@ object ErrandPlaces {
      * Matches the phrasing asked for: what you wanted, that there are places
      * nearby, and how far the closest one is.
      */
+    @Suppress("UNUSED_PARAMETER")
     fun nearbyPrompt(errand: String, nearestMeters: Int, placeCount: Int, russian: Boolean): String =
-        if (russian) {
-            buildString {
-                append("Вы говорили купить $errand. ")
-                append(
-                    if (placeCount > 1) "Тут рядом есть подходящие места, ближайшее в $nearestMeters метрах от вас."
-                    else "Тут рядом есть подходящее место, в $nearestMeters метрах от вас."
-                )
-            }
-        } else {
-            "You wanted to get $errand. " +
-                if (placeCount > 1) "There are places nearby, the closest is $nearestMeters metres away."
-                else "There's one nearby, $nearestMeters metres away."
-        }
+        "Querías comprar $errand. " +
+            if (placeCount > 1) "Hay varios lugares cerca; el más próximo está a $nearestMeters metros."
+            else "Hay un lugar cerca, a $nearestMeters metros."
 
     /** Straight-line distance in metres — good enough to rank nearby shops. */
     fun distanceMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Int {
