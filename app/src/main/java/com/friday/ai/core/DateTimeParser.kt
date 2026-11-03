@@ -133,16 +133,28 @@ object DateTimeParser {
         }
     }
 
-    private fun resolveDay(text: String, now: LocalDateTime) = when {
-        text.contains("послезавтра") || text.contains("pasado mañana") || text.contains("day after tomorrow") ->
-            now.toLocalDate().plusDays(2)
-        text.contains("завтра") || text.contains("mañana") || text.contains("tomorrow") ->
-            now.toLocalDate().plusDays(1)
-        text.contains("сегодня") || text.contains("hoy") || text.contains("today") ->
-            now.toLocalDate()
-        else -> WEEKDAYS.entries
-            .firstOrNull { (word, _) -> text.contains(word) }
-            ?.let { (_, dow) -> now.toLocalDate().with(TemporalAdjusters.next(dow)) }
+    private fun resolveDay(text: String, now: LocalDateTime) : java.time.LocalDate {
+        // "mañana" is both tomorrow and the morning. Remove time-of-day
+        // phrases first so "a las 8 de la mañana" stays on today's date.
+        val dayText = text.replace(
+            Regex("""(?:de|por)\\s+la\\s+mañana"""),
+            " "
+        )
+        return when {
+            dayText.contains("послезавтра") || dayText.contains("pasado mañana") ||
+                dayText.contains("day after tomorrow") ->
+                now.toLocalDate().plusDays(2)
+            dayText.contains("завтра") || dayText.contains("mañana") ||
+                dayText.contains("tomorrow") ->
+                now.toLocalDate().plusDays(1)
+            dayText.contains("сегодня") || dayText.contains("hoy") ||
+                dayText.contains("today") ->
+                now.toLocalDate()
+            else -> WEEKDAYS.entries
+                .firstOrNull { (word, _) -> dayText.contains(word) }
+                ?.let { (_, dow) -> now.toLocalDate().with(TemporalAdjusters.next(dow)) }
+                ?: now.toLocalDate()
+        }
     }
 
     private fun resolveTime(text: String): LocalTime? {
