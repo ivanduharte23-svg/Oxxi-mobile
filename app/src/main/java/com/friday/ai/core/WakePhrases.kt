@@ -1,61 +1,37 @@
 package com.friday.ai.core
 
 /**
- * Decides whether a chunk of recognised speech is the user addressing Friday.
+ * Decides whether a chunk of recognised speech is the user addressing Oxxi.
  *
- * Two constraints shape this:
- *
- *  1. The offline recogniser runs a **Russian** acoustic model, so the English
- *     word "Friday" never comes back spelled that way — it arrives as Cyrillic
- *     approximations ("фрайдей", "прайди", "фрайди"). Both the English name and
- *     the Russian one therefore have to be matched through Cyrillic spellings.
- *
- *  2. "Пятница" is also just the Russian word for the weekday. Matching it
- *     anywhere in a sentence would wake the assistant during "встретимся в
- *     пятницу". So a wake word only counts at the *start* of what was heard,
- *     or right after an attention word ("окей пятница").
+ * Oxxi uses a Spanish offline acoustic model. The name is matched only at
+ * the start of a phrase (or after a short attention word) to avoid false wakes.
  */
 object WakePhrases {
 
-    /** Spellings the Russian recogniser produces for the English "Friday". */
-    private val ENGLISH_NAME = listOf(
-        "фрайдей", "фрайди", "фрайде", "фрайд", "фрэйди", "фрейди",
-        "прайдей", "прайди", "friday"
-    )
+    /** Spanish phonetic variants the recogniser may return for Oxxi. */
+    private val SPANISH_NAME = listOf("oxxi", "oksi", "oxi", "oxsi", "ocsi")
 
-    /** Oxxi, including Cyrillic spellings returned by the Russian Vosk model. */
-    private val SPANISH_NAME = listOf("окси", "оккси", "оксси", "oxxi", "oksi")
+    /** Legacy names stay accepted in transcripts but are not in the Vosk grammar. */
+    private val ENGLISH_NAME = listOf("friday", "фрайдей", "фрайди", "фрайде", "фрайд", "фрэйди", "фрейди")
 
     /** The legacy Russian name remains accepted for compatibility. */
     private val RUSSIAN_NAME = listOf(
         "пятница", "пятницы", "пятнице", "пятницу", "пятнеца", "пятниц"
     )
 
-    /** Optional politeness before the name: "окей пятница", "hey friday". */
-    private val ATTENTION_PREFIXES = listOf(
-        "окей", "оке", "ок", "привет", "слушай", "эй", "hey", "ok", "okay", "hi"
-    )
+    /** Optional politeness before the name: "oye Oxxi", "hola Oxxi". */
+    private val ATTENTION_PREFIXES = listOf("oye", "hola", "ey", "hey", "ok", "okay", "vale")
 
 
     /** Every accepted name, longest first so "фрайдей" wins over "фрай". */
     private val ALL_NAMES: List<String> =
         (SPANISH_NAME + ENGLISH_NAME + RUSSIAN_NAME).sortedByDescending { it.length }
 
-    /**
-     * Words handed to Vosk as a decoding grammar.
-     *
-     * Only Cyrillic entries: a grammar word that isn't in the acoustic model's
-     * vocabulary can break the recogniser, and the model here is Russian — it
-     * has no Latin "friday". Recognition of the English name still works
-     * because it comes back spelled in Cyrillic anyway.
-     */
-    fun grammarVocabulary(): List<String> =
-        (ALL_NAMES + ATTENTION_PREFIXES).filter { entry ->
-            entry.all { it in 'а'..'я' || it == 'ё' || it == ' ' }
-        }.distinct()
+    /** Spanish words handed to Vosk as its constrained decoding grammar. */
+    fun grammarVocabulary(): List<String> = (SPANISH_NAME + ATTENTION_PREFIXES).distinct()
 
     /**
-     * True when [heard] is the user calling Friday.
+     * True when [heard] is the user calling Oxxi.
      *
      * @param heard text from the recogniser, already lower-cased or not.
      */
@@ -91,7 +67,7 @@ object WakePhrases {
     private fun isName(word: String): Boolean = ALL_NAMES.any { word.startsWith(it) }
 
     /**
-     * Which language the user addressed Friday in, or null if it wasn't a
+     * Which language the user addressed Oxxi in, or null if it wasn't a
      * wake call. Lets the reply match the language the user chose.
      */
     fun detectLanguage(heard: String): Language? {
@@ -107,9 +83,8 @@ object WakePhrases {
     enum class Language { RUSSIAN, ENGLISH, SPANISH }
 
     private val leadingCall = Regex(
-        "^\\s*(?:(?:окей|оке|ок|привет|слушай|эй|hey|ok|okay|hi)[\\s,!.]+)?" +
-            "(?:окси\\p{L}*|оккси\\p{L}*|оксси\\p{L}*|oxxi|oksi|пятниц\\p{L}*|пятнец\\p{L}*|" +
-            "фрайд\\p{L}*|фрэйди|фрейди|friday)[\\s,!.:;—–-]*",
+        "^\\s*(?:(?:oye|hola|ey|hey|ok|okay|vale)[\\s,!.]+)?" +
+            "(?:oxxi|oksi|oxi|oxsi|ocsi|пятниц\\p{L}*|пятнец\\p{L}*|фрайд\\p{L}*|фрэйди|фрейди|friday)[\\s,!.:;—–-]*",
         RegexOption.IGNORE_CASE
     )
 
