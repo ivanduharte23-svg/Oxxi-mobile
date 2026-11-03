@@ -110,7 +110,7 @@ fun LazuriDashboardScreen(
                         scale = 1f
                         offset = Offset.Zero
                     }) {
-                        Icon(Icons.Filled.UnfoldLess, contentDescription = "Collapse all")
+                        Icon(Icons.Filled.UnfoldLess, contentDescription = "Contraer todo")
                     }
                     IconButton(onClick = viewModel::refresh) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
@@ -357,14 +357,14 @@ private fun NodeDetailCard(
             if (node.hasChildren) {
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "${node.children.size} inside — tap the bubble to open",
+                    "${node.children.size} elementos dentro; toca el círculo para abrirlos",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
             Spacer(Modifier.height(10.dp))
             Text(
-                "Dismiss",
+                "Cerrar",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -389,14 +389,14 @@ private fun EmptyMap(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Nothing mapped yet",
+            "Todavía no hay nada en el mapa",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Talk to Friday and it will start filling this in — what you like, " +
-                "what you've told it, and the conversations it came from.",
+            "Habla con Oxxi y el mapa se irá completando con tus preferencias, " +
+                "lo que le has contado y las conversaciones de las que procede.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
