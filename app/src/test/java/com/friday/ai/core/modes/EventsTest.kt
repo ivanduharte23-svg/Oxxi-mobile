@@ -147,7 +147,7 @@ class ModeEventEngineTest {
     private val schedules = ModeSchedules(EventTable(), NoPrefs())
     private val store = ModeStore(ModesTable())
     private val ran = mutableListOf<CommandResult>()
-    private val runner: suspend (CommandResult) -> String = { ran += it; "Играет" }
+    private val runner: suspend (CommandResult) -> String = { ran += it; "Reproduciendo." }
 
     private fun e(tool: String, json: String) = ActionEnvelope(tool, Json.parseToJsonElement(json) as JsonObject)
 
@@ -175,7 +175,7 @@ class ModeEventEngineTest {
     fun `an unknown target is the device connected right now, and said so`() = runTest {
         say("создай режим вождения: не беспокоить и музыка")
         val reply = say("включай режим вождения, когда подключаюсь к машине")!!
-        assertEquals("Буду включать режим вождения при подключении к «Toyota Touch». Взяла то, что подключено сейчас: «Toyota Touch».", reply)
+        assertEquals("Voy a activar el modo вождения, cuando se conecta a «Toyota Touch». He tomado el dispositivo que está conectado ahora: «Toyota Touch».", reply)
         assertEquals("Toyota Touch", schedules.events().single().value)
     }
 
@@ -183,7 +183,7 @@ class ModeEventEngineTest {
     fun `nothing connected and no name match means connect first`() = runTest {
         links.bt = PhoneLinks.Bluetooth(true, listOf("Galaxy Buds"), emptyList())
         say("создай режим вождения: не беспокоить и музыка")
-        assertTrue(say("включай режим вождения, когда подключаюсь к машине")!!.startsWith("Не знаю, какое устройство"))
+        assertTrue(say("включай режим вождения, когда подключаюсь к машине")!!.startsWith("No reconozco el dispositivo"))
         assertTrue(schedules.events().isEmpty())
     }
 
@@ -191,7 +191,7 @@ class ModeEventEngineTest {
     fun `no bluetooth permission is said`() = runTest {
         links.bt = PhoneLinks.Bluetooth(false, emptyList(), emptyList())
         say("создай режим вождения: не беспокоить и музыка")
-        assertTrue(say("включай режим вождения, когда подключаюсь к машине")!!.contains("Устройства поблизости"))
+        assertTrue(say("включай режим вождения, когда подключаюсь к машине")!!.contains("dispositivos cercanos"))
     }
 
     @Test
@@ -201,25 +201,25 @@ class ModeEventEngineTest {
         say("когда отключаюсь от машины, выключай режим вождения")
         assertNull("another device does nothing", engine.onLink(Trigger.BLUETOOTH, "Galaxy Buds", true, true, runner))
         val on = engine.onLink(Trigger.BLUETOOTH, "Toyota Touch", true, true, runner)!!
-        assertTrue(on, on.startsWith("Режим вождения."))
+        assertTrue(on, on.startsWith("Modo вождения."))
         assertTrue(dnd.on)
         val off = engine.onLink(Trigger.BLUETOOTH, "Toyota Touch", false, true, runner)!!
-        assertTrue(off, off.startsWith("Режим вождения выключен."))
+        assertTrue(off, off.startsWith("El modo вождения está desactivado."))
         assertFalse(dnd.on)
     }
 
     @Test
     fun `the charger needs no device`() = runTest {
         say("создай режим вождения: не беспокоить и музыка")
-        assertEquals("Буду включать режим вождения, когда телефон ставят на зарядку.", say("когда ставлю на зарядку, включай режим вождения"))
-        assertTrue(engine.onLink(Trigger.CHARGER, "", true, true, runner)!!.startsWith("Режим вождения."))
+        assertEquals("Voy a activar el modo вождения, cuando el teléfono se conecta al cargador.", say("когда ставлю на зарядку, включай режим вождения"))
+        assertTrue(engine.onLink(Trigger.CHARGER, "", true, true, runner)!!.startsWith("Modo вождения."))
     }
 
     @Test
     fun `wifi uses the network the phone is on`() = runTest {
         links.ssid = "Home-5G"
         say("создай режим вождения: не беспокоить и музыка")
-        assertEquals("Буду включать режим вождения при подключении к «Home-5G».", say("когда подключаюсь к домашнему вайфаю — режим вождения"))
+        assertEquals("Voy a activar el modo вождения, cuando se conecta a la red «Home-5G».", say("когда подключаюсь к домашнему вайфаю — режим вождения"))
         assertTrue(engine.onLink(Trigger.WIFI, "Home-5G", true, true, runner) != null)
         assertNull(engine.onLink(Trigger.WIFI, "Cafe", true, true, runner))
     }
