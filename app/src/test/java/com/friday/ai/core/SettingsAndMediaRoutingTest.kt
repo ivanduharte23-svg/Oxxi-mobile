@@ -146,11 +146,25 @@ class SettingsAndMediaRoutingTest {
     }
 
     @Test
+    fun `Spanish device-control requests use local phone handlers`() {
+        assertEquals(CommandResult.Flashlight(on = true), router.route("enciende la linterna"))
+        assertEquals(CommandResult.Flashlight(on = false), router.route("apaga la linterna"))
+        assertEquals(
+            DeviceAction.WIFI_ON,
+            (router.route("activa wifi") as CommandResult.DeviceControl).action
+        )
+        assertEquals(
+            DeviceAction.VOLUME_UP,
+            (router.route("sube el volumen") as CommandResult.DeviceControl).action
+        )
+    }
+
+    @Test
     fun `every offline phrase still routes to something the phone can do`() {
         // Guards the failure found before: phrases in the grammar that are
         // recognised but route nowhere, so the user hears silence.
         OfflineCommands.GRAMMAR
-            .filter { it !in setOf("стоп", "хватит", "пока", "отбой") }
+            .filterNot(ConversationControl::isFarewell)
             .forEach { phrase ->
                 val command = router.route(phrase)
                 assertTrue(
