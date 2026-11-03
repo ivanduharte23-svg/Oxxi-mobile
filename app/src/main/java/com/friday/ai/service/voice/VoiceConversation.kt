@@ -305,7 +305,7 @@ class VoiceConversation(
     private suspend fun offlineTurn(mine: Int) {
         val modelPath = io.wake.modelPath
         if (modelPath == null) {
-            speakAndContinue(mine, OfflineCommands.offlineRefusal(true), allowFollowUp = false)
+            speakAndContinue(mine, OfflineCommands.offlineRefusal(false), allowFollowUp = false)
             return
         }
         io.overlay.listening()
@@ -321,10 +321,10 @@ class VoiceConversation(
         io.overlay.processing(heard)
         val command = commands.route(heard)
         if (!OfflineCommands.isOfflineCapable(command)) {
-            speakAndContinue(mine, OfflineCommands.offlineRefusal(true), allowFollowUp = false)
+            speakAndContinue(mine, OfflineCommands.offlineRefusal(false), allowFollowUp = false)
             return
         }
-        val reply = spokenReply(commands.execute(command, session.russian()))
+        val reply = spokenReply(commands.execute(command, russian = false))
         session.log(heard, reply, command::class.simpleName)
         speakAndContinue(mine, reply, allowFollowUp = true)
     }
