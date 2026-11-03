@@ -96,16 +96,16 @@ fun SettingsScreen(
     HudBackground {
         Column(Modifier.fillMaxSize()) {
             HudTopBar(
-                title = "СИСТЕМЫ",
-                status = HudStatus("Настройки"),
+                title = "SISTEMAS",
+                status = HudStatus("Ajustes"),
                 navigation = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад", tint = OnBackground)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = OnBackground)
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenDiagnostics) {
-                        Icon(Icons.Filled.MonitorHeart, contentDescription = "Диагностика", tint = ArcCyan)
+                        Icon(Icons.Filled.MonitorHeart, contentDescription = "Diagnóstico", tint = ArcCyan)
                     }
                 }
             )
@@ -126,22 +126,22 @@ fun SettingsScreen(
                 MailPanel(viewModel)
                 LearnedPanel(viewModel)
                 MapsPanel(viewModel)
-                HudPanel("Режимы", index = 9) {
+                HudPanel("Modos", index = 9) {
                     HudNote(
-                        "Несколько действий под одним именем, созданные голосом: «создай режим отдыха: " +
-                            "беззвучный и яркость на минимум». «Выключи режим» возвращает всё как было."
+                        "Varias acciones bajo un mismo nombre, creadas por voz: «crea el modo descanso: " +
+                            "silencio y brillo al mínimo». «Desactiva el modo» restaura los ajustes anteriores."
                     )
                     HudOutlinedButton(onClick = onOpenModes, modifier = Modifier.fillMaxWidth()) {
-                        Text("Открыть режимы")
+                        Text("Abrir modos")
                     }
                 }
-                HudPanel("Память", index = 10) {
-                    HudNote("Карта того, что Пятница знает о вас: факты и разговоры, из которых они взялись.")
+                HudPanel("Memoria", index = 10) {
+                    HudNote("Resumen de lo que Oxxi sabe de ti: datos y conversaciones de las que proceden.")
                     HudOutlinedButton(onClick = onOpenDashboard, modifier = Modifier.fillMaxWidth()) {
-                        Text("Что Пятница знает обо мне")
+                        Text("Qué sabe Oxxi de mí")
                     }
                 }
-                HudPanel("Перенос на другой телефон", index = 11) { TransferSection() }
+                HudPanel("Transferir a otro teléfono", index = 11) { TransferSection() }
                 LocationPanel()
                 QuickLinksPanel()
                 LockPanel()
@@ -163,16 +163,16 @@ private fun IntelligencePanel(viewModel: SettingsViewModel) {
     val models by viewModel.models.collectAsStateWithLifecycle()
     var expanded by remember { mutableStateOf(false) }
 
-    HudPanel("Интеллект · Groq", index = 1) {
+    HudPanel("Inteligencia · Groq", index = 1) {
         HudReadout(
-            "Статус",
-            if (apiKey.isBlank()) "НЕТ КЛЮЧА" else "КЛЮЧ ЗАДАН",
+            "Estado",
+            if (apiKey.isBlank()) "SIN CLAVE" else "CLAVE CONFIGURADA",
             valueColor = if (apiKey.isBlank()) ErrorColor else ArcCyan
         )
         OutlinedTextField(
             value = apiKey,
             onValueChange = viewModel::onApiKeyChange,
-            label = { Text("Ключ Groq API") },
+            label = { Text("Clave de API de Groq") },
             placeholder = { Text("gsk_…") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
@@ -184,7 +184,7 @@ private fun IntelligencePanel(viewModel: SettingsViewModel) {
                 value = model,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Модель") },
+                label = { Text("Modelo") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = hudFieldColors(),
                 modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable)
@@ -202,9 +202,9 @@ private fun IntelligencePanel(viewModel: SettingsViewModel) {
             }
         }
         HudButton(onClick = viewModel::saveSettings, modifier = Modifier.fillMaxWidth()) {
-            Text(if (isSaved) "Сохранено" else "Сохранить")
+            Text(if (isSaved) "Guardado" else "Guardar")
         }
-        HudNote("Ключ хранится зашифрованным (Android Keystore) и уходит только в Groq.")
+        HudNote("La clave se guarda cifrada en Android Keystore y solo se envía a Groq.")
     }
 }
 
@@ -217,15 +217,15 @@ private fun ChatsPanel(viewModel: SettingsViewModel) {
     val needsAccess = { on: Boolean ->
         if (on && !FridayNotificationListener.isEnabled(context)) FridayNotificationListener.openSettings(context)
     }
-    HudPanel("Звонки и сообщения", index = 5) {
+    HudPanel("Llamadas y mensajes", index = 5) {
         HudNote(
-            "Пятница собирает сообщения WhatsApp, Telegram и SMS, не читая их вслух, и пропускает " +
-                "рекламу. Спросите «есть непрочитанные?» — назовёт, кто писал; ответ: «ответь ему, что еду». " +
-                "Нужен доступ к уведомлениям."
+            "Oxxi reúne las notificaciones de WhatsApp, Telegram y SMS sin leerlas en voz alta y filtra " +
+                "la publicidad. Pregunta «¿tengo mensajes sin leer?» para saber quién ha escrito; después puedes decir «contéstale que voy de camino». " +
+                "Necesita permiso para acceder a las notificaciones."
         )
         HudSwitchRow(
-            title = "Объявлять звонки",
-            subtitle = "Говорит, кто звонит: телефон, WhatsApp или Telegram",
+            title = "Anunciar llamadas",
+            subtitle = "Indica quién llama: teléfono, WhatsApp o Telegram",
             checked = announceCalls,
             onChange = { needsAccess(it); viewModel.onAnnounceCallsChange(it) }
         )
@@ -245,26 +245,26 @@ private fun MailPanel(viewModel: SettingsViewModel) {
     LaunchedEffect(gmail.consent) {
         gmail.consent?.let { consentLauncher.launch(IntentSenderRequest.Builder(it).build()) }
     }
-    HudPanel("Почта · Gmail", index = 6) {
+    HudPanel("Correo · Gmail", index = 6) {
         HudReadout(
-            "Аккаунт",
-            gmail.account ?: "НЕ ПОДКЛЮЧЁН",
+            "Cuenta",
+            gmail.account ?: "NO CONECTADA",
             valueColor = if (gmail.account != null) ArcCyan else OnBackground
         )
         HudNote(
             if (gmail.account != null) {
-                "Пятница проверяет входящие, читает письма и отвечает — отправляет только после вашего «да»."
+                "Oxxi revisa la bandeja de entrada, lee los correos y prepara respuestas; solo las envía cuando confirmas."
             } else {
-                "После подключения: «есть новые письма?», «прочитай письмо от Ивана», «ответь Ивану: буду в пять»."
+                "Cuando esté conectado, podrás preguntar «¿hay correos nuevos?», «lee el correo de Ana» o «responde que llegaré a las cinco»."
             }
         )
         gmail.message?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = ArcCyan) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             HudButton(onClick = viewModel::connectGmail, enabled = !gmail.busy, modifier = Modifier.weight(1f)) {
-                Text(if (gmail.account == null) "Подключить Gmail" else "Переподключить")
+                Text(if (gmail.account == null) "Conectar Gmail" else "Volver a conectar")
             }
             if (gmail.account != null) {
-                HudOutlinedButton(onClick = viewModel::disconnectGmail, enabled = !gmail.busy) { Text("Отключить") }
+                HudOutlinedButton(onClick = viewModel::disconnectGmail, enabled = !gmail.busy) { Text("Desconectar") }
             }
         }
     }
@@ -273,12 +273,12 @@ private fun MailPanel(viewModel: SettingsViewModel) {
 @Composable
 private fun LearnedPanel(viewModel: SettingsViewModel) {
     val learned by viewModel.learnedCommands.collectAsStateWithLifecycle()
-    HudPanel("Выученные команды", index = 7) {
+    HudPanel("Comandos aprendidos", index = 7) {
         HudNote(
-            "Фразы, которые ИИ однажды разобрал, а теперь Пятница выполняет сама, без ИИ. " +
-                "Скажите «нет, не то» сразу после ошибки — и она забудет; или уберите здесь."
+            "Frases que la IA interpretó una vez y que ahora Oxxi puede ejecutar directamente, sin consultar de nuevo al modelo. " +
+                "Di «no, eso no» justo después de un error para que lo olvide, o elimínalo desde aquí."
         )
-        if (learned.isEmpty()) HudReadout("Выучено", "0")
+        if (learned.isEmpty()) HudReadout("Aprendidos", "0")
         learned.forEach { (phrase, action) ->
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
@@ -288,14 +288,14 @@ private fun LearnedPanel(viewModel: SettingsViewModel) {
                 IconButton(onClick = { viewModel.forgetLearned(phrase) }) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = "Забыть «$phrase»",
+                        contentDescription = "Olvidar «$phrase»",
                         tint = ArcCyan.copy(alpha = 0.7f)
                     )
                 }
             }
         }
         if (learned.isNotEmpty()) {
-            HudOutlinedButton(onClick = viewModel::forgetAllLearned) { Text("Забыть все") }
+            HudOutlinedButton(onClick = viewModel::forgetAllLearned) { Text("Olvidar todos") }
         }
     }
 }
@@ -303,10 +303,10 @@ private fun LearnedPanel(viewModel: SettingsViewModel) {
 @Composable
 private fun MapsPanel(viewModel: SettingsViewModel) {
     val provider by viewModel.mapsProvider.collectAsStateWithLifecycle()
-    HudPanel("Карты", index = 8) {
-        HudNote("Чем открывать «найди ближайшую кофейню / банк / …». «Как в телефоне» — карты по умолчанию.")
+    HudPanel("Mapas", index = 8) {
+        HudNote("Elige qué aplicación abrir al pedir «busca una cafetería o un banco cerca». «Predeterminada» usa la aplicación de mapas del teléfono.")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("auto" to "Телефон", "google" to "Google", "yandex" to "Яндекс").forEach { (value, label) ->
+            listOf("auto" to "Predeterminada", "google" to "Google Maps", "yandex" to "Yandex Maps").forEach { (value, label) ->
                 Box(Modifier.weight(1f)) {
                     HudOutlinedButton(
                         onClick = { viewModel.onMapsProviderChange(value) },
