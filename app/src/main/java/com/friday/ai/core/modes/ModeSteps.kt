@@ -24,76 +24,76 @@ object ModeSteps {
     @Suppress("CyclomaticComplexMethod", "LongMethod") // a phrase per tool, nothing more
     fun describe(e: ActionEnvelope, russian: Boolean): String {
         fun s(key: String) = (e.args[key] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotBlank() }
-        fun say(ru: String, en: String) = if (russian) ru else en
+        fun say(@Suppress("UNUSED_PARAMETER") ru: String, es: String) = es
         return when (e.tool) {
             "phone_control" -> device(s("target"), s("state"), s("level"), russian)
             "play" -> {
                 val query = s("query").orEmpty()
-                val app = s("app")?.let { say(" в $it", " in $it") }.orEmpty()
-                say("включу «$query»$app", "play \"$query\"$app")
+                val app = s("app")?.let { say(" в $it", " en $it") }.orEmpty()
+                say("включу «$query»$app", "reproducir «$query»$app")
             }
             "media" -> when (s("action")) {
-                "pause", "stop" -> say("поставлю музыку на паузу", "pause the music")
-                "next" -> say("следующий трек", "next track")
-                "previous" -> say("предыдущий трек", "previous track")
-                else -> say("продолжу музыку", "resume the music")
+                "pause", "stop" -> say("поставлю музыку на паузу", "pausar la música")
+                "next" -> say("следующий трек", "siguiente canción")
+                "previous" -> say("предыдущий трек", "canción anterior")
+                else -> say("продолжу музыку", "reanudar la música")
             }
             "flashlight" -> when (s("state")) {
-                "on" -> say("включу фонарик", "turn the flashlight on")
-                "off" -> say("выключу фонарик", "turn the flashlight off")
-                else -> say("переключу фонарик", "toggle the flashlight")
+                "on" -> say("включу фонарик", "encender la linterna")
+                "off" -> say("выключу фонарик", "apagar la linterna")
+                else -> say("переключу фонарик", "cambiar el estado de la linterna")
             }
             "set_alarm" -> {
                 val time = "%s:%02d".format(s("hour") ?: "?", s("minute")?.toIntOrNull() ?: 0)
-                say("будильник на $time", "alarm at $time")
+                say("будильник на $time", "alarma a las $time")
             }
             "set_timer" -> {
                 val minutes = (s("seconds")?.toIntOrNull() ?: 0) / SECONDS_PER_MINUTE
-                say("таймер на $minutes мин", "a $minutes-minute timer")
+                say("таймер на $minutes мин", "temporizador de $minutes minutos")
             }
-            "open_app" -> say("открою ${s("name")}", "open ${s("name")}")
-            "weather" -> say("скажу погоду", "tell the weather")
-            "briefing" -> say("утренняя сводка", "the morning briefing")
-            "read_messages" -> say("прочитаю новые сообщения", "read new messages")
-            "send_message" -> say("напишу ${s("contact")}: «${s("text").orEmpty()}»", "message ${s("contact")}: \"${s("text").orEmpty()}\"")
-            "call" -> say("позвоню ${s("contact")}", "call ${s("contact")}")
-            "open_settings" -> say("открою настройки «${s("screen")}»", "open ${s("screen")} settings")
-            "find_nearby" -> say("найду рядом: ${s("query")}", "find nearby: ${s("query")}")
-            "web_search" -> say("найду в интернете: ${s("question")}", "look up: ${s("question")}")
-            "create_note" -> say("заметка «${s("text")}»", "a note \"${s("text")}\"")
-            "camera" -> say("открою камеру", "open the camera")
-            "voice_recorder" -> say("включу диктофон", "start the voice recorder")
-            "run_mode" -> say("режим ${s("name")}", "${s("name")} mode")
+            "open_app" -> say("открою ${s("name")}", "abrir ${s("name")}")
+            "weather" -> say("скажу погоду", "consultar el tiempo")
+            "briefing" -> say("утренняя сводка", "el resumen diario")
+            "read_messages" -> say("прочитаю новые сообщения", "leer los mensajes nuevos")
+            "send_message" -> say("напишу ${s("contact")}: «${s("text").orEmpty()}»", "escribir a ${s("contact")}: «${s("text").orEmpty()}»")
+            "call" -> say("позвоню ${s("contact")}", "llamar a ${s("contact")}")
+            "open_settings" -> say("открою настройки «${s("screen")}»", "abrir los ajustes de «${s("screen")}»")
+            "find_nearby" -> say("найду рядом: ${s("query")}", "buscar cerca: ${s("query")}")
+            "web_search" -> say("найду в интернете: ${s("question")}", "buscar en internet: ${s("question")}")
+            "create_note" -> say("заметка «${s("text")}»", "crear una nota: «${s("text")}»")
+            "camera" -> say("открою камеру", "abrir la cámara")
+            "voice_recorder" -> say("включу диктофон", "iniciar la grabadora de voz")
+            "run_mode" -> say("режим ${s("name")}", "modo ${s("name")}")
             else -> e.tool
         }
     }
 
     private fun device(target: String?, state: String?, level: String?, russian: Boolean): String {
-        fun say(ru: String, en: String) = if (russian) ru else en
+        fun say(@Suppress("UNUSED_PARAMETER") ru: String, es: String) = es
         val on = state == "on"
         return when (target) {
             "volume" -> when {
-                level != null -> say("громкость $level %", "volume $level%")
-                state == "off" -> say("выключу звук", "mute")
-                state == "up" -> say("громче", "louder")
-                state == "down" -> say("тише", "quieter")
-                else -> say("включу звук", "unmute")
+                level != null -> say("громкость $level %", "volumen al $level %")
+                state == "off" -> say("выключу звук", "silenciar")
+                state == "up" -> say("громче", "subir el volumen")
+                state == "down" -> say("тише", "bajar el volumen")
+                else -> say("включу звук", "activar el sonido")
             }
-            "dnd" -> if (on) say("«Не беспокоить»", "Do Not Disturb") else say("выключу «Не беспокоить»", "Do Not Disturb off")
+            "dnd" -> if (on) say("«Не беспокоить»", "activar No molestar") else say("выключу «Не беспокоить»", "desactivar No molestar")
             "ringer" -> when (state) {
-                "silent", "off" -> say("полностью беззвучно", "fully silent")
-                "vibrate" -> say("только вибрация", "vibrate only")
-                else -> say("звонок со звуком", "ringer on")
+                "silent", "off" -> say("полностью беззвучно", "modo silencio")
+                "vibrate" -> say("только вибрация", "solo vibración")
+                else -> say("звонок со звуком", "activar el timbre")
             }
             "brightness" -> when {
-                level != null -> say("яркость $level %", "brightness $level%")
-                state == "auto" -> say("автояркость", "auto-brightness")
-                state == "up" -> say("ярче", "brighter")
-                else -> say("темнее", "dimmer")
+                level != null -> say("яркость $level %", "brillo al $level %")
+                state == "auto" -> say("автояркость", "brillo automático")
+                state == "up" -> say("ярче", "aumentar el brillo")
+                else -> say("темнее", "reducir el brillo")
             }
-            "wifi" -> if (on) say("включить Wi-Fi", "Wi-Fi on") else say("выключить Wi-Fi", "Wi-Fi off")
-            "bluetooth" -> if (on) say("включить Bluetooth", "Bluetooth on") else say("выключить Bluetooth", "Bluetooth off")
-            else -> say("настройка телефона", "a phone setting")
+            "wifi" -> if (on) say("включить Wi-Fi", "activar Wi-Fi") else say("выключить Wi-Fi", "desactivar Wi-Fi")
+            "bluetooth" -> if (on) say("включить Bluetooth", "activar Bluetooth") else say("выключить Bluetooth", "desactivar Bluetooth")
+            else -> say("настройка телефона", "un ajuste del teléfono")
         }
     }
 
