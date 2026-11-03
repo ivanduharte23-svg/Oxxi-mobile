@@ -130,7 +130,7 @@ class WakeListenerTest {
         const val FRAME_MS = 100L
     }
 
-    private fun detected() = WakeSource.End.Detected("пятница", FloatArray(4), continuing = false)
+    private fun detected() = WakeSource.End.Detected("oxxi", FloatArray(4), continuing = false)
 
     private suspend fun TestScope.ready(): Rig {
         val rig = Rig(this)
@@ -162,7 +162,7 @@ class WakeListenerTest {
         val rig = ready()
         rig.source.end(detected())
         runCurrent()
-        assertEquals(listOf("пятница"), rig.wakes)
+        assertEquals(listOf("oxxi"), rig.wakes)
         val events = rig.source.events
         assertTrue(events.toString(), events.indexOf("release") < events.indexOf("wake"))
         assertEquals(0, rig.source.active)
@@ -248,7 +248,7 @@ class WakeListenerTest {
         }
         assertEquals(6, rig.source.captures)
         assertEquals(Status.FAILED, rig.status)
-        assertTrue(rig.shown.last(), rig.shown.last().contains("откройте Friday"))
+        assertTrue(rig.shown.last(), rig.shown.last().contains("Oxxi no puede escucharte"))
         advanceTimeBy(120_000)
         assertEquals("no endless retry", 6, rig.source.captures)
     }
@@ -296,7 +296,7 @@ class WakeListenerTest {
         assertEquals(WakeFailure.PERMISSION, rig.listener.health.value.reason)
         advanceTimeBy(60_000)
         assertEquals(1, rig.source.captures)
-        assertTrue(rig.shown.last().contains("Нет доступа к микрофону"))
+        assertTrue(rig.shown.last().contains("No hay acceso al micrófono"))
     }
 
     @Test
@@ -308,7 +308,7 @@ class WakeListenerTest {
 
         val noModel = Rig(this).apply { loaded = WakeListener.Loaded.Unavailable(WakeFailure.MODEL) }
         assertFalse(noModel.listener.initialise(null))
-        assertTrue(noModel.shown.last().contains("модель"))
+        assertTrue(noModel.shown.last().contains("modelo"))
         noModel.listener.listen()
         runCurrent()
         assertEquals(0, noModel.source.captures)
