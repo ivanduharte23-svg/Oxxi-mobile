@@ -19,8 +19,8 @@ class BriefComposerTest {
 
     @Test
     fun `nothing waiting says so plainly`() {
-        assertEquals("Ничего нового.", BriefComposer.missedSummary(emptyList(), russian = true))
-        assertEquals("Nothing new.", BriefComposer.missedSummary(emptyList(), russian = false))
+        assertEquals("No hay notificaciones nuevas.", BriefComposer.missedSummary(emptyList(), russian = true))
+        assertEquals("No hay notificaciones nuevas.", BriefComposer.missedSummary(emptyList(), russian = false))
     }
 
     @Test
@@ -50,14 +50,14 @@ class BriefComposerTest {
             n("Telegram"), n("Gmail"), n("Slack"), n("Bank"), n("Instagram")
         )
         val s = BriefComposer.missedSummary(across, russian = false)
-        assertTrue("should mention there are more: $s", s.contains("more"))
+        assertTrue("should mention there are more: $s", s.contains("más"))
     }
 
     @Test
-    fun `russian plurals are correct`() {
-        assertTrue(BriefComposer.missedSummary(List(1) { n("A") }, true).contains("уведомление"))
-        assertTrue(BriefComposer.missedSummary(List(3) { n("A") }, true).contains("уведомления"))
-        assertTrue(BriefComposer.missedSummary(List(7) { n("A") }, true).contains("уведомлений"))
+    fun `Spanish notification counts are correct`()  {
+        assertTrue(BriefComposer.missedSummary(List(1) { n("A") }, true).contains("notificación"))
+        assertTrue(BriefComposer.missedSummary(List(3) { n("A") }, true).contains("notificaciones"))
+        assertTrue(BriefComposer.missedSummary(List(7) { n("A") }, true).contains("notificaciones"))
         // 11-14 are the case naive pluralisation gets wrong.
         assertTrue(BriefComposer.missedSummary(List(11) { n("A") }, true).contains("уведомлений"))
     }
@@ -65,15 +65,15 @@ class BriefComposerTest {
     @Test
     fun `morning brief leads with the greeting and includes each part`() {
         val s = BriefComposer.morningBrief(
-            weather = "В Ташкенте сейчас 24°, ясно.",
-            agenda = listOf(AgendaItem("встреча с врачом", "15:00")),
+            weather = "En Tashkent ahora hay 24 °C y está despejado.",
+            agenda = listOf(AgendaItem("reunión con el médico", "15:00")),
             missedCount = 3,
             russian = true,
             localTime = LocalTime.of(8, 0)
         )
-        assertTrue(s.startsWith("Доброе утро."))
+        assertTrue(s.startsWith("Buenos días."))
         assertTrue("got: $s", s.contains("24°"))
-        assertTrue("got: $s", s.contains("встреча с врачом"))
+        assertTrue("got: $s", s.contains("reunión con el médico"))
         assertTrue("got: $s", s.contains("15:00"))
         assertTrue("got: $s", s.contains("3"))
     }
@@ -81,7 +81,7 @@ class BriefComposerTest {
     @Test
     fun `an empty day is stated rather than skipped`() {
         val s = BriefComposer.morningBrief(null, emptyList(), 0, russian = true, localTime = LocalTime.of(8, 0))
-        assertTrue("got: $s", s.contains("пусто"))
+        assertTrue("got: $s", s.contains("Hoy no tienes eventos en el calendario."))
     }
 
     @Test
@@ -89,7 +89,7 @@ class BriefComposerTest {
         val s = BriefComposer.morningBrief(
             null, listOf(AgendaItem("standup", "9:30")), 0, false, localTime = LocalTime.of(8, 0)
         )
-        assertTrue(s.startsWith("Good morning."))
+        assertTrue(s.startsWith("Buenos días."))
         assertTrue("got: $s", s.contains("standup"))
     }
 
@@ -104,7 +104,7 @@ class BriefComposerTest {
     @Test
     fun `zero unread is not mentioned at all`() {
         val s = BriefComposer.morningBrief(null, emptyList(), 0, russian = false, localTime = LocalTime.of(8, 0))
-        assertTrue("got: $s", !s.contains("unread"))
+        assertTrue("got: $s", !s.contains("sin leer"))
     }
 
     @Test
@@ -118,7 +118,7 @@ class BriefComposerTest {
         val s = BriefComposer.morningBrief(
             null, emptyList(), 0, russian = true, localTime = LocalTime.of(16, 0)
         )
-        assertTrue("got: $s", s.startsWith("Добрый день."))
-        assertFalse("got: $s", s.contains("утро"))
+        assertTrue("got: $s", s.startsWith("Buenas tardes."))
+        assertFalse("got: $s", s.contains("Buenos días"))
     }
 }
