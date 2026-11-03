@@ -89,7 +89,7 @@ class TransferViewModel(
             } catch (e: SettingsArchive.Failure) {
                 State.Failed(describe(e))
             } catch (e: Exception) {
-                Log.e(TAG, "Transfer failed: ${e.javaClass.simpleName}")
+                Log.e(TAG, "Error al transferir los ajustes: ${e.javaClass.simpleName}")
                 State.Failed(e.message ?: "No se ha podido completar la operación.")
             }
         }
