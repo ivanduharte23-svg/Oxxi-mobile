@@ -93,21 +93,26 @@ object SchedulePhrases {
     private val cue = Regex(
         "(?:кажд\\p{L}*|ежедневно|по будням|в будни|по выходным|в выходные|" +
             "по (?:понедельникам|вторникам|средам|четвергам|пятницам|субботам|воскресеньям)|" +
+            "cada\\s+(?:día|dia|noche|mañana|lunes|martes|miércoles|jueves|viernes|sábado|domingo)|" +
+            "diariamente|entre semana|los fines de semana|los (?:lunes|martes|miércoles|jueves|viernes|sábados|domingos)|" +
             "every|daily|weekdays|weekends)"
     )
-    private val clear = Regex("(?:расписани|по времени|schedule)")
-    private val clearVerb = Regex("^(?:убери|отмени|удали|сними|не\\s|stop|remove|cancel|delete)")
-    private val exitVerb = Regex("(?:^|\\s)(?:выключай|отключай|выключать|отключать|выходи|turn off|switch off|end)\\s")
-    private val modeWord = Regex("(?:режим\\p{L}*|mode)\\s+(.+)$")
-    private val evening = Regex("(?:вечер|ночь|ночи|evening|night)")
-    private val wake = Regex("^(?:пятница|friday)[,!.\\s]+")
-    private val trailingSchedule = Regex("\\s*по расписанию.*$")
-    private val leadingSchedule = Regex("^расписани\\p{L}*\\s+")
+    private val clear = Regex("(?:расписани|по времени|horari|programaci|schedule)")
+    private val clearVerb = Regex("^(?:убери|отмени|удали|сними|quita|elimina|borra|cancela|desactiva|no\\s|stop|remove|cancel|delete)")
+    private val exitVerb = Regex("(?:^|\\s)(?:выключай|отключай|выключать|отключать|выходи|apaga|desactiva|desconecta|termina|sal|turn off|switch off|end)\\s")
+    private val modeWord = Regex("(?:режим\\p{L}*|modo|mode)\\s+(.+)$")
+    private val evening = Regex("(?:вечер|ночь|ночи|tarde|noche|evening|night)")
+    private val wake = Regex("^(?:пятница|friday|oxxi)[,!.\\s]+")
+    private val trailingSchedule = Regex("\\s*(?:по расписанию|con horario|por horario).*$")
+    private val leadingSchedule = Regex("^(?:расписани\\p{L}*|horario|programación)\\s+")
 
     private val weekdayStems = mapOf(
         "понедельник" to DayOfWeek.MONDAY, "вторник" to DayOfWeek.TUESDAY, "сред" to DayOfWeek.WEDNESDAY,
         "четверг" to DayOfWeek.THURSDAY, "пятниц" to DayOfWeek.FRIDAY, "суббот" to DayOfWeek.SATURDAY,
-        "воскресень" to DayOfWeek.SUNDAY
+        "воскресень" to DayOfWeek.SUNDAY,
+        "lunes" to DayOfWeek.MONDAY, "martes" to DayOfWeek.TUESDAY, "miércoles" to DayOfWeek.WEDNESDAY,
+        "jueves" to DayOfWeek.THURSDAY, "viernes" to DayOfWeek.FRIDAY, "sábado" to DayOfWeek.SATURDAY,
+        "domingo" to DayOfWeek.SUNDAY
     )
 
     private const val NOON = 12
@@ -135,9 +140,9 @@ object SchedulePhrases {
     }
 
     private fun days(t: String): Set<DayOfWeek> = when {
-        Regex("будн|weekday").containsMatchIn(t) -> Days.WEEKDAYS
-        Regex("выходн|weekend").containsMatchIn(t) -> Days.WEEKEND
-        else -> weekdayStems.filterKeys { Regex("по\\s+$it").containsMatchIn(t) }.values.toSet().ifEmpty { Days.ALL }
+        Regex("будн|weekday|entre semana|días laborables").containsMatchIn(t) -> Days.WEEKDAYS
+        Regex("выходн|weekend|fin de semana").containsMatchIn(t) -> Days.WEEKEND
+        else -> weekdayStems.filterKeys { Regex("(?:по\\s+|los\\s+)?$it").containsMatchIn(t) }.values.toSet().ifEmpty { Days.ALL }
     }
 }
 
