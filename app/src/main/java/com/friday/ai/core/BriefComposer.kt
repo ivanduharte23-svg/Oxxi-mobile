@@ -58,6 +58,17 @@ object BriefComposer {
         return parts.joinToString(" ")
     }
 
+    /** Russian plural forms retained for legacy mail formatting compatibility. */
+    internal fun pluralRu(n: Int, one: String, few: String, many: String): String {
+        val mod100 = n % 100
+        if (mod100 in 11..14) return many
+        return when (n % 10) {
+            1 -> one
+            2, 3, 4 -> few
+            else -> many
+        }
+    }
+
     fun timeLabel(hour: Int, minute: Int): String =
         String.format(Locale.US, "%d:%02d", hour, minute)
 }
