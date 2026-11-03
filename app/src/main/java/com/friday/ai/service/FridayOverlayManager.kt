@@ -12,7 +12,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Alignment
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
@@ -304,7 +304,7 @@ private fun BackgroundHologram(onOpenOxxi: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Box(Modifier.size(126.dp).clickable(onClick = onOpenOxxi)) {
-            OxxiHologram(Modifier.fillMaxWidth())
+            OxxiHologram(Modifier.size(126.dp))
         }
     }
 }
