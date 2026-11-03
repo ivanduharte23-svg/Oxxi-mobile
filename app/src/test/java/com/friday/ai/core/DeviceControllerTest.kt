@@ -73,7 +73,7 @@ class DeviceControllerTest {
         assertTrue(r.succeeded)
         // 15 steps: 25 % is step 4, which Android shows as 27 %.
         assertEquals(4, knobs.media.index)
-        assertEquals("Громкость 27%", r.message)
+        assertEquals("Volumen al 27%.", r.message)
         undo(r)
         assertEquals(9, knobs.media.index)
         assertFalse(knobs.media.muted)
@@ -81,8 +81,8 @@ class DeviceControllerTest {
 
     @Test
     fun `set on a 15-step stream reports what the stream really holds`() {
-        val expected = mapOf(0 to (0 to "Звук медиа выключен"), 1 to (1 to "Громкость 7%"), 50 to (8 to "Громкость 53%"),
-            99 to (15 to "Громкость 100%"), 100 to (15 to "Громкость 100%"))
+        val expected = mapOf(0 to (0 to "Volumen multimedia silenciado."), 1 to (1 to "Volumen al 7%."), 50 to (8 to "Volumen al 53%."),
+            99 to (15 to "Volumen al 100%."), 100 to (15 to "Volumen al 100%."))
         expected.forEach { (asked, outcome) ->
             knobs.media.index = 9
             knobs.media.muted = false
@@ -98,7 +98,7 @@ class DeviceControllerTest {
         knobs.media.ignoreWrites = true
         val r = run(DeviceAction.VOLUME_SET, 100)
         assertFalse(r.succeeded)
-        assertEquals("Громкость не изменилась", r.message)
+        assertEquals("El volumen no ha cambiado.", r.message)
         assertNull("nothing changed, nothing to undo", r.undo)
         // Already where asked: true without a change, and nothing to undo either.
         val same = run(DeviceAction.VOLUME_SET, 60)
@@ -113,7 +113,7 @@ class DeviceControllerTest {
         }
         val r = DeviceController(phone).apply(DeviceAction.VOLUME_SET, 100, russian = true)
         assertFalse(r.succeeded)
-        assertEquals("Получилось только 67% вместо 100%", r.message)
+        assertEquals("Solo he podido ajustar el volumen al 67% en lugar del 100%.", r.message)
         // What did change can still be put back.
         undo(r)
         assertEquals(9, knobs.media.index)
@@ -121,27 +121,27 @@ class DeviceControllerTest {
 
     @Test
     fun `up and down move exactly one platform step and stop honestly at the ends`() {
-        assertEquals("Громкость 67%", run(DeviceAction.VOLUME_UP).message)
+        assertEquals("Volumen al 67%.", run(DeviceAction.VOLUME_UP).message)
         assertEquals(10, knobs.media.index)
-        assertEquals("Громкость 60%", run(DeviceAction.VOLUME_DOWN).message)
+        assertEquals("Volumen al 60%.", run(DeviceAction.VOLUME_DOWN).message)
         assertEquals(9, knobs.media.index)
 
         knobs.media.index = 15
         knobs.media.calls.clear()
         val top = run(DeviceAction.VOLUME_UP)
-        assertEquals("Громкость медиа уже на максимуме", top.message)
+        assertEquals("El volumen multimedia ya está al máximo.", top.message)
         assertNull(top.undo)
         assertFalse("no raise was sent at the top", "raise" in knobs.media.calls)
 
         knobs.media.index = 0
         knobs.media.muted = true
-        assertEquals("Звук медиа и так выключен", run(DeviceAction.VOLUME_DOWN).message)
+        assertEquals("El volumen multimedia ya está silenciado.", run(DeviceAction.VOLUME_DOWN).message)
 
         knobs.media.index = 1
         knobs.media.muted = false
         val toZero = run(DeviceAction.VOLUME_DOWN)
         assertTrue("index 0 reads as muted, and that is the step asked for", toZero.succeeded)
-        assertEquals("Звук медиа выключен", toZero.message)
+        assertEquals("Volumen multimedia silenciado.", toZero.message)
     }
 
     @Test
@@ -155,7 +155,7 @@ class DeviceControllerTest {
 
         val back = run(DeviceAction.UNMUTE)
         assertTrue(back.succeeded)
-        assertEquals("Звук медиа включён, 87%", back.message)
+        assertEquals("Volumen multimedia activado al 87%.", back.message)
         assertEquals(13, knobs.media.index)
         assertFalse("no hard-coded 40 %", knobs.media.calls.any { it.startsWith("set") })
     }
@@ -165,7 +165,7 @@ class DeviceControllerTest {
         knobs.media.index = 0
         knobs.media.muted = true
         val r = run(DeviceAction.UNMUTE)
-        assertTrue(r.message, r.message.contains("громкость на нуле"))
+        assertTrue(r.message, r.message.contains("al 0 %"))
 
         knobs.media.muted = false
         assertTrue(run(DeviceAction.UNMUTE).message.contains("громкость на нуле"))
@@ -173,7 +173,7 @@ class DeviceControllerTest {
         // A build that lifts the stream to its first step says what it got.
         knobs.media.muted = true
         knobs.media.unmuteLiftsZero = true
-        assertEquals("Звук медиа включён, 7%", run(DeviceAction.UNMUTE).message)
+        assertEquals("Volumen multimedia activado al 7%.", run(DeviceAction.UNMUTE).message)
     }
 
     @Test
@@ -194,7 +194,7 @@ class DeviceControllerTest {
         listOf(DeviceAction.VOLUME_UP, DeviceAction.VOLUME_DOWN, DeviceAction.MUTE, DeviceAction.UNMUTE).forEach {
             val r = run(it)
             assertEquals(it.name, DeviceActionResult.Mode.FAILED, r.mode)
-            assertTrue(it.name, r.message.contains("фиксирована"))
+            assertTrue(it.name, r.message.contains("volumen fijo"))
         }
         val set = run(DeviceAction.VOLUME_SET, 30)
         assertEquals(DeviceActionResult.Mode.FAILED, set.mode)
@@ -204,7 +204,7 @@ class DeviceControllerTest {
         knobs.media.ignoreWrites = true
         val mute = run(DeviceAction.MUTE)
         assertFalse(mute.succeeded)
-        assertEquals("Звук не выключился", mute.message)
+        assertEquals("No se ha podido silenciar el volumen multimedia.", mute.message)
         assertNull(mute.undo)
 
         knobs.media.ignoreWrites = false
@@ -238,7 +238,7 @@ class DeviceControllerTest {
     @Test
     fun `during a call the reply says only media changed`() {
         knobs.media.duringCall = true
-        assertEquals("Громкость 53% (медиа; громкость разговора не менялась)", run(DeviceAction.VOLUME_SET, 50).message)
+        assertEquals("Volumen al 53%. (multimedia; el volumen de la llamada no ha cambiado)", run(DeviceAction.VOLUME_SET, 50).message)
     }
 
     @Test
@@ -280,7 +280,7 @@ class DeviceControllerTest {
         knobs.dndGranted = false
         val r = run(DeviceAction.RINGER_VIBRATE)
         assertTrue(r.succeeded)
-        assertEquals("Только вибрация", r.message)
+        assertEquals("Solo vibración", r.message)
         undo(r)
         assertEquals(Ringer.NORMAL, knobs.ringerMode)
     }
@@ -316,7 +316,7 @@ class DeviceControllerTest {
     fun `wifi already in the asked state is said, no panel`() {
         val r = run(DeviceAction.WIFI_ON)
         assertTrue(r.succeeded)
-        assertEquals("Wi-Fi уже включён", r.message)
+        assertEquals("Wi-Fi ya está activado.", r.message)
         assertTrue(knobs.opened.isEmpty())
     }
 
@@ -327,12 +327,12 @@ class DeviceControllerTest {
         assertNull(r.verified)
         assertFalse(r.succeeded)
         assertEquals(listOf("WIFI"), knobs.opened)
-        assertTrue(r.message.contains("осталось выключить"))
+        assertTrue(r.message.contains("puedas desactivar"))
     }
 
     @Test
-    fun `english replies for english requests`() {
-        assertEquals("Volume 33%", controller.apply(DeviceAction.VOLUME_SET, 30, russian = false).message)
+    fun `Spanish replies are used for all requests`() {
+        assertEquals("Volumen al 33%.", controller.apply(DeviceAction.VOLUME_SET, 30, russian = false).message)
     }
 }
 
