@@ -65,7 +65,7 @@ class CommandExecutorTest {
         val ru = executor.execute(CommandResult.ToggleFlashlight, true) as CommandExecutor.Outcome.Reply
         val en = executor.execute(CommandResult.ToggleFlashlight, false) as CommandExecutor.Outcome.Reply
         assertTrue(ru.text, ru.text.startsWith("Не получилось") && ru.text.contains("занято"))
-        assertTrue(en.text, en.text.startsWith("Couldn't do that"))
+        assertTrue(en.text, en.text.startsWith("No he podido completar la acción"))
     }
 
     @Test(expected = CancellationException::class)
@@ -115,7 +115,7 @@ class PlannerActionsTest {
     @Test
     fun `an unreadable time is said, not guessed`() = runTest {
         val reply = planner.run(CommandResult.CreateEvent("врач", "когда-нибудь"), russian = true)
-        assertTrue(reply, reply.contains("couldn't work out"))
+        assertTrue(reply, reply.contains("No he podido determinar cuándo debe ser"))
         verify(exactly = 0) { apps.createCalendarEvent(any(), any(), any(), any()) }
     }
 }
