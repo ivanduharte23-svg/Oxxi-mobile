@@ -137,7 +137,7 @@ class InfoActionsTest {
     @Test
     fun `no place named means where the user is, not a city written into the code`() = runTest {
         coEvery { weather.summary(null, 0, false) } returns "+14°, claro."
-        assertEquals("+14°, ясно.", info.run(CommandResult.Weather(null), russian = false))
+        assertEquals("+14°, claro.", info.run(CommandResult.Weather(null), russian = false))
     }
 
     @Test
