@@ -66,19 +66,19 @@ fun NotebookScreen(onNavigateBack: () -> Unit, onAsk: () -> Unit, inbox: Noteboo
     HudBackground {
         Column(Modifier.fillMaxSize().imePadding().navigationBarsPadding()) {
             HudTopBar(
-                title = "БЛОКНОТ",
-                status = HudStatus(if (penSeen) "Перо" else "Пишите пальцем или пером"),
+                title = "BLOC DE NOTAS",
+                status = HudStatus(if (penSeen) "Lápiz" else "Escribe con el dedo o con un lápiz"),
                 navigation = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад", tint = OnBackground)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = OnBackground)
                     }
                 },
                 actions = {
                     IconButton(onClick = { strokes.removeLastOrNull() }, enabled = strokes.isNotEmpty()) {
-                        Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Отменить штрих", tint = ArcCyan)
+                        Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Deshacer trazo", tint = ArcCyan)
                     }
                     IconButton(onClick = { strokes.clear() }, enabled = strokes.isNotEmpty()) {
-                        Icon(Icons.Filled.DeleteSweep, contentDescription = "Очистить", tint = ArcCyan)
+                        Icon(Icons.Filled.DeleteSweep, contentDescription = "Limpiar", tint = ArcCyan)
                     }
                 }
             )
@@ -102,7 +102,7 @@ fun NotebookScreen(onNavigateBack: () -> Unit, onAsk: () -> Unit, inbox: Noteboo
                 }
                 if (strokes.isEmpty() && current.isEmpty()) {
                     HudNote(
-                        "Напишите вопрос или пример, нарисуйте схему. Потом — «Спросить».",
+                        "Escribe una pregunta o un ejemplo, o dibuja un esquema. Después, pulsa «Preguntar».",
                         Modifier.align(Alignment.Center).padding(24.dp)
                     )
                 }
@@ -115,7 +115,7 @@ fun NotebookScreen(onNavigateBack: () -> Unit, onAsk: () -> Unit, inbox: Noteboo
                 OutlinedTextField(
                     value = question,
                     onValueChange = { question = it },
-                    placeholder = { Text("Вопрос (необязательно): «реши», «переведи»…") },
+                    placeholder = { Text("Pregunta (opcional): «resuelve», «traduce»…") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,
@@ -129,7 +129,7 @@ fun NotebookScreen(onNavigateBack: () -> Unit, onAsk: () -> Unit, inbox: Noteboo
                         }
                     },
                     enabled = strokes.isNotEmpty()
-                ) { Text("Спросить") }
+                ) { Text("Preguntar") }
             }
         }
     }
