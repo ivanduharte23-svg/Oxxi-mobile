@@ -127,17 +127,17 @@ class InfoActionsTest {
     private val info = InfoActions(weather, mockk<ProactiveBriefService>(relaxed = true), mail, mockk(), mockk())
 
     @Test
-    fun `a cyrillic place gets a russian answer whatever the setting`() = runTest {
+    fun `a cyrillic place still gets a Spanish answer`() = runTest {
         coEvery { weather.summary(any(), any(), any()) } returns null
         val reply = info.run(CommandResult.Weather("Ташкенте"), russian = false)
-        coVerify { weather.summary("Ташкенте", 0, true) }
-        assertTrue(reply, reply.startsWith("Не смогла получить погоду"))
+        coVerify { weather.summary("Ташкенте", 0, false) }
+        assertTrue(reply, reply.startsWith("No he podido obtener el tiempo"))
     }
 
     @Test
     fun `no place named means where the user is, not a city written into the code`() = runTest {
-        coEvery { weather.summary(null, 0, true) } returns "+14°, ясно."
-        assertEquals("+14°, ясно.", info.run(CommandResult.Weather(null), russian = true))
+        coEvery { weather.summary(null, 0, false) } returns "+14°, claro."
+        assertEquals("+14°, ясно.", info.run(CommandResult.Weather(null), russian = false))
     }
 
     @Test
