@@ -1,37 +1,24 @@
 package com.friday.ai.core.mail
 
-import com.friday.ai.core.BriefComposer
-
 /**
- * What Friday says about mail, kept short enough to be listened to.
+ * What Oxxi says about mail, kept short enough to be listened to.
  *
- * Names stay in the nominative ("Иван Петров — «Встреча»") rather than being
- * forced into "от …": declining an arbitrary sender's name is a guess, and a
- * wrong case sounds worse than a list.
+ * Sender names stay in the nominative rather than being forced into a
+ * grammatical case: arbitrary names cannot safely be declined.
  */
 object MailSpeech {
 
     /** How many senders are named before the rest are just counted. */
     const val NAMED = 3
 
+    @Suppress("UNUSED_PARAMETER")
     fun unread(total: Int, newest: List<GmailMessages.Mail>, russian: Boolean): String {
-        if (total <= 0 || newest.isEmpty()) return if (russian) "Новых писем нет." else "No new mail."
+        if (total <= 0 || newest.isEmpty()) return "No hay correos nuevos."
         val count = maxOf(total, newest.size)
-        val head = if (russian) {
-            val noun = BriefComposer.pluralRu(
-                count, "непрочитанное письмо", "непрочитанных письма", "непрочитанных писем"
-            )
-            "$count $noun."
-        } else {
-            "$count unread ${if (count == 1) "email" else "emails"}."
-        }
+        val head = "$count ${if (count == 1) "correo sin leer" else "correos sin leer"}."
         val named = newest.take(NAMED).joinToString(" ") { line(it) }
         val rest = count - minOf(NAMED, newest.size)
-        val tail = when {
-            rest <= 0 -> ""
-            russian -> " И ещё $rest."
-            else -> " And $rest more."
-        }
+        val tail = if (rest <= 0) "" else " Y $rest más."
         return "$head $named$tail"
     }
 
@@ -41,23 +28,20 @@ object MailSpeech {
     }
 
     /** Opening of a read-out: who and about what. */
+    @Suppress("UNUSED_PARAMETER")
     fun header(m: GmailMessages.Mail, russian: Boolean): String {
         val subject = m.subject.takeIf { it.isNotBlank() }?.let { "«$it»" }
-        return when {
-            subject == null && russian -> "${m.fromName} пишет."
-            subject == null -> "${m.fromName} writes."
-            russian -> "${m.fromName} пишет: $subject."
-            else -> "${m.fromName} writes: $subject."
-        }
+        return if (subject == null) "${m.fromName} ha escrito."
+        else "${m.fromName} ha escrito: $subject."
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun confirmReply(name: String, subject: String, body: String, russian: Boolean): String =
-        if (russian) "Ответ на «$subject» ($name): «$body». Отправить?"
-        else "Reply to “$subject” ($name): “$body”. Send it?"
+        "Respuesta a «$subject» ($name): «$body». ¿La envío?"
 
+    @Suppress("UNUSED_PARAMETER")
     fun confirmNew(name: String, address: String, subject: String, body: String, russian: Boolean): String =
-        if (russian) "Новое письмо: $name, $address. Тема «$subject». Текст: «$body». Отправить?"
-        else "New email: $name, $address. Subject “$subject”. Text: “$body”. Send it?"
+        "Nuevo correo: $name, $address. Asunto: «$subject». Mensaje: «$body». ¿Lo envío?"
 
     private const val SUBJECT_FALLBACK = 60
 }
