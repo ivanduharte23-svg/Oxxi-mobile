@@ -19,18 +19,20 @@ internal object DevicePhrases {
     private val onWords = Regex("(?:enciende|activa|conecta|\\bon\\b|enable|turn on|включ|вруби)")
 
     private val ringerSilentPattern = Regex(
-        "(?:беззвучн\\p{L}* режим|режим без звука|на беззвучн|в беззвучн|полностью беззвучн|" +
+        "(?:modo silencioso|modo sin sonido|silencio total|en silencio|sin sonido|" +
+            "беззвучн\\p{L}* режим|режим без звука|на беззвучн|в беззвучн|полностью беззвучн|" +
             "полная тишина|silent mode|phone on silent)"
     )
     private val ringerVibratePattern = Regex("(?:vibración|vibracion|modo vibración|modo vibracion|вибраци|на вибро|режим вибро|vibrate|vibration)")
     private val ringerNormalPattern = Regex(
-        "(?:(?:выключи|отключи|убери) беззвучн|верни звонок|включи звонок|звук звонка|обычный режим звонка|" +
+        "(?:quita el modo silencioso|desactiva el modo silencioso|quita el silencio|vuelve al sonido|" +
+            "(?:выключи|отключи|убери) беззвучн|верни звонок|включи звонок|звук звонка|обычный режим звонка|" +
             "ringer on|turn off silent)"
     )
 
     private val brightnessSetPattern =
         Regex("(?:brillo|luminosidad|яркост\\p{L}*|brightness)\\s*(?:a|en|на|to)?\\s*(\\d{1,3})\\s*(?:%|por ciento|процент\\p{L}*)?")
-    private val autoBrightnessPattern = Regex("(?:автояркост|авто ?яркост|автоматическ\\p{L}* яркост|auto.?brightness)")
+    private val autoBrightnessPattern = Regex("(?:brillo automático|brillo automatico|ajuste automático de brillo|ajuste automatico de brillo|автояркост|авто ?яркост|автоматическ\\p{L}* яркост|auto.?brightness)")
 
     /** "Выключи …" / "включи …" / neither: which of the three a radio phrase asks for. */
     fun onOff(lower: String, on: DeviceAction, off: DeviceAction, neither: DeviceAction): DeviceAction = when {
@@ -63,10 +65,10 @@ internal object DevicePhrases {
                 CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_SET, MAX_LEVEL)
             mentions && Regex("mínim|minim|al mínimo|al minimo|миним|min").containsMatchIn(lower) ->
                 CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_SET, MIN_BRIGHTNESS)
-            Regex("(?:^|\\s)ярче(?:\\s|$)|экран ярче|brighter").containsMatchIn(lower) ||
+            Regex("(?:^|\\s)más brillante(?:\\s|$)|mas brillante|sube el brillo|aumenta el brillo|más luz|mas luz|(?:^|\\s)ярче(?:\\s|$)|экран ярче|brighter").containsMatchIn(lower) ||
                 mentions && Regex("sube|aumenta|incrementa|прибав|увелич|повыс|up").containsMatchIn(lower) ->
                 CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_UP)
-            Regex("(?:^|\\s)темнее(?:\\s|$)|экран темнее|dimmer").containsMatchIn(lower) ||
+            Regex("(?:^|\\s)más oscuro(?:\\s|$)|mas oscuro|baja el brillo|reduce el brillo|(?:^|\\s)темнее(?:\\s|$)|экран темнее|dimmer").containsMatchIn(lower) ||
                 mentions && Regex("baja|reduce|disminuye|убав|уменьш|пониз|down").containsMatchIn(lower) ->
                 CommandResult.DeviceControl(DeviceAction.BRIGHTNESS_DOWN)
             else -> null
