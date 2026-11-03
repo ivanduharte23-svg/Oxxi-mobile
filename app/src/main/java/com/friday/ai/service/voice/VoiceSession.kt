@@ -36,8 +36,8 @@ class VoiceSession(
         catalog.refresh()
     }
 
-    /** Whether to answer in Russian. */
-    suspend fun russian(): Boolean = (prefDao.get("prefer_russian") ?: "true") == "true"
+    /** Spanish is the default; Russian is used only when explicitly selected. */
+    suspend fun russian(): Boolean = prefDao.get("prefer_russian") == "true"
 
     suspend fun id(): String = memory.getOrCreateSessionId()
 
