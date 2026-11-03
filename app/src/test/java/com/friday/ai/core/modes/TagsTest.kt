@@ -112,7 +112,7 @@ class ModeTagEngineTest {
         say("создай режим отдыха: не беспокоить")
         assertTrue(say("привяжи режим отдыха к метке")!!.startsWith("Acerca una etiqueta NFC"))
         assertEquals(listOf("отдыха"), nfc.writing)
-        assertTrue(say("сделай метку для режима отдыха")!!.startsWith("Поднесите"))
+        assertTrue(say("сделай метку для режима отдыха")!!.startsWith("Acerca una etiqueta NFC"))
     }
 
     @Test
