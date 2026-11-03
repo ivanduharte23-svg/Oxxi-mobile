@@ -4,6 +4,12 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -66,6 +72,7 @@ import com.friday.ai.ui.theme.BackgroundDark
 import com.friday.ai.ui.theme.OnBackground
 import com.friday.ai.ui.theme.OnSurfaceMuted
 import com.friday.ai.ui.theme.SurfaceDark
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import org.koin.androidx.compose.koinViewModel
@@ -104,7 +111,7 @@ fun OxxiMainScreen(
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
         when (tab) {
-            OxxiTab.HOME, OxxiTab.MIC -> HomePage(onSettings = onNavigateToSettings, onMic = { startMic() })
+            OxxiTab.HOME, OxxiTab.MIC -> HomePage(state = state, onSettings = onNavigateToSettings, onMic = { startMic() })
             OxxiTab.CHAT -> ChatPage(
                 state = state,
                 input = input,
@@ -124,7 +131,7 @@ fun OxxiMainScreen(
 }
 
 @Composable
-private fun HomePage(onSettings: () -> Unit, onMic: () -> Unit) {
+private fun HomePage(state: ChatUiState, onSettings: () -> Unit, onMic: () -> Unit) {
     Column(
         Modifier.fillMaxSize().padding(horizontal = 24.dp).padding(bottom = 92.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -139,10 +146,23 @@ private fun HomePage(onSettings: () -> Unit, onMic: () -> Unit) {
                 Icon(Icons.Filled.Settings, contentDescription = "Ajustes", tint = OnBackground.copy(alpha = 0.85f))
             }
         }
+        Text("Tu asistente inteligente", color = NeonBlue, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.weight(1f))
-        NexusBlob(modifier = Modifier.size(300.dp))
-        Spacer(Modifier.weight(1f))
-        MicButton(onClick = onMic, description = "Hablar con Oxxi")
+        NexusBlob(modifier = Modifier.size(310.dp))
+        Spacer(Modifier.height(10.dp))
+        Text(
+            when {
+                state.isVoiceListening -> "Te escucho…"
+                state.isLoading -> "Estoy pensando…"
+                else -> "Hola, soy Oxxi. ¿Qué necesitas?"
+            },
+            color = if (state.isVoiceListening) NeonCyan else OnBackground,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(12.dp))
+        state.error?.let { ErrorBanner(it) }
+        MicButton(onClick = onMic, description = "Hablar con Oxxi", enabled = !state.isLoading)
         Spacer(Modifier.height(18.dp))
     }
 }
@@ -159,8 +179,18 @@ private fun ChatPage(
         Spacer(Modifier.height(20.dp))
         NexusBlob(modifier = Modifier.align(Alignment.CenterHorizontally).size(220.dp))
         Spacer(Modifier.height(18.dp))
+        Text(
+            when {
+                state.isVoiceListening -> "Te escucho…"
+                state.isLoading -> "Oxxi está preparando la respuesta…"
+                else -> "¿En qué puedo ayudarte?"
+            },
+            color = OnSurfaceMuted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        state.error?.let { ErrorBanner(it) }
         if (state.messages.isEmpty()) {
-            Text("¿En qué puedo ayudarte?", color = OnSurfaceMuted, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.weight(1f))
         } else {
             LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -176,16 +206,17 @@ private fun ChatPage(
             }
         }
         Spacer(Modifier.height(12.dp))
-        ChatComposer(input, onInput, onSend, onMic)
+        ChatComposer(input, onInput, onSend, onMic, isBusy = state.isLoading)
     }
 }
 
 @Composable
-private fun ChatComposer(input: String, onInput: (String) -> Unit, onSend: () -> Unit, onMic: () -> Unit) {
+private fun ChatComposer(input: String, onInput: (String) -> Unit, onSend: () -> Unit, onMic: () -> Unit, isBusy: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         TextField(
             value = input,
             onValueChange = onInput,
+            enabled = !isBusy,
             singleLine = true,
             placeholder = { Text("Habla con Oxxi…", color = OnSurfaceMuted) },
             modifier = Modifier.weight(1f),
@@ -201,7 +232,7 @@ private fun ChatComposer(input: String, onInput: (String) -> Unit, onSend: () ->
             )
         )
         Spacer(Modifier.width(8.dp))
-        IconButton(onClick = { if (input.isNotBlank()) onSend() else onMic() }) {
+        IconButton(onClick = { if (input.isNotBlank()) onSend() else onMic() }, enabled = !isBusy) {
             Icon(Icons.Filled.Mic, contentDescription = "Micrófono", tint = NeonCyan)
         }
     }
@@ -209,58 +240,53 @@ private fun ChatComposer(input: String, onInput: (String) -> Unit, onSend: () ->
 
 @Composable
 private fun TasksPage() {
-    var query by remember { mutableStateOf("") }
-    val tasks = remember {
-        listOf(
-            "Crear un recordatorio" to "Hoy · 20:00",
-            "Revisar mi agenda" to "Mañana · 09:00",
-            "Preparar la lista de tareas" to "Viernes · 18:00"
-        )
-    }
-    Column(Modifier.fillMaxSize().padding(horizontal = 20.dp).padding(bottom = 92.dp)) {
-        Text("Recordatorios", color = OnBackground, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 14.dp))
-        Spacer(Modifier.height(16.dp))
-        TextField(
-            value = query,
-            onValueChange = { query = it },
-            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = OnSurfaceMuted) },
-            placeholder = { Text("Buscar…", color = OnSurfaceMuted) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = SurfaceDark,
-                unfocusedContainerColor = SurfaceDark,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = OnBackground,
-                unfocusedTextColor = OnBackground
-            )
-        )
+    Column(
+        Modifier.fillMaxSize().padding(horizontal = 24.dp).padding(bottom = 92.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(Icons.Filled.TaskAlt, contentDescription = null, tint = NeonCyan, modifier = Modifier.size(54.dp))
         Spacer(Modifier.height(18.dp))
-        tasks.filter { it.first.contains(query, true) }.forEach { (title, date) ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = NeonCyan, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(title, color = OnBackground, style = MaterialTheme.typography.bodyLarge)
-                    Spacer(Modifier.height(4.dp))
-                    Text(date, color = OnSurfaceMuted, style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
+        Text(
+            "Recordatorios y tareas",
+            color = OnBackground,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Pídele a Oxxi que cree un recordatorio o añada una tarea. Aquí aparecerán cuando estén conectados.",
+            color = OnSurfaceMuted,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
 @Composable
-private fun MicButton(onClick: () -> Unit, description: String) {
+private fun ErrorBanner(message: String) {
+    Text(
+        message,
+        color = Color(0xFFFFA0A8),
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFF351820))
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    )
+    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+private fun MicButton(onClick: () -> Unit, description: String, enabled: Boolean) {
     Box(
         Modifier
             .size(76.dp)
             .shadow(18.dp, CircleShape)
             .clip(CircleShape)
-            .background(Brush.radialGradient(listOf(Color.White, NeonCyan, NeonBlue)))
-            .clickable(onClick = onClick)
+            .background(Brush.radialGradient(listOf(Color.White, NeonCyan, NeonBlue).map { it.copy(alpha = if (enabled) 1f else 0.35f) }))
+            .clickable(enabled = enabled, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center
     ) {
@@ -298,49 +324,157 @@ private fun BottomItem(
     }
 }
 
-/** Dotted, holographic orb inspired directly by the supplied reference. */
+/** Animated 3D holographic mesh: a deforming sphere projected from latitude/longitude. */
+private data class OrbProjection(
+    val position: Offset,
+    val depth: Float,
+    val lowerSurface: Boolean
+)
+
 @Composable
 private fun NexusBlob(modifier: Modifier = Modifier) {
-    val dots = remember {
-        buildList {
-            for (y in -22..22) {
-                for (x in -30..30) {
-                    val nx = x / 30f
-                    val ny = y / 22f
-                    val edge = nx * nx * 0.95f + ny * ny * 1.15f
-                    if (edge < 1.05f) add(Offset(nx, ny))
+    val motion = rememberInfiniteTransition(label = "oxxi_hologram")
+    val rotation by motion.animateFloat(
+        initialValue = 0f,
+        targetValue = (2f * PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 22_000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "orb_rotation"
+    )
+    val breathing by motion.animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2_600),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "orb_breathing"
+    )
+
+    Canvas(modifier) {
+        val width = size.minDimension
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val radius = width * 0.315f * breathing
+        val rows = 18
+        val columns = 40
+        val turn = rotation
+
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    NeonCyan.copy(alpha = 0.26f),
+                    NeonBlue.copy(alpha = 0.12f),
+                    NeonPurple.copy(alpha = 0.025f),
+                    Color.Transparent
+                ),
+                center = Offset(cx, cy),
+                radius = width * 0.49f
+            ),
+            radius = width * 0.49f,
+            center = Offset(cx, cy)
+        )
+        drawCircle(NeonBlue.copy(alpha = 0.09f), radius = radius * 1.48f, center = Offset(cx, cy))
+
+        fun project(row: Int, column: Int): OrbProjection {
+            val latitude = -PI.toFloat() / 2f + PI.toFloat() * row / rows
+            val longitude = 2f * PI.toFloat() * column / columns + turn
+            val wave = 1f +
+                0.105f * sin(longitude * 3f + latitude * 2.2f + turn * 0.35f) +
+                0.055f * cos(latitude * 5f - longitude * 2f)
+            val x = cos(latitude) * sin(longitude)
+            val y = sin(latitude) * 0.86f
+            val z = cos(latitude) * cos(longitude)
+            val perspective = 1f / (1f - z * 0.16f)
+            return OrbProjection(
+                position = Offset(
+                    cx + x * radius * wave * perspective,
+                    cy + y * radius * wave * perspective
+                ),
+                depth = ((z + 1f) / 2f).coerceIn(0f, 1f),
+                lowerSurface = y > 0.20f
+            )
+        }
+
+        // Longitude and latitude strands create a real spherical projection,
+        // rather than a flat particle cloud. Rear strands stay faint.
+        for (row in 0..rows) {
+            for (column in 0 until columns) {
+                val point = project(row, column)
+                val next = project(row, (column + 1) % columns)
+                val color = when {
+                    point.lowerSurface -> NeonPurple
+                    point.depth < 0.32f -> NeonBlue
+                    else -> NeonCyan
+                }
+                val lineAlpha = 0.075f + point.depth * 0.24f
+                drawLine(
+                    color = color.copy(alpha = lineAlpha),
+                    start = point.position,
+                    end = next.position,
+                    strokeWidth = 0.75f
+                )
+                if (row < rows) {
+                    val below = project(row + 1, column)
+                    drawLine(
+                        color = color.copy(alpha = lineAlpha * 0.9f),
+                        start = point.position,
+                        end = below.position,
+                        strokeWidth = 0.72f
+                    )
+                }
+
+                val dotRadius = 0.65f + point.depth * 0.72f
+                drawCircle(
+                    color = color.copy(alpha = 0.22f + point.depth * 0.66f),
+                    radius = dotRadius,
+                    center = point.position
+                )
+                if (point.depth > 0.68f) {
+                    drawCircle(
+                        color = Color.White.copy(alpha = (point.depth - 0.55f) * 0.42f),
+                        radius = 0.55f,
+                        center = point.position
+                    )
                 }
             }
         }
-    }
-    Canvas(modifier) {
-        val w = size.minDimension
-        val cx = size.width / 2f
-        val cy = size.height / 2f
-        val r = w * 0.33f
-        drawCircle(
-            brush = Brush.radialGradient(
-                listOf(NeonCyan.copy(alpha = 0.22f), NeonBlue.copy(alpha = 0.08f), NeonPurple.copy(alpha = 0f)),
-                center = Offset(cx, cy), radius = w * 0.48f
-            ),
-            radius = w * 0.48f,
-            center = Offset(cx, cy)
-        )
-        drawCircle(NeonBlue.copy(alpha = 0.12f), radius = r * 1.45f, center = Offset(cx, cy))
-        for (p in dots) {
-            val bulge = 1f + 0.10f * cos(p.x * 3f) - 0.06f * sin(p.y * 4.2f)
-            val px = cx + p.x * r * bulge
-            val py = cy + p.y * r * (0.72f + 0.16f * cos(p.x * 2.1f))
-            val depth = (1f - (p.y + 1f) / 2f).coerceIn(0f, 1f)
-            val color = if ((py - cy) / r > 0.15f) NeonPurple else if (px < cx) NeonBlue else NeonCyan
-            drawCircle(color.copy(alpha = 0.18f * depth), radius = 3.2f, center = Offset(px, py))
-            drawCircle(Color.White.copy(alpha = 0.38f + 0.38f * depth), radius = 1.15f, center = Offset(px, py))
-        }
+
+        // Three luminous orbital rings and small orbiting particles reinforce
+        // the hologram effect without loading a heavy 3D engine or model file.
         drawOval(
             brush = Brush.sweepGradient(listOf(NeonCyan, NeonBlue, NeonPurple, NeonCyan)),
-            topLeft = Offset(cx - r * 1.10f, cy - r * 0.72f),
-            size = androidx.compose.ui.geometry.Size(r * 2.2f, r * 1.44f),
-            style = Stroke(width = 1.2f)
+            topLeft = Offset(cx - radius * 1.34f, cy - radius * 0.54f),
+            size = androidx.compose.ui.geometry.Size(radius * 2.68f, radius * 1.08f),
+            style = Stroke(width = 1.25f)
         )
+        drawOval(
+            color = NeonCyan.copy(alpha = 0.28f),
+            topLeft = Offset(cx - radius * 1.19f, cy - radius * 1.19f),
+            size = androidx.compose.ui.geometry.Size(radius * 2.38f, radius * 2.38f),
+            style = Stroke(width = 0.8f)
+        )
+        drawOval(
+            color = NeonPurple.copy(alpha = 0.22f),
+            topLeft = Offset(cx - radius * 1.48f, cy - radius * 0.62f),
+            size = androidx.compose.ui.geometry.Size(radius * 2.96f, radius * 1.24f),
+            style = Stroke(width = 0.7f)
+        )
+        for (index in 0 until 72) {
+            val angle = index.toFloat() / 72f * 2f * PI.toFloat() + turn * 0.16f
+            val orbitRadius = radius * (1.34f + 0.045f * sin(angle * 4f))
+            val particle = Offset(
+                cx + cos(angle) * orbitRadius,
+                cy + sin(angle) * orbitRadius * 0.56f
+            )
+            val tint = if (index % 4 == 0) NeonPurple else NeonCyan
+            drawCircle(
+                color = tint.copy(alpha = 0.2f + 0.32f * (0.5f + 0.5f * sin(angle * 3f))),
+                radius = 0.9f,
+                center = particle
+            )
+        }
     }
 }
