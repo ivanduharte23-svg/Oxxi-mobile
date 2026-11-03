@@ -267,7 +267,7 @@ private fun StatusStrip(text: String) {
 private fun HowTo() {
     HudPanel("Cómo crear un modo") {
         HudNote(
-            "Un modo agrupa varias acciones bajo un mismo nombre. Créalo con la voz; " + +
+            "Un modo agrupa varias acciones bajo un mismo nombre. Créalo con la voz; " +
                 "Oxxi interpretará la descripción y leerá las acciones en voz alta."
         )
         Example("«Crea un modo tranquilo que ponga música relajante en Spotify».")
