@@ -233,7 +233,7 @@ class FridayAgent(
         return MessageGrounding.refusal(said)
     }
 
-    private suspend fun carryOut(call: ToolCall, russian: Boolean): Pair<String, Boolean> {
+    private suspend fun carryOut(call: ToolCall, @Suppress("UNUSED_PARAMETER") russian: Boolean): Pair<String, Boolean> {
         val args = try {
             groqJson.parseToJsonElement(call.function.arguments).jsonObject
         } catch (e: SerializationException) {
@@ -246,7 +246,7 @@ class FridayAgent(
             is AgentTools.Call.Answer -> interpreted.text to false
             // Offered only with the light kit and handled before this; harmless if it comes again.
             AgentTools.Call.Escalate -> "The phone's tools are already available." to false
-            is AgentTools.Call.Command -> when (val outcome = commands.execute(interpreted.command, russian)) {
+            is AgentTools.Call.Command -> when (val outcome = commands.execute(interpreted.command, russian = false)) {
                 is CommandExecutor.Outcome.Reply -> outcome.text to !CommandExecutor.isFailure(outcome.text)
                 // No tool leads to these; said plainly in case one ever does.
                 else -> "Nothing was done: this needs the app on screen." to false
