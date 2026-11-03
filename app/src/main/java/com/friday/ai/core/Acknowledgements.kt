@@ -14,18 +14,6 @@ package com.friday.ai.core
 class Acknowledgements(private val random: () -> Double = Math::random) {
 
     companion object {
-        private val RUSSIAN = listOf(
-            "К вашим услугам, сэр",
-            "Слушаю вас, сэр",
-            "Чем могу помочь?",
-            "Да, сэр?"
-        )
-        private val ENGLISH = listOf(
-            "At your service",
-            "Yes?",
-            "How can I help?",
-            "Listening"
-        )
         private val SPANISH = listOf(
             "Aquí estoy. ¿Qué necesitas?",
             "Dime, te escucho.",
@@ -33,8 +21,8 @@ class Acknowledgements(private val random: () -> Double = Math::random) {
             "¿En qué te ayudo?"
         )
 
-        /** Every greeting, for synthesising them before they are needed. */
-        val all: List<String> get() = RUSSIAN + ENGLISH + SPANISH
+        /** Every Spanish greeting, for synthesising them before they are needed. */
+        val all: List<String> get() = SPANISH
     }
 
     private var lastSpoken: String? = null
@@ -44,12 +32,9 @@ class Acknowledgements(private val random: () -> Double = Math::random) {
      * one twice running — a fixed phrase every single time is what makes an
      * assistant sound like a doorbell.
      */
+    @Suppress("UNUSED_PARAMETER")
     fun next(language: WakePhrases.Language?): String {
-        val pool = when (language) {
-            WakePhrases.Language.ENGLISH -> ENGLISH
-            WakePhrases.Language.SPANISH -> SPANISH
-            else -> RUSSIAN
-        }
+        val pool = SPANISH
         val choices = pool.filter { it != lastSpoken }.ifEmpty { pool }
         val picked = choices[(random() * choices.size).toInt().coerceIn(0, choices.lastIndex)]
         lastSpoken = picked
