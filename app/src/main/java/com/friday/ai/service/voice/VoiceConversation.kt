@@ -282,7 +282,7 @@ class VoiceConversation(
         if (outcome is CommandExecutor.Outcome.Conversation) {
             when (val r = answers.answer(outcome.text, language)) {
                 is SpokenAnswer.Result.Finished ->
-                    if (mine == turn) afterSpeaking(mine, r.response, allowFollowUp = !last)
+                    if (mine == turn) afterSpeaking(mine, r.response, allowFollowUp = r.followUp && !last)
                 is SpokenAnswer.Result.Failed -> if (mine == turn) speakAndContinue(mine, r.message, false)
             }
             return
@@ -386,11 +386,11 @@ class VoiceConversation(
 }
 
 /** The panel's note on who answers: the phone directly, a learned phrase, or the model. */
-internal fun sourceLabel(command: CommandResult, learned: Boolean, russian: Boolean): String =
+internal fun sourceLabel(command: CommandResult, learned: Boolean, @Suppress("UNUSED_PARAMETER") russian: Boolean): String =
     when {
-        command is CommandResult.ChatMessage -> if (russian) "ИИ" else "IA"
-        learned -> if (russian) "команда · выучена" else "comando · aprendido"
-        else -> if (russian) "команда" else "comando"
+        command is CommandResult.ChatMessage -> "IA"
+        learned -> "comando · aprendido"
+        else -> "comando"
     }
 
 /** What a spoken turn makes of an outcome that is not plain conversation. */
