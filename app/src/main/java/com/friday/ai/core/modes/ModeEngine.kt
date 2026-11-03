@@ -208,7 +208,7 @@ class ModeEngine(
             return say(
                 "Что должно происходить в режиме $name? Скажите целиком, например: " +
                     "«создай режим $name: включи грустную музыку в Spotify и «Не беспокоить»».",
-                "What should $name mode do? Say it in one go, e.g. \"create $name mode: play calm music and Do Not Disturb\"."
+                "¿Qué debe hacer el modo $name? Dímelo todo seguido. Por ejemplo: \"crea el modo $name: reproduce música tranquila y activa No molestar\"."
             )
         }
         return when (val compiled = compile(name, description)) {
@@ -228,10 +228,10 @@ class ModeEngine(
                     " Часть описания сделать не умею — её пропустила.",
                     " Hay una parte que no puedo realizar y la he omitido."
                 )
-                val head = if (replaced) say("Обновила режим $name", "He actualizado el modo $name") else say("Режим $name", "$name mode")
+                val head = if (replaced) say("Обновила режим $name", "He actualizado el modo $name") else say("Режим $name", "Modo $name")
                 say(
                     "$head: $what.$skipped Скажите «режим $name», чтобы включить, или «отмена», если я поняла не так.",
-                    "$head: $what.$skipped Say \"$name mode\" to start it, or \"cancel\" if I got it wrong."
+                    "$head: $what.$skipped Di \"modo $name\" para activarlo o \"cancelar\" si no lo he entendido bien."
                 )
             }
         }
@@ -305,7 +305,7 @@ class ModeEngine(
         val event = timetable.addEvent(mode.id, trigger, value, request.onConnect, request.exit)
         val verb = if (request.exit) say("выключать", "desactivar") else say("включать", "activar")
         val described = describeEvent(event, say.russian)
-        val gap = if (described.startsWith("когда") || described.startsWith("when")) ", " else " "
+        val gap = if (described.startsWith("когда") || described.startsWith("cuando")) ", " else " "
         return say("Буду $verb режим ${mode.name}", "Voy a $verb el modo ${mode.name}") + gap + described + "." + note
     }
 
@@ -315,7 +315,7 @@ class ModeEngine(
         if (!bt.permitted) return null
         EventPhrases.device(target, bt.paired)?.let { return it to "" }
         val connected = bt.connected.singleOrNull() ?: return null
-        return connected to say(" Взяла то, что подключено сейчас: «$connected».", " I took what's connected now: \"$connected\".")
+        return connected to say(" Взяла то, что подключено сейчас: «$connected».", " He tomado el dispositivo que está conectado ahora: «$connected».")
     }
 
     private suspend fun bluetoothHelp(target: String, say: Say): String {
@@ -323,12 +323,12 @@ class ModeEngine(
         return if (bt != null && !bt.permitted) {
             say(
                 "Нужно разрешение «Устройства поблизости», чтобы видеть Bluetooth. Включите его в Диагностике и скажите ещё раз.",
-                "I need the Nearby devices permission to see Bluetooth. Turn it on in Diagnostics and say it again."
+                "Necesito el permiso de dispositivos cercanos para detectar Bluetooth. Actívalo en Diagnóstico y vuelve a intentarlo."
             )
         } else {
             say(
                 "Не знаю, какое устройство — «$target». Подключитесь к нему и скажите это ещё раз.",
-                "I don't know which device \"$target\" is. Connect to it and say it again."
+                "No reconozco el dispositivo «$target». Conéctalo y vuelve a intentarlo."
             )
         }
     }
@@ -371,7 +371,7 @@ class ModeEngine(
     private fun scheduleRefusal(request: CommandResult.Mode.Schedule, mode: Mode, verb: String, say: Say): String? = when {
         request.hour == null || request.minute == null -> say(
             "Во сколько $verb режим ${mode.name}? Скажите целиком, например: «$verb режим ${mode.name} каждый день в 23:00».",
-            "At what time should I $verb ${mode.name} mode? For example: \"$verb ${mode.name} mode every day at 11 pm\"."
+            "¿A qué hora debo $verb el modo ${mode.name}? Por ejemplo, «$verb el modo ${mode.name} todos los días a las 23:00»."
         )
         !request.exit && mode.steps.any { it.tool in NEEDS_OWNER } -> say(
             "В режиме ${mode.name} есть звонок или сообщение — сам по себе, без вас, такой режим я не запускаю.",
@@ -458,7 +458,7 @@ class ModeEngine(
         if (command is CommandResult.ChatMessage || command is CommandResult.Mode) {
             return say(
                 "Скажите, что сделать вместо этого, например «нет, включи lo-fi».",
-                "Tell me what to do instead, e.g. \"no, play lo-fi\"."
+                "Dime qué debo hacer en su lugar. Por ejemplo: «no, reproduce música lo-fi»."
             )
         }
         val reply = when (command) {
@@ -478,10 +478,10 @@ class ModeEngine(
             val old = ModeSteps.describe(mode.steps[replaces], say.russian)
             say(
                 " Запомнить это для режима ${mode.name} вместо «$old»?",
-                " Keep this in ${mode.name} mode instead of \"$old\"?"
+                " ¿Quieres guardar este cambio en el modo ${mode.name} en lugar de «$old»?"
             )
         } else {
-            say(" Добавить это в режим ${mode.name}?", " Add this to ${mode.name} mode?")
+            say(" Добавить это в режим ${mode.name}?", " ¿Quieres añadirlo al modo ${mode.name}?")
         }
         return reply.trim().let { if (it.last() in ".!?…") it else "$it." } + question
     }
@@ -498,7 +498,7 @@ class ModeEngine(
     }
 
     private suspend fun add(rest: String, say: Say): String {
-        val (mode, what) = split(rest) ?: return say("Не поняла, в какой режим добавить.", "Which mode should I add it to?")
+        val (mode, what) = split(rest) ?: return say("Не поняла, в какой режим добавить.", "¿A qué modo quieres que lo añada?")
         return when (val compiled = compile(mode.name, what)) {
             is ModeCompiler.Result.Failed -> say(
                 "Не поняла, что добавить в режим ${mode.name}.", "No he podido determinar qué debo añadir al modo ${mode.name}."
@@ -600,7 +600,7 @@ class ModeEngine(
         if (modes.isEmpty()) {
             return say(
                 "Режимов пока нет. Скажите, например: «создай режим отдыха: беззвучный режим и яркость на минимум».",
-                "No modes yet. Say, for example: \"create rest mode: silent ringer and lowest brightness\"."
+                "Todavía no has creado ningún modo. Por ejemplo, di: «crea el modo descanso: activa el silencio y baja el brillo al mínimo»."
             )
         }
         val names = modes.joinToString { it.name + if (it.active) say(" (включён)", " (activado)") else "" }
@@ -609,7 +609,7 @@ class ModeEngine(
 
     private fun missing(name: String, say: Say) = say(
         "Режима «$name» у меня нет. Скажите «создай режим $name» и что в нём делать.",
-        "There's no \"$name\" mode. Say \"create $name mode\" and what it should do."
+        "No tengo ningún modo llamado «$name». Di «crea el modo $name» y explícame qué debe hacer."
     )
 
     /** Joined so it reads as one spoken answer: each reply a sentence. */
