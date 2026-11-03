@@ -31,9 +31,9 @@ object OxxiUpdateManager {
                 setRequestProperty("Accept", "application/vnd.github+json")
                 setRequestProperty("User-Agent", "Oxxi-Android")
             }
-            connection.use { response ->
-                if (response.responseCode !in 200..299) return@withContext null
-                val json = JSONObject(response.inputStream.bufferedReader().use { it.readText() })
+            try {
+                if (connection.responseCode !in 200..299) return@withContext null
+                val json = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
                 val tag = json.optString("tag_name").removePrefix("v").trim()
                 if (compareVersions(tag, currentVersionName(context)) <= 0) return@withContext null
                 val asset = json.optJSONArray("assets")?.let { assets ->
@@ -43,6 +43,8 @@ object OxxiUpdateManager {
                 val url = asset.optString("browser_download_url").takeIf { it.isNotBlank() }
                     ?: return@withContext null
                 UpdateInfo(tag, url, json.optString("html_url"))
+            } finally {
+                connection.disconnect()
             }
         }.getOrNull()
     }
