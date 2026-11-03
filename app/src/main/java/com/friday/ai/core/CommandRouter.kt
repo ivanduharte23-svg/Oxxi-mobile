@@ -17,109 +17,109 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
     }
 
     private val openPatterns = listOf(
-        Regex("^(?:открой|открыть|запусти|запустить|open|launch|start)\\s+(.+)$", RegexOption.IGNORE_CASE)
+        Regex("^(?:abre|abrir|abre|inicia|iniciar|открой|открыть|запусти|запустить|open|launch|start)\\s+(.+)$", RegexOption.IGNORE_CASE)
     )
 
     private val closePatterns = listOf(
-        Regex("^(?:закрой|закрыть|сверни|свернуть|close|stop|quit)\\s+(.+)$", RegexOption.IGNORE_CASE)
+        Regex("^(?:cierra|cerrar|minimiza|sal de|salir|закрой|закрыть|сверни|свернуть|close|stop|quit)\\s+(.+)$", RegexOption.IGNORE_CASE)
     )
 
     private val analyzeScreenPatterns = listOf(
-        Regex("(?:проанализируй|анализируй|analyze|analyse)\\s+(?:экран|screen|скрин|дисплей|display)", RegexOption.IGNORE_CASE),
-        Regex("(?:что на|what'?s on)\\s+(?:экране|screen|the screen)", RegexOption.IGNORE_CASE)
+        Regex("(?:analiza|analizar|examina|проанализируй|анализируй|analyze|analyse)\\s+(?:la )?(?:pantalla|экран|screen|скрин|дисплей|display)", RegexOption.IGNORE_CASE),
+        Regex("(?:qué hay en|que hay en|qué aparece en|que aparece en|что на|what'?s on)\\s+(?:la )?(?:pantalla|экране|screen|the screen)", RegexOption.IGNORE_CASE)
     )
 
     private val analyzeFilePatterns = listOf(
-        Regex("(?:проанализируй|анализируй|analyze|analyse)\\s+(?:файл|file)(?:\\s+(.+))?", RegexOption.IGNORE_CASE)
+        Regex("(?:analiza|analizar|проанализируй|анализируй|analyze|analyse)\\s+(?:el )?(?:archivo|файл|file)(?:\\s+(.+))?", RegexOption.IGNORE_CASE)
     )
 
     private val timerPatterns = listOf(
-        Regex("(?:поставь таймер|таймер|засеки|set (?:a )?timer|timer)\\s+(?:на|for)?\\s*(\\d+)\\s*(?:мин(?:ут)?|min(?:ute)?s?)", RegexOption.IGNORE_CASE),
-        Regex("(?:поставь таймер|таймер|засеки|set (?:a )?timer|timer)\\s+(?:на|for)?\\s*(\\d+)\\s*(?:сек(?:унд)?|sec(?:ond)?s?)", RegexOption.IGNORE_CASE)
+        Regex("(?:pon (?:un )?temporizador|temporizador|cronómetro|cronometro|поставь таймер|таймер|засеки|set (?:a )?timer|timer)\\s+(?:durante|en|на|for)?\\s*(\\d+)\\s*(?:minuto?s?|min(?:ут)?|min(?:ute)?s?)", RegexOption.IGNORE_CASE),
+        Regex("(?:pon (?:un )?temporizador|temporizador|cronómetro|cronometro|поставь таймер|таймер|засеки|set (?:a )?timer|timer)\\s+(?:durante|en|на|for)?\\s*(\\d+)\\s*(?:segundo?s?|сек(?:унд)?|sec(?:ond)?s?)", RegexOption.IGNORE_CASE)
     )
 
-    private val flashlightOff = Regex("(?:выключи|погаси|отключи|turn off)\\s+(?:фонарик|фонарь|flashlight|torch)", RegexOption.IGNORE_CASE)
-    private val flashlightOn = Regex("(?:включи|зажги|turn on)\\s+(?:фонарик|фонарь|flashlight|torch)", RegexOption.IGNORE_CASE)
+    private val flashlightOff = Regex("(?:apaga|desactiva|выключи|погаси|отключи|turn off)\\s+(?:la )?(?:linterna|фонарик|фонарь|flashlight|torch)", RegexOption.IGNORE_CASE)
+    private val flashlightOn = Regex("(?:enciende|activa|включи|зажги|turn on)\\s+(?:la )?(?:linterna|фонарик|фонарь|flashlight|torch)", RegexOption.IGNORE_CASE)
 
     private val flashlightPatterns = listOf(
-        Regex("toggle\\s+(?:фонарик|фонарь|flashlight|torch)", RegexOption.IGNORE_CASE),
+        Regex("toggle\\s+(?:фонарик|фонарь|linterna|flashlight|torch)", RegexOption.IGNORE_CASE),
         // Bare noun too: "фонарь" on its own was recognised but did nothing.
-        Regex("^(?:фонарик|фонарь|flashlight|torch)$", RegexOption.IGNORE_CASE)
+        Regex("^(?:linterna|фонарик|фонарь|flashlight|torch)$", RegexOption.IGNORE_CASE)
     )
 
     // Camera, recorder and settings. `\p{L}` throughout, never `\w`: `\w` is
     // ASCII-only in Java regex and silently never matches a Russian ending.
     private val cameraWordPattern =
-        Regex("камер|camera|фотоаппарат", RegexOption.IGNORE_CASE)
+        Regex("cámara|camara|camar|camera|fotoaparat|фотоаппарат", RegexOption.IGNORE_CASE)
 
     /** Capture asked for without naming the camera: "сфотографируй", "селфи". */
     private val bareCapturePattern = Regex(
-        "сфотографир|сделай\\s+фото|сними\\s+фото|сделай\\s+снимок|селфи|selfie|" +
+        "haz\\s+(?:una\\s+)?foto|saca\\s+(?:una\\s+)?foto|toma\\s+(?:una\\s+)?foto|fotografía|fotografia|selfi|selfie|graba\\s+(?:un\\s+)?vídeo|graba\\s+(?:un\\s+)?video|saca\\s+una\\s+foto|сфотографир|сделай\\s+фото|сними\\s+фото|сделай\\s+снимок|селфи|" +
             "запиши\\s+виде|сними\\s+виде|take\\s+a?\\s*photo|record\\s+a?\\s*video",
         RegexOption.IGNORE_CASE
     )
 
-    private val videoPattern = Regex("виде|video|снимай", RegexOption.IGNORE_CASE)
-    private val selfiePattern = Regex("селфи|selfie|фронтал|front camera", RegexOption.IGNORE_CASE)
+    private val videoPattern = Regex("víde|video|graba|снимай", RegexOption.IGNORE_CASE)
+    private val selfiePattern = Regex("selfi|selfie|cámara frontal|camara frontal|фронтал|front camera", RegexOption.IGNORE_CASE)
     private val photoPattern = Regex(
-        "фото|сфотографир|снимок|снимк|photo|picture|shot", RegexOption.IGNORE_CASE
+        "foto|fotografía|fotografia|saca una foto|haz una foto|сфотографир|снимок|снимк|photo|picture|shot", RegexOption.IGNORE_CASE
     )
 
     private val recorderPattern = Regex(
-        "диктофон|запиши\\s+(?:аудио|звук|голос)|record\\s+(?:audio|sound|voice)|voice\\s+record",
+        "grabadora|graba\\s+(?:audio|sonido|voz)|dictáfono|dictafono|диктофон|record\\s+(?:audio|sound|voice)|voice\\s+record",
         RegexOption.IGNORE_CASE
     )
 
     // Music. "трек"/"песн" are here as well as "музык" so "следующий трек"
     // works without the user having to say the word music at all.
     private val musicNounPattern = Regex(
-        "музык|трек|песн|плеер|music|track|song|плейлист", RegexOption.IGNORE_CASE
+        "música|musica|canción|cancion|pista|reproductor|lista de reproducción|lista de reproduccion|музык|трек|песн|плеер|music|track|song|плейлист", RegexOption.IGNORE_CASE
     )
     private val trackNextPattern = Regex(
-        "следующ|дальше|переключ|next|skip", RegexOption.IGNORE_CASE
+        "siguiente|próxima|proxima|adelante|salta|следующ|дальше|переключ|next|skip", RegexOption.IGNORE_CASE
     )
     private val trackPrevPattern = Regex(
-        "предыдущ|назад|previous|prev|back", RegexOption.IGNORE_CASE
+        "anterior|previa|atrás|atras|назад|предыдущ|previous|prev|back", RegexOption.IGNORE_CASE
     )
     private val pausePattern = Regex(
-        "пауз|приостанов|pause", RegexOption.IGNORE_CASE
+        "pausa|paus|detén|deten|pause", RegexOption.IGNORE_CASE
     )
     private val stopPattern = Regex(
-        "выключи|выруби|останов|прекрат|хватит|стоп|убери|заглуши|stop|turn off", RegexOption.IGNORE_CASE
+        "apaga|detén|deten|para|detener|desactiva|silencia|выключи|выруби|останов|прекрат|хватит|стоп|убери|заглуши|stop|turn off", RegexOption.IGNORE_CASE
     )
 
     /** "… в <something>": possibly a player's name. */
-    private val inPlayer = Regex("\\s(?:в|во|на|in|on)\\s+\\p{L}{2,}", RegexOption.IGNORE_CASE)
+    private val inPlayer = Regex("\\s(?:en el|en la|en|de|в|во|на|in|on)\\s+\\p{L}{2,}", RegexOption.IGNORE_CASE)
 
     /** A pause said on its own needs no word for music: "пауза", "поставь на паузу". */
     private val barePause = Regex(
-        "^(?:поставь\\s+на\\s+паузу|на\\s+паузу|пауза|сделай\\s+паузу|pause)[.!]*$", RegexOption.IGNORE_CASE
+        "^(?:pon\\s+en\\s+pausa|pausa|detén\\s+la\\s+música|deten\\s+la\\s+musica|поставь\\s+на\\s+паузу|на\\s+паузу|пауза|сделай\\s+паузу|pause)[.!]*$", RegexOption.IGNORE_CASE
     )
 
     private val nowPlayingPattern = Regex(
-        "(?:что|какая\\s+(?:песня|музыка)|какой\\s+трек)\\s+(?:сейчас\\s+)?(?:играет|звучит)|" +
+        "(?:qué|que|cuál|cual|qué canción|que cancion)\\s+(?:suena|está sonando|esta sonando)|(?:что|какая\\s+(?:песня|музыка)|какой\\s+трек)\\s+(?:сейчас\\s+)?(?:играет|звучит)|" +
             "what'?s\\s+(?:this\\s+song|playing)|what\\s+song\\s+is\\s+(?:this|playing)",
         RegexOption.IGNORE_CASE
     )
 
     private val timePattern = Regex(
-        "^(?:который\\s+(?:сейчас\\s+)?час|сколько\\s+(?:сейчас\\s+)?(?:время|времени)|какое\\s+(?:сейчас\\s+)?время|" +
+        "^(?:qué\\s+hora\\s+es|que\\s+hora\\s+es|dime\\s+la\\s+hora|qué\\s+hora\\s+tenemos|que\\s+hora\\s+tenemos|который\\s+(?:сейчас\\s+)?час|сколько\\s+(?:сейчас\\s+)?(?:время|времени)|какое\\s+(?:сейчас\\s+)?время|" +
             "what\\s+time\\s+is\\s+it|what'?s\\s+the\\s+time)[?.!]*$",
         RegexOption.IGNORE_CASE
     )
     private val playPattern = Regex(
-        "включ|поставь|запусти|играй|продолж|play|resume|put\\s+on", RegexOption.IGNORE_CASE
+        "pon|reproduce|reproducir|escucha|suena|inicia|reanuda|включ|поставь|запусти|играй|продолж|play|resume|put\\s+on", RegexOption.IGNORE_CASE
     )
 
     /** A verb that means "take me there", not "do it for me". */
     private val settingsVerbPattern = Regex(
-        "открой|откройте|покажи|зайди|перейди|включи|выключи|настройк\\p{L}*|настрой|" +
+        "abre|abrir|muestra|muéstrame|muestrame|entra en|ve a|ajustes|configuración|configuracion|configura|открой|откройте|покажи|зайди|перейди|включи|выключи|настройк\\p{L}*|настрой|" +
             "open|show|go\\s+to|settings",
         RegexOption.IGNORE_CASE
     )
 
     private val searchPatterns = listOf(
-        Regex("^(?:загугли|найди в интернете|поищи|google|search|search for|look up)\\s+(.+)$", RegexOption.IGNORE_CASE)
+        Regex("^(?:busca|búscame|buscame|busca en internet|investiga|googlea|загугли|найди в интернете|поищи|google|search|search for|look up)\\s+(.+)$", RegexOption.IGNORE_CASE)
     )
 
     /**
@@ -133,14 +133,14 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
      * Group 1 is the optional name, group 2 is the new time.
      */
     private val reschedulePatterns = listOf(
-        Regex("^(?:перенеси|перенести|подвинь|сдвинь)\\s+(?:(.+?)\\s+)?(?:на|в)\\s+(.+)$", RegexOption.IGNORE_CASE),
+        Regex("^(?:mueve|mover|reprograma|cambia la hora de|перенеси|перенести|подвинь|сдвинь)\\s+(?:(.+?)\\s+)?(?:a|para|на|в)\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("^(?:move|reschedule|shift)\\s+(?:(?:the\\s+)?(.+?)\\s+)?(?:to|at)\\s+(.+)$", RegexOption.IGNORE_CASE),
-        Regex("^(?:измени время|поменяй время)\\s+(?:(.+?)\\s+)?(?:на|в)\\s+(.+)$", RegexOption.IGNORE_CASE)
+        Regex("^(?:cambia la hora|modifica la hora|измени время|поменяй время)\\s+(?:(.+?)\\s+)?(?:a|para|на|в)\\s+(.+)$", RegexOption.IGNORE_CASE)
     )
 
     private val calendarPatterns = listOf(
-        Regex("^(?:напомни(?:ть)?(?:\\s+мне)?|поставь напоминание|добавь напоминание)\\s+(.+)$", RegexOption.IGNORE_CASE),
-        Regex("^(?:добавь|создай|запиши|поставь)\\s+(?:в календарь|событие|встречу|напоминание)\\s+(.+)$", RegexOption.IGNORE_CASE),
+        Regex("^(?:recuérdame|recuerdame|recuérdame que|recuerdame que|pon un recordatorio|añade un recordatorio|anade un recordatorio|напомни(?:ть)?(?:\\s+мне)?|поставь напоминание|добавь напоминание)\\s+(.+)$", RegexOption.IGNORE_CASE),
+        Regex("^(?:añade|anade|crea|apunta|pon)\\s+(?:al calendario|en el calendario|un evento|una cita|una reunión|una reunion|un recordatorio|в календарь|событие|встречу|напоминание)\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("^(?:remind me(?:\\s+to)?|add (?:an? )?(?:event|reminder|meeting))\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("^(?:schedule|create (?:an? )?(?:event|meeting))\\s+(.+)$", RegexOption.IGNORE_CASE)
     )
@@ -160,25 +160,25 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
     )
 
     private val briefPatterns = listOf(
-        Regex("^(?:сводка|утренняя сводка|briefing|brief|доброе утро|good morning)[?.!]*$", RegexOption.IGNORE_CASE),
-        Regex("^(?:что сегодня|расскажи про день|what'?s today)[?.!]*$", RegexOption.IGNORE_CASE)
+        Regex("^(?:resumen|resumen de la mañana|resumen de la manana|informe matutino|buenos días|buenos dias|сводка|утренняя сводка|briefing|brief|доброе утро|good morning)[?.!]*$", RegexOption.IGNORE_CASE),
+        Regex("^(?:qué hay hoy|que hay hoy|cuéntame el día|cuentame el dia|qué tengo hoy|que tengo hoy|что сегодня|расскажи про день|what'?s today)[?.!]*$", RegexOption.IGNORE_CASE)
     )
 
     private val notePatterns = listOf(
-        Regex("^(?:запиши|заметка|запомни заметку|сохрани заметку)\\s+(.+)$", RegexOption.IGNORE_CASE),
+        Regex("^(?:anota|apunta|guarda una nota|recuerda que|guarda nota|запиши|заметка|запомни заметку|сохрани заметку)\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("^(?:note(?: that| down)?|save a note)\\s+(.+)$", RegexOption.IGNORE_CASE)
     )
 
     private val volumeSetPattern =
-        Regex("(?:громкость|звук|volume)\\s*(?:на|to)?\\s*(\\d{1,3})\\s*(?:%|процент\\p{L}*)?", RegexOption.IGNORE_CASE)
+        Regex("(?:volumen|sonido|громкость|звук|volume)\\s*(?:a|en|на|to)?\\s*(\\d{1,3})\\s*(?:%|por ciento|процент\\p{L}*)?", RegexOption.IGNORE_CASE)
 
     private val volumeMaxPattern =
-        Regex("(?:громкость|звук|volume)\\s+(?:на\\s+|to\\s+)?(?:максимум|максимальн\\p{L}*|max(?:imum)?|полную)", RegexOption.IGNORE_CASE)
+        Regex("(?:volumen|sonido|громкость|звук|volume)\\s+(?:a\\s+|en\\s+|на\\s+|to\\s+)?(?:máximo|maximo|al máximo|al maximo|máxima|maxima|максимум|максимальн\\p{L}*|max(?:imum)?|полную)", RegexOption.IGNORE_CASE)
     private val volumeMinPattern =
-        Regex("(?:громкость|звук|volume)\\s+(?:на\\s+|to\\s+)?(?:минимум|минимальн\\p{L}*|min(?:imum)?)", RegexOption.IGNORE_CASE)
+        Regex("(?:volumen|sonido|громкость|звук|volume)\\s+(?:a\\s+|en\\s+|на\\s+|to\\s+)?(?:mínimo|minimo|al mínimo|al minimo|mínima|minima|минимум|минимальн\\p{L}*|min(?:imum)?)", RegexOption.IGNORE_CASE)
 
     private val findNearbyPatterns = listOf(
-        Regex("(?:найди|найти|где|поищи)\\s+(?:ближайш\\p{L}+)\\s+(.+)$", RegexOption.IGNORE_CASE),
+        Regex("(?:busca|encuentra|dónde está|donde esta)\\s+(?:el|la|un|una)?\\s*(?:más cercano|mas cercano|más cercana|mas cercana|ближайш\\p{L}+)\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("(?:find|show)\\s+(?:the\\s+)?nearest\\s+(.+)$", RegexOption.IGNORE_CASE),
         Regex("where(?:'?s| is)\\s+the\\s+nearest\\s+(.+)$", RegexOption.IGNORE_CASE)
     )
