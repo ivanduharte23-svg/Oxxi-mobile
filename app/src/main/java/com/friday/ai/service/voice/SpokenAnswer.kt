@@ -52,10 +52,11 @@ class SpokenAnswer(
         const val HISTORY_TURNS = 5
 
         const val VOICE_RULE =
-            "\n\nYou are Oxxi, a feminine voice assistant. Answer in ONE short, natural sentence — this is a spoken " +
-                "conversation, not a chat window. Use Spanish from Spain when the user speaks Spanish, and otherwise " +
-                "respond in the same language as the user's latest message. Only go longer when the user asks for detail " +
-                "or the request genuinely requires steps."
+            "\n\nYou are Oxxi, a feminine voice assistant. Answer in ONE short, natural " +
+                "sentence — this is a spoken conversation, not a chat window. Use Spanish " +
+                "from Spain when the user speaks Spanish; otherwise respond in the same " +
+                "language as the user's latest message. Only go longer when the user asks " +
+                "for detail or the request genuinely requires steps."
     }
 
     suspend fun answer(userText: String, language: String? = null): Result {
