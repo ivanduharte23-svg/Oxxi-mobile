@@ -230,7 +230,7 @@ class VoiceConversationTest {
         hears(VoiceTurn.Outcome.Heard("расскажи анекдот"))
         every { commands.route(any()) } returns CommandResult.ChatMessage("расскажи анекдот")
         coEvery { commands.execute(any(), any()) } returns CommandExecutor.Outcome.Conversation("расскажи анекдот")
-        coEvery { answers.answer("расскажи анекдот") } returns SpokenAnswer.Result.Finished("Вот анекдот. Пока!", false)
+        coEvery { answers.answer("расскажи анекдот", "ru") } returns SpokenAnswer.Result.Finished("Вот анекдот. Пока!", false)
         val c = conversation()
 
         c.onWake("пятница")
