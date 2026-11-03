@@ -129,4 +129,20 @@ class AlarmRequestTest {
         assertTrue(prompt.contains("Never claim an action is done"))
         assertTrue(prompt.contains("NOT carried out"))
     }
+
+    @Test
+    fun `Spanish alarm requests are routed to the clock`() {
+        val alarm = AlarmRequest.parse("pon una alarma a las 21:30", evening)
+        assertNotNull(alarm)
+        assertEquals(21, alarm!!.time.hour)
+        assertEquals(30, alarm.time.minute)
+
+        val spoken = AlarmRequest.parse("pon una alarma a las siete", evening)
+        assertNotNull(spoken)
+        assertEquals(7, spoken!!.time.hour)
+        assertEquals(0, spoken.time.minute)
+
+        val router = CommandRouter(now = { evening })
+        assertTrue(router.route("pon una alarma a las 21:30") is CommandResult.SetAlarm)
+    }
 }
