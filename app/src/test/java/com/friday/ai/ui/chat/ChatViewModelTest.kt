@@ -294,9 +294,11 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun `voice input text appears in input field`() = runTest {
+    fun `recognised voice input is sent automatically and the reply is saved`() = runTest {
         val voiceText = MutableStateFlow<String?>(null)
         every { voiceInputManager.recognizedText } returns voiceText
+        every { router.route("Hello from voice") } returns CommandResult.ChatMessage("Hello from voice")
+        coEvery { sendMessageUseCase("Hello from voice", any(), any()) } returns flowOf("Hi from Oxxi")
 
         viewModel = createViewModel()
         advanceUntilIdle()
@@ -304,7 +306,13 @@ class ChatViewModelTest {
         voiceText.value = "Hello from voice"
         advanceUntilIdle()
 
-        assertEquals("Hello from voice", viewModel.inputText.value)
+        assertEquals("", viewModel.inputText.value)
+        coVerify { sendMessageUseCase("Hello from voice", any(), any()) }
+        coVerify {
+            sendMessageUseCase.saveMessage(match {
+                it.role == MessageRole.ASSISTANT && it.content == "Hi from Oxxi"
+            })
+        }
     }
 
     @Test
