@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.friday.ai.service.FridayWakeWordService
 import com.friday.ai.domain.model.ChatUiState
 import com.friday.ai.domain.model.MessageRole
 import com.friday.ai.ui.chat.ChatViewModel
@@ -94,7 +95,7 @@ fun OxxiMainScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val micLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (granted) viewModel.onMicClick() }
+    ) { granted -> if (granted) FridayWakeWordService.invoke(context) }
 
     fun startMic() {
         val micGranted = ContextCompat.checkSelfPermission(
@@ -102,7 +103,7 @@ fun OxxiMainScreen(
             Manifest.permission.RECORD_AUDIO
         ) == PackageManager.PERMISSION_GRANTED
         if (micGranted) {
-            viewModel.onMicClick()
+            FridayWakeWordService.invoke(context)
         } else {
             micLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
@@ -161,7 +162,7 @@ private fun HomePage(state: ChatUiState, onSettings: () -> Unit, onMic: () -> Un
         }
         Text("Tu asistente inteligente", color = NeonBlue, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.weight(1f))
-        NexusBlob(modifier = Modifier.size(310.dp))
+        OxxiHologram(modifier = Modifier.size(310.dp))
         Spacer(Modifier.height(10.dp))
         Text(
             when {
@@ -414,6 +415,18 @@ private fun NexusBlob(modifier: Modifier = Modifier) {
             center = Offset(cx, cy)
         )
         drawCircle(NeonBlue.copy(alpha = 0.09f), radius = radius * 1.48f, center = Offset(cx, cy))
+
+        // Three soft travelling wave fronts expand around the hologram.
+        for (wave in 0 until 3) {
+            val pulse = ((turn / (2f * PI.toFloat()) + wave / 3f) % 1f)
+            val waveRadius = radius * (1.10f + pulse * 0.34f)
+            drawCircle(
+                color = NeonCyan.copy(alpha = (1f - pulse) * 0.16f),
+                radius = waveRadius,
+                center = Offset(cx, cy),
+                style = Stroke(width = 1.15f - pulse * 0.35f)
+            )
+        }
 
         fun project(row: Int, column: Int): OrbProjection {
             val latitude = -PI.toFloat() / 2f + PI.toFloat() * row / rows
