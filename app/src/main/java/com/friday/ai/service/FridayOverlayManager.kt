@@ -60,7 +60,7 @@ import kotlinx.coroutines.launch
  * right now ([Surfaces]):
  *
  *  - over the home screen or another app — a compact floating capsule; a
- *    tap on the text expands it (whole text, "Открыть в Friday"), the cross
+ *    tap on the text expands it (whole text, "Abrir en Oxxi"), the cross
  *    closes it;
  *  - inside Friday's own screen — her own layer, no second window on top;
  *  - over the lock screen — a private panel ([LockScreen]);
@@ -357,7 +357,7 @@ private fun FloatingPanel(onInteract: () -> Unit, onOpenFriday: () -> Unit) {
             },
             onClose = close,
             actions = if (expanded) {
-                listOf(PanelAction("Закрыть", onClick = close), PanelAction("Открыть в Friday", primary = true) {
+                listOf(PanelAction("Cerrar", onClick = close), PanelAction("Abrir Oxxi", primary = true) {
                     close()
                     onOpenFriday()
                 })
