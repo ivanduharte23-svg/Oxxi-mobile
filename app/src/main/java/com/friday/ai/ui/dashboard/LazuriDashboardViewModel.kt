@@ -76,13 +76,13 @@ class LazuriDashboardViewModel(
             val graphSessions = sessionSummaries.map { s ->
                 LazuriGraph.Session(
                     id = s.sessionId,
-                    title = s.title?.takeIf { it.isNotBlank() } ?: "Conversation",
+                    title = s.title?.takeIf { it.isNotBlank() } ?: "Conversación",
                     dayLabel = dayLabel(s.lastActivityAt),
                     startedAt = s.startedAt,
                     // The written summary when there is one; the message
                     // count is only a placeholder until it's generated.
                     summary = written[s.sessionId]?.summary
-                        ?: "${s.messageCount} messages"
+                        ?: "${s.messageCount} mensajes"
                 )
             }
 
@@ -167,9 +167,9 @@ class LazuriDashboardViewModel(
         val sameYear = now.get(Calendar.YEAR) == then.get(Calendar.YEAR)
         val dayDiff = now.get(Calendar.DAY_OF_YEAR) - then.get(Calendar.DAY_OF_YEAR)
         return when {
-            sameYear && dayDiff == 0 -> "Today"
-            sameYear && dayDiff == 1 -> "Yesterday"
-            sameYear && dayDiff in 2..6 -> "$dayDiff days ago"
+            sameYear && dayDiff == 0 -> "Hoy"
+            sameYear && dayDiff == 1 -> "Ayer"
+            sameYear && dayDiff in 2..6 -> "Hace $dayDiff días"
             else -> android.text.format.DateFormat.format("d MMM", timestamp).toString()
         }
     }
