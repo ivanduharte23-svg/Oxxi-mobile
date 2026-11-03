@@ -98,7 +98,7 @@ object SchedulePhrases {
             "every|daily|weekdays|weekends)"
     )
     private val clear = Regex("(?:расписани|по времени|horari|programaci|schedule)")
-    private val clearVerb = Regex("^(?:убери|отмени|удали|сними|quita|elimina|borra|cancela|desactiva|no\\s|stop|remove|cancel|delete)")
+    private val clearVerb = Regex("^(?:убери|отмени|удали|сними|не\\s+(?:включай|активируй|запускай)|quita|elimina|borra|cancela|desactiva|no\\s|stop|remove|cancel|delete)")
     private val exitVerb = Regex("(?:^|\\s)(?:выключай|отключай|выключать|отключать|выходи|apaga|desactiva|desconecta|termina|sal|turn off|switch off|end)\\s")
     private val modeWord = Regex("(?:режим\\p{L}*|modo|mode)\\s+(.+)$")
     private val evening = Regex("(?:вечер|ночь|ночи|tarde|noche|evening|night)")
