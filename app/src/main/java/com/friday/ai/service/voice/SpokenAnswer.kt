@@ -13,7 +13,6 @@ import com.friday.ai.data.remote.GroqApiService
 import com.friday.ai.data.remote.dto.ApiMessage
 import com.friday.ai.domain.model.AssistantMode
 import com.friday.ai.service.EdgeTtsSpeaker
-import com.friday.ai.service.EdgeTtsProtocol
 import com.friday.ai.service.FridayMemory
 import com.friday.ai.service.FridayOverlayManager
 import kotlinx.coroutines.CancellationException
