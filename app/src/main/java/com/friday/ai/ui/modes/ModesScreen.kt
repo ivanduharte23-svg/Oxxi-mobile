@@ -162,7 +162,7 @@ private fun ModePanel(
     onRemoveEvent: (ModeEvent) -> Unit = {},
     onTag: () -> Unit = {}
 ) {
-    HudPanel("Режим ${mode.name}", index = index, accent = if (mode.active) ArcCyan else ArcCyanDim) {
+    HudPanel("Modo ${mode.name}", index = index, accent = if (mode.active) ArcCyan else ArcCyanDim) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             StatusDot(if (mode.active) ArcCyan else OnSurfaceMuted, live = mode.active)
             Spacer(Modifier.width(6.dp))
@@ -231,7 +231,7 @@ private fun Triggers(
     }
 }
 
-private fun verb(exit: Boolean) = if (exit) "Выключается " else "Включается "
+private fun verb(exit: Boolean) = if (exit) "Desactivando " else "Activando "
 
 @Composable
 private fun TriggerRow(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, onRemove: () -> Unit) {
