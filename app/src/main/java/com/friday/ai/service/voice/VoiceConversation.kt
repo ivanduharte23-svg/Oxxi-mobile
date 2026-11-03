@@ -9,7 +9,7 @@ import com.friday.ai.core.VoiceTurn
 import com.friday.ai.core.WakePhrases
 import com.friday.ai.domain.model.CommandResult
 import com.friday.ai.service.EdgeTtsSpeaker
-import com.friday.ai.service.FridayOverlayManager
+import com.friday.ai.service.OxxiOverlayManager
 import com.friday.ai.service.OfflineCommandRecognizer
 import com.friday.ai.service.WhisperTranscriber
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 // A holder: one field per device the conversation uses, nothing to group.
 @Suppress("LongParameterList")
 class VoiceIO(
-    val overlay: FridayOverlayManager,
+    val overlay: OxxiOverlayManager,
     val speaker: EdgeTtsSpeaker,
     val transcriber: WhisperTranscriber,
     val offline: OfflineCommandRecognizer,
@@ -41,7 +41,7 @@ class VoiceIO(
  * here holds the thread.
  *
  * Every wake starts a new *turn*, and anything still in flight from an older
- * one is ignored when it lands. Interrupting Friday stops her speech, and a
+ * one is ignored when it lands. Interrupting Oxxi stops her speech, and a
  * stopped utterance still reports itself finished — without the turn check
  * that report reopened the microphone alongside the new turn, so one spoken
  * command was recorded, and carried out, twice.
@@ -75,19 +75,19 @@ class VoiceConversation(
 
     /**
      * What this conversation is transcribed in: Russian when the owner called
-     * "Пятница", Whisper's own guess when they called "Friday".
+     * "Oxxi", Whisper's own guess when they called "Oxxi".
      */
     private var language: String? = "es"
 
-    /** True while Friday is talking, so a wake word means "interrupt". */
+    /** True while Oxxi is talking, so a wake word means "interrupt". */
     @Volatile
     var speaking = false
         private set
 
     /**
-     * The owner said "Пятница" (already verified by the wake listener).
+     * The owner said "Oxxi" (already verified by the wake listener).
      *
-     * With [continuing], they went straight on ("Пятница, включи музыку"):
+     * With [continuing], they went straight on ("Oxxi, включи музыку"):
      * no greeting — it would talk over them — and the recording starts at
      * once, with [lead] (the audio up to the name) in front so the first
      * words of the command aren't lost.
@@ -107,9 +107,9 @@ class VoiceConversation(
                 io.speaker.stop()
                 speaking = false
             }
-            io.notifier.update("Listening...")
+            io.notifier.update("Escuchando…")
 
-            // Cutting Friday off and then being greeted would be absurd —
+            // Cutting Oxxi off and then being greeted would be absurd —
             // that user already knows they were heard.
             if (bargedIn || continuing) {
                 io.overlay.listening()
@@ -128,7 +128,7 @@ class VoiceConversation(
                     speaking = false
                     io.overlay.listening()
                     // Only now is the microphone opened. Under the greeting it
-                    // would have Friday transcribing her own voice.
+                    // would have Oxxi transcribing her own voice.
                     listen(mine, isFollowUp = false)
                 }
             }
@@ -147,7 +147,7 @@ class VoiceConversation(
                 Log.i(TAG, "Busy; announcement skipped")
                 return@launch
             }
-            // Friday's own announcement: shown where allowed, never lights the screen.
+            // Oxxi's own announcement: shown where allowed, never lights the screen.
             io.overlay.begin(userInitiated = false)
             val mine = ++turn
             // Only when an answer is awaited: a ringing phone keeps its ringtone.
@@ -157,14 +157,14 @@ class VoiceConversation(
     }
 
     /**
-     * Records one voice turn and handles it. A follow-up (Friday has just
+     * Records one voice turn and handles it. A follow-up (Oxxi has just
      * answered and listens on, with no new wake word) ends quietly on silence
      * instead of complaining "не расслышала".
      */
     internal suspend fun listen(mine: Int, isFollowUp: Boolean, attempt: Int = 1, lead: FloatArray? = null) {
         io.transcriber.listener = overlayFeedback
         // The wake listener may still hold the microphone (it listens while
-        // Friday speaks, so she can be interrupted). Two recorders at once
+        // Oxxi speaks, so she can be interrupted). Two recorders at once
         // left one of them with silence: "Не расслышала" for no reason.
         io.wake.stop()
         // With no network Whisper cannot transcribe at all; fall back to the
@@ -280,7 +280,7 @@ class VoiceConversation(
             if (mine == turn) io.overlay.dismiss()
             return
         }
-        io.notifier.update("Processing...")
+        io.notifier.update("Procesando…")
         io.overlay.processing(text)
         io.overlay.source(sourceLabel(command, commands.lastRouteLearned, russian))
         val outcome = commands.execute(command, russian)
@@ -332,11 +332,11 @@ class VoiceConversation(
     /**
      * Speaks [text], then — unless [allowFollowUp] is false — keeps listening
      * for a reply without needing the wake word again, like a real
-     * conversation. The wake word stays live meanwhile, so saying "Пятница"
+     * conversation. The wake word stays live meanwhile, so saying "Oxxi"
      * cuts the answer short instead of queueing behind it.
      */
     private fun speakAndContinue(mine: Int, text: String, allowFollowUp: Boolean) {
-        // A call has just started (often one Friday placed): she doesn't talk
+        // A call has just started (often one Oxxi placed): she doesn't talk
         // over it, and the microphone is the call's, not hers.
         if (io.inCall()) {
             speaking = false
