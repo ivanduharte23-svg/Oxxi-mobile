@@ -181,11 +181,11 @@ private fun LockPanelScreen(
             expanded = unlocked,
             onExpand = onTouch,
             onClose = onEnd,
-            closeLabel = "Завершить разговор с Пятницей",
+            closeLabel = "Terminar la conversación con Oxxi",
             showClose = false,
             actions = buildList {
-                add(PanelAction("Завершить", onClick = onEnd))
-                if (view.canReveal) add(PanelAction("Разблокировать для деталей", primary = true, onClick = onReveal))
+                add(PanelAction("Terminar", onClick = onEnd))
+                if (view.canReveal) add(PanelAction("Desbloquear para ver detalles", primary = true, onClick = onReveal))
             },
             modifier = Modifier.navigationBarsPadding().padding(16.dp)
         )
