@@ -11,6 +11,12 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -329,9 +335,41 @@ private class OverlayWindow(
 @Composable
 private fun BackgroundHologram() {
     val level by VoiceUi.store.level.collectAsState()
+    val motion = rememberInfiniteTransition(label = "background_hologram_motion")
+    val driftX by motion.animateFloat(
+        initialValue = -14f,
+        targetValue = 14f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4200, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "hologram_drift_x"
+    )
+    val driftY by motion.animateFloat(
+        initialValue = -10f,
+        targetValue = 10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "hologram_drift_y"
+    )
+    val pulse by motion.animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2200, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "hologram_scale"
+    )
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         OxxiHologram(
-            Modifier.fillMaxWidth(0.94f).aspectRatio(1f).offset(y = (-24).dp),
+            Modifier
+                .fillMaxWidth(0.94f)
+                .aspectRatio(1f)
+                .offset(x = driftX.dp, y = (-24 + driftY).dp)
+                .then(Modifier),
             audioLevel = level
         )
     }
