@@ -176,7 +176,7 @@ class FridayOverlayManager(private val context: Context) {
                 !AppVisibility.foreground.value &&
                 Settings.canDrawOverlays(context) &&
                 !LockScreen.locked(context)
-            if (showBackgroundOrb) addWindow() else removeWindow()
+            if (showBackgroundOrb) addWindow(backgroundOnly = true) else removeWindow()
             return
         }
         val surface = Surfaces.choose(conditions(panel))
@@ -184,7 +184,7 @@ class FridayOverlayManager(private val context: Context) {
             lastSession = panel.session
             Log.i(TAG, "Session ${panel.session}: $surface")
         }
-        if (surface == Surfaces.Surface.OVERLAY) addWindow() else removeWindow()
+        if (surface == Surfaces.Surface.OVERLAY) addWindow(backgroundOnly = false) else removeWindow()
         LockScreen.present(context, panel, surface)
     }
 
@@ -197,10 +197,18 @@ class FridayOverlayManager(private val context: Context) {
         userInitiated = panel.userInitiated
     )
 
-    private fun addWindow() {
-        if (window != null) return
+    private fun addWindow(backgroundOnly: Boolean) {
+        window?.let {
+            it.setBackgroundMode(backgroundOnly)
+            return
+        }
         window = try {
-            OverlayWindow(context, windowManager, onInteract = ::cancelAutoDismiss).also { it.attach() }
+            OverlayWindow(
+                context,
+                windowManager,
+                onInteract = ::cancelAutoDismiss,
+                backgroundMode = backgroundOnly
+            ).also { it.attach() }
         } catch (e: WindowManager.BadTokenException) {
             Log.w(TAG, "Overlay refused: ${e.message}")
             null
@@ -231,12 +239,14 @@ class FridayOverlayManager(private val context: Context) {
 private class OverlayWindow(
     private val context: Context,
     private val windowManager: WindowManager,
-    private val onInteract: () -> Unit
+    private val onInteract: () -> Unit,
+    backgroundMode: Boolean
 ) : LifecycleOwner, SavedStateRegistryOwner {
 
     private val registry = LifecycleRegistry(this)
     private val saved = SavedStateRegistryController.create(this)
     private var view: View? = null
+    @Volatile private var backgroundOnly = backgroundMode
 
     override val lifecycle: Lifecycle get() = registry
     override val savedStateRegistry: SavedStateRegistry get() = saved.savedStateRegistry
@@ -251,7 +261,7 @@ private class OverlayWindow(
                 FridayTheme {
                     val panel by VoiceUi.store.state.collectAsState()
                     if (panel == null) {
-                        BackgroundHologram { openFriday() }
+                        BackgroundHologram()
                     } else {
                         FloatingPanel(onInteract) { openFriday() }
                     }
@@ -268,6 +278,12 @@ private class OverlayWindow(
         registry.currentState = Lifecycle.State.RESUMED
     }
 
+    fun setBackgroundMode(enabled: Boolean) {
+        if (backgroundOnly == enabled) return
+        backgroundOnly = enabled
+        view?.let { current -> runCatching { windowManager.updateViewLayout(current, params()) } }
+    }
+
     fun detach() {
         registry.currentState = Lifecycle.State.DESTROYED
         view?.let { runCatching { windowManager.removeView(it) } }
@@ -280,32 +296,43 @@ private class OverlayWindow(
             ?.let { runCatching { context.startActivity(it) } }
     }
 
-    private fun params() = WindowManager.LayoutParams(
-        WindowManager.LayoutParams.MATCH_PARENT,
-        WindowManager.LayoutParams.WRAP_CONTENT,
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_PHONE
-        },
-        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+    private fun params(): WindowManager.LayoutParams {
+        val flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-        PixelFormat.TRANSLUCENT
-    ).apply { gravity = Gravity.BOTTOM }
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+            if (backgroundOnly) WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE else 0
+        return WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            if (backgroundOnly) WindowManager.LayoutParams.MATCH_PARENT else WindowManager.LayoutParams.WRAP_CONTENT,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            } else {
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_PHONE
+            },
+            flags,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = if (backgroundOnly) Gravity.TOP else Gravity.BOTTOM
+            // Android 12+ allows touches to pass through one untrusted overlay
+            // only while its combined opacity remains below the system limit.
+            alpha = if (backgroundOnly) 0.78f else 1f
+        }
+    }
 }
 
-/** Idle background state: the same moving hologram used on Oxxi's home screen. */
+/**
+ * Transparent full-screen layer for the home screen and other apps.
+ * It does not intercept taps: icons, widgets and controls underneath remain usable.
+ */
 @Composable
-private fun BackgroundHologram(onOpenOxxi: () -> Unit) {
-    Box(
-        Modifier.fillMaxWidth().padding(bottom = 24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Box(Modifier.size(126.dp).clickable(onClick = onOpenOxxi)) {
-            OxxiHologram(Modifier.size(126.dp))
-        }
+private fun BackgroundHologram() {
+    val level by VoiceUi.store.level.collectAsState()
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        OxxiHologram(
+            Modifier.fillMaxWidth(0.94f).aspectRatio(1f).offset(y = (-24).dp),
+            audioLevel = level
+        )
     }
 }
 
