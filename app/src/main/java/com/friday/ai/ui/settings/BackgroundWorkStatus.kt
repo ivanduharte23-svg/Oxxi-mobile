@@ -60,8 +60,8 @@ fun BackgroundWorkStatus(visible: Boolean) {
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             "Android puede suspender Oxxi para ahorrar batería; entonces dejará de escuchar «Oxxi». " +
-                "Разрешите работу в фоне. На Samsung также: Настройки → Батарея → Ограничения фоновой " +
-                "работы → «Приложения без спящего режима» → добавьте Oxxi.",
+                "Permite que funcione en segundo plano. En Samsung: Ajustes → Batería → Límites de uso en segundo plano " +
+                "→ «Aplicaciones que nunca se suspenden» → añade Oxxi.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.tertiary
         )
@@ -86,7 +86,7 @@ fun WakeHealthStatus(visible: Boolean) {
         Spacer(modifier = Modifier.height(8.dp))
         val listening = health.status == WakeHealth.Status.LISTENING
         Text(
-            if (listening) "Micrófono: escuchando" else "Микрофон: ${health.describe()}",
+            if (listening) "Micrófono: escuchando" else "Micrófono: ${health.describe()}",
             style = MaterialTheme.typography.bodySmall,
             color = if (listening) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
         )
