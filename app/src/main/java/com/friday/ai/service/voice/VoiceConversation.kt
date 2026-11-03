@@ -271,7 +271,7 @@ class VoiceConversation(
         io.overlay.source(sourceLabel(command, commands.lastRouteLearned, russian))
         val outcome = commands.execute(command, russian)
         if (outcome is CommandExecutor.Outcome.Conversation) {
-            when (val r = answers.answer(outcome.text)) {
+            when (val r = answers.answer(outcome.text, language)) {
                 is SpokenAnswer.Result.Finished ->
                     if (mine == turn) afterSpeaking(mine, r.response, r.followUp && !last)
                 is SpokenAnswer.Result.Failed -> if (mine == turn) speakAndContinue(mine, r.message, false)
