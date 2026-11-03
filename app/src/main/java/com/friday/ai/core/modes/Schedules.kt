@@ -18,19 +18,14 @@ data class Schedule(
 )
 
 /** "при подключении к «Toyota Touch»", "когда телефон ставят на зарядку". */
+@Suppress("UNUSED_PARAMETER")
 fun describeEvent(e: ModeEvent, russian: Boolean): String = when (e.trigger) {
-    Trigger.CHARGER -> when {
-        russian && e.onConnect -> "когда телефон ставят на зарядку"
-        russian -> "когда телефон снимают с зарядки"
-        e.onConnect -> "when the phone goes on charge"
-        else -> "when the phone comes off charge"
-    }
-    Trigger.BLUETOOTH, Trigger.WIFI -> when {
-        russian && e.onConnect -> "при подключении к «${e.value}»"
-        russian -> "при отключении от «${e.value}»"
-        e.onConnect -> "on connecting to \"${e.value}\""
-        else -> "on disconnecting from \"${e.value}\""
-    }
+    Trigger.CHARGER -> if (e.onConnect) "cuando el teléfono se conecta al cargador"
+        else "cuando el teléfono se desconecta del cargador"
+    Trigger.BLUETOOTH -> if (e.onConnect) "cuando se conecta a «${e.value}»"
+        else "cuando se desconecta de «${e.value}»"
+    Trigger.WIFI -> if (e.onConnect) "cuando se conecta a la red «${e.value}»"
+        else "cuando se desconecta de la red «${e.value}»"
 }
 
 /** Day sets as one bitmask (Monday = bit 0), the way they are stored. */
@@ -57,22 +52,21 @@ object ScheduleMath {
     }
 
     /** "каждый день в 23:00", "по будням в 9:00", "по пн, ср в 7:30". */
+    @Suppress("UNUSED_PARAMETER")
     fun describe(days: Set<DayOfWeek>, time: LocalTime, russian: Boolean): String {
         val at = "%d:%02d".format(time.hour, time.minute)
         val which = when (days) {
-            Days.ALL, emptySet<DayOfWeek>() -> if (russian) "каждый день" else "every day"
-            Days.WEEKDAYS -> if (russian) "по будням" else "on weekdays"
-            Days.WEEKEND -> if (russian) "по выходным" else "at weekends"
-            else -> (if (russian) "по " else "on ") + days.sorted().joinToString(", ") { short(it, russian) }
+            Days.ALL, emptySet<DayOfWeek>() -> "todos los días"
+            Days.WEEKDAYS -> "entre semana"
+            Days.WEEKEND -> "los fines de semana"
+            else -> "los " + days.sorted().joinToString(", ") { short(it) }
         }
-        return if (russian) "$which в $at" else "$which at $at"
+        return "$which a las $at"
     }
 
-    private val RU_DAYS = listOf("пн", "вт", "ср", "чт", "пт", "сб", "вс")
+    private val ES_DAYS = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 
-    private fun short(d: DayOfWeek, russian: Boolean): String =
-        if (russian) RU_DAYS[d.value - 1]
-        else d.name.take(ABBREVIATION).lowercase().replaceFirstChar(Char::uppercase)
+    private fun short(d: DayOfWeek): String = ES_DAYS[d.value - 1]
 
     private const val DAYS_TO_SCAN = 8
     private const val ABBREVIATION = 3
