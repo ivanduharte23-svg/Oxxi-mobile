@@ -80,6 +80,8 @@ class ModePhrasesTest {
         assertFalse(ModeNames.same("грустный", "отдых"))
         assertFalse(ModeNames.same("работы", "отдыха"))
         assertFalse("too many extra words", ModeNames.same("грусти и ещё что-то", "грусти"))
+        assertTrue(ModeNames.overlap("яркость", "brillo al 5 % brightness"))
+        assertTrue(ModeNames.overlap("громкость", "volumen al 40 % volume"))
     }
 }
 
