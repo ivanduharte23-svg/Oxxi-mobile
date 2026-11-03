@@ -108,7 +108,7 @@ private fun LinkDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (link.id.isEmpty()) "Новая ссылка" else "Ссылка") },
+        title = { Text(if (link.id.isEmpty()) "Nuevo acceso directo" else "Acceso directo") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 LinkField(name, { name = it }, "Nombre", "Películas")
