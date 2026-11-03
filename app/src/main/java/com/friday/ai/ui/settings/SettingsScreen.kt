@@ -1,6 +1,8 @@
 package com.friday.ai.ui.settings
 
 import android.Manifest
+import android.app.Activity
+import android.media.projection.MediaProjectionManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -56,6 +58,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.friday.ai.core.VoiceProfile
 import com.friday.ai.service.FridayNotificationListener
+import com.friday.ai.service.visualizer.AudioVisualizerService
 import com.friday.ai.service.VoiceCalibrator
 import com.friday.ai.service.VoskModelManager
 import com.friday.ai.ui.theme.ArcCyan
@@ -120,6 +123,7 @@ fun SettingsScreen(
                 Spacer(Modifier.height(4.dp))
                 IntelligencePanel(viewModel)
                 VoicePanel(viewModel, say)
+                MusicVisualizerPanel()
                 CalibrationPanel(viewModel)
                 VoiceProfilePanel(viewModel)
                 ChatsPanel(viewModel)
@@ -150,6 +154,49 @@ fun SettingsScreen(
         }
         SnackbarHost(snackbarHost, Modifier.align(Alignment.BottomCenter).navigationBarsPadding()) { data ->
             Snackbar(snackbarData = data)
+        }
+    }
+}
+
+@Composable
+private fun MusicVisualizerPanel() {
+    val context = LocalContext.current
+    val running by AudioVisualizerService.running.collectAsStateWithLifecycle()
+    val message by AudioVisualizerService.message.collectAsStateWithLifecycle()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val data = result.data
+        if (result.resultCode == Activity.RESULT_OK && data != null) {
+            AudioVisualizerService.start(context, result.resultCode, data)
+        }
+    }
+
+    HudPanel("Visualizador musical", index = 15) {
+        HudNote(
+            "El holograma puede reaccionar al ritmo y a la intensidad de la música de otras aplicaciones. " +
+                "Android pedirá autorización antes de compartir el audio; Oxxi no guarda ni envía la música."
+        )
+        Text(
+            message,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (running) ArcCyan else OnBackground
+        )
+        HudNote(
+            "La sincronización depende de que el reproductor permita capturar su audio. " +
+                "Algunas aplicaciones protegidas no comparten el sonido. Puedes detenerlo aquí cuando quieras."
+        )
+        HudButton(
+            onClick = {
+                if (running) {
+                    AudioVisualizerService.stop(context)
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val manager = context.getSystemService(MediaProjectionManager::class.java)
+                    launcher.launch(manager.createScreenCaptureIntent())
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = running || Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        ) {
+            Text(if (running) "Detener visualizador" else "Activar visualizador musical")
         }
     }
 }
