@@ -49,6 +49,7 @@ object EdgeTtsProtocol {
     // the films. Both names checked against Edge's published voice list.
     const val VOICE_RU = "ru-RU-SvetlanaNeural"
     const val VOICE_EN = "en-IE-EmilyNeural"
+    const val VOICE_ES = "es-ES-ElviraNeural"
 
     /**
      * The v2 token ([EdgeTtsToken]) of (Windows "ticks" floored to a
@@ -82,15 +83,21 @@ object EdgeTtsProtocol {
             """{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},""" +
             """"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}"""
 
-    fun buildSsmlMessage(requestId: String, timestamp: Long, voice: String, text: String): String =
-        "Path: ssml\r\n" +
+    fun buildSsmlMessage(requestId: String, timestamp: Long, voice: String, text: String): String {
+        val locale = when {
+            voice.startsWith("es-") -> "es-ES"
+            voice.startsWith("ru-") -> "ru-RU"
+            else -> "en-US"
+        }
+        return "Path: ssml\r\n" +
             "X-RequestId: $requestId\r\n" +
             "X-Timestamp: $timestamp\r\n" +
             "Content-Type: application/ssml+xml\r\n\r\n" +
-            "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>" +
+            "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='$locale'>" +
             "<voice name='$voice'>" +
             "<prosody pitch='+0Hz' rate='+8%' volume='+0%'>${escapeXml(text)}</prosody>" +
             "</voice></speak>"
+    }
 
     fun escapeXml(text: String): String = text
         .replace("&", "&amp;")
@@ -136,6 +143,10 @@ object EdgeTtsProtocol {
     fun detectVoice(text: String): String {
         val cyrillic = text.count { it in 'Ѐ'..'ӿ' }
         val latin = text.count { it in 'A'..'Z' || it in 'a'..'z' }
-        return if (cyrillic > latin) VOICE_RU else VOICE_EN
+        if (cyrillic > latin) return VOICE_RU
+        val spanish = text.any { it in "áéíóúüñÁÉÍÓÚÜÑ¿¡" } ||
+            Regex("""\b(?:hola|gracias|quiero|puedes|necesito|abre|llama|envía|manda|lee|dime|dónde|cuándo|estás|tienes|por favor|mañana)\b""", RegexOption.IGNORE_CASE)
+                .containsMatchIn(text)
+        return if (spanish) VOICE_ES else VOICE_EN
     }
 }
