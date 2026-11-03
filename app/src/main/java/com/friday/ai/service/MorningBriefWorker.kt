@@ -119,8 +119,7 @@ class MorningBriefWorker(
         }
         val proactive: ProactiveBriefService =
             org.koin.java.KoinJavaComponent.get(ProactiveBriefService::class.java)
-        val russian = (prefDao.get("prefer_russian") ?: "true") == "true"
-        notify(proactive.morningBrief(russian))
+        notify(proactive.morningBrief(russian = false))
     }
 
     private fun notify(text: String) {
@@ -131,9 +130,9 @@ class MorningBriefWorker(
             manager.createNotificationChannel(
                 NotificationChannel(
                     CHANNEL_ID,
-                    "Morning briefing",
+                    "Resumen diario de Oxxi",
                     NotificationManager.IMPORTANCE_DEFAULT
-                ).apply { description = "Your daily summary from Friday" }
+                ).apply { description = "Resumen diario de tiempo, agenda y notificaciones." }
             )
         }
 
@@ -145,7 +144,7 @@ class MorningBriefWorker(
         )
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setContentTitle("Friday")
+            .setContentTitle("Oxxi")
             .setContentText(text.take(80))
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setSmallIcon(android.R.drawable.ic_dialog_info)
