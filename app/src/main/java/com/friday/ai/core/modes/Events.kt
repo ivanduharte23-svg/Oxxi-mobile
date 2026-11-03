@@ -9,78 +9,77 @@ enum class Trigger(val key: String) {
     }
 }
 
-/** "При подключении к Toyota Touch — включать режим вождения." */
+/** One external condition that can activate or deactivate a saved mode. */
 data class ModeEvent(
     val id: String,
     val modeId: String,
     val trigger: Trigger,
-    /** The Bluetooth device's name or the network's SSID, as the phone reports it; empty for the charger. */
+    /** The Bluetooth device's name or the network's SSID; empty for the charger. */
     val value: String,
     val onConnect: Boolean,
     val exit: Boolean
 )
 
-/** NFC on this phone: whether it can write a tag, and starting the screen that does. */
 interface NfcTags {
     fun available(): Boolean
     fun startWriting(modeId: String, modeName: String)
 }
 
-/** What the phone can tell about its links right now, for turning "к машине" into a device. */
 interface PhoneLinks {
     data class Bluetooth(val permitted: Boolean, val paired: List<String>, val connected: List<String>)
-
     suspend fun bluetooth(): Bluetooth
-
-    /** The Wi-Fi network the phone is on; null when not on one, or it can't be read (location off). */
     suspend fun wifi(): String?
 }
 
-/**
- * Event requests in words: "включай режим вождения, когда подключаюсь к
- * машине", "когда ставлю телефон на зарядку — режим сна", "когда снимаю с
- * зарядки, выключай режим сна", "когда подключаюсь к домашнему вайфаю —
- * режим дома".
- */
+/** Spanish and legacy phrases for automatic mode triggers. */
 object EventPhrases {
-
     data class Request(
-        /** The words after "режим", name first. */
         val rest: String,
         val trigger: Trigger,
-        /** What the owner called it: "машине", "колонке", "домашнему". Empty for the charger. */
         val target: String,
         val onConnect: Boolean,
         val exit: Boolean
     )
 
-    private val wake = Regex("^(?:пятница|friday)[,!.\\s]+")
-    private val whenWord = Regex("(?:^|\\s)(?:когда|как только|при|when|whenever)\\s")
+    private val wake = Regex("^(?:oxxi|пятница|friday)[,!.\\s]+")
+    private val whenWord = Regex("(?:^|\\s)(?:cuando|en cuanto|al|как только|когда|при|when|whenever)\\s")
 
     private val chargerOn = Regex(
-        "(?:ставлю|поставлю|кладу|положу|подключаю|подключу)\\s+(?:телефон\\s+)?(?:на|к)\\s+зарядк|" +
+        "(?:pongo|dejo|conecto|enchufo)\\s+(?:(?:el|mi)\\s+)?(?:teléfono|móvil)\\s+(?:a cargar|al cargador|en el cargador)|" +
+            "(?:pongo|dejo)\\s+(?:el\\s+)?cargador|" +
+            "(?:ставлю|поставлю|кладу|положу|подключаю|подключу)\\s+(?:телефон\\s+)?(?:на|к)\\s+зарядк|" +
             "(?:подключаю|подключу|втыкаю)\\s+зарядк|подключени\\p{L}* зарядк|" +
             "(?:put|plug)\\s+(?:it\\s+|the phone\\s+)?(?:on|in)"
     )
     private val chargerOff = Regex(
-        "(?:снимаю|сниму|убираю|уберу)\\s+(?:телефон\\s+)?с\\s+зарядк|" +
+        "(?:quito|desconecto|desenchufo)\\s+(?:(?:el|mi)\\s+)?(?:teléfono|móvil)\\s+(?:del cargador|de cargar)|" +
+            "(?:quito|desenchufo)\\s+(?:el\\s+)?cargador|" +
+            "(?:снимаю|сниму|убираю|уберу)\\s+(?:телефон\\s+)?с\\s+зарядк|" +
             "(?:отключаю|отключу|вынимаю|выну)\\s+зарядк|unplug"
     )
     private val connectTo = Regex(
-        "(?:подключаюсь|подключусь|подключается|подключился|подключении|сажусь|сяду|захожу|зайду|connect(?:s|ed)?)" +
-            "\\s+(?:к|в|to|in)\\s+(.+?)(?=,|\\s+(?:—|-|включай|выключай|запускай|отключай|режим)|$)"
+        "(?:me conecto|conecto|se conecta|conectas|conecto el teléfono|conectamos|" +
+            "подключаюсь|подключусь|подключается|подключился|подключении|сажусь|сяду|захожу|зайду|connect(?:s|ed)?)" +
+            "\\s+(?:(?:(?:el|mi)\\s+)?(?:teléfono|móvil)\\s+)?(?:к|в|a la|al|a|con|en|to|in)\\s+" +
+            "(.+?)(?=,|\\s+(?:—|-|activa|desactiva|enciende|apaga|включай|выключай|запускай|отключай|режим|modo)|$)"
     )
     private val disconnectFrom = Regex(
-        "(?:отключаюсь|отключусь|отключается|отключился|отключении|выхожу|выйду|disconnect(?:s|ed)?)" +
-            "\\s+(?:от|из|from|of)\\s+(.+?)(?=,|\\s+(?:—|-|включай|выключай|запускай|отключай|режим)|$)"
+        "(?:me desconecto|desconecto|se desconecta|sales|отключаюсь|отключусь|отключается|отключился|отключении|выхожу|выйду|disconnect(?:s|ed)?)" +
+            "\\s+(?:(?:del|de la|de|от|из|from|of)\\s+)?(.+?)(?=,|\\s+(?:—|-|activa|desactiva|apaga|включай|выключай|запускай|отключай|режим|modo)|$)"
     )
-    private val home = Regex("(?:прихожу|приду|возвращаюсь|вернусь)\\s+домой|get home|arrive home")
-    private val wifiWords = Regex("(?:вай-?фа\\p{L}*|wi-?fi|сет\\p{L}*|network)")
-    private val exitVerb = Regex("(?:^|\\s)(?:выключай|отключай|выходи|turn off|end)\\s+(?:режим|mode)")
+    private val home = Regex(
+        "(?:llego|vuelvo|regreso)\\s+a\\s+casa|(?:прихожу|приду|возвращаюсь|вернусь)\\s+домой|get home|arrive home"
+    )
+    private val wifiWords = Regex(
+        "(?:\\b(?:la\\s+)?red(?:\\s+wi-?fi)?\\b|\\bwi-?fi\\b|\\bwifi\\b|\\bnetwork\\b|вай-?фа\\p{L}*|сет\\p{L}*|internet)"
+    )
+    private val exitVerb = Regex(
+        "(?:^|\\s)(?:apaga|desactiva|termina|sal|выключай|отключай|выходи|turn off|end)\\s+(?:(?:el\\s+)?(?:режим|modo)|mode)"
+    )
     private val modeName = Regex(
-        "(?:режим\\p{L}*|mode)\\s+(.+?)(?=,|\\s+(?:—|-)\\s|\\s+(?:когда|как только|при|when)\\s|$)"
+        "(?:режим\\p{L}*|modo|mode)\\s+(.+?)(?=,|\\s+(?:—|-)\\s|\\s+(?:когда|как только|при|cuando|en cuanto|al|when)\\s|$)"
     )
-    private val btWords = Regex("\\s+(?:блютуз\\p{L}*|bluetooth)")
+    private val btWords = Regex("\\s+(?:блютуз\\p{L}*|bluetooth|dispositivo bluetooth)")
     private val spaces = Regex("\\s+")
 
     fun parse(text: String): Request? {
@@ -98,7 +97,7 @@ object EventPhrases {
         return when {
             chargerOff.containsMatchIn(t) -> Triple(Trigger.CHARGER, "", false)
             chargerOn.containsMatchIn(t) -> Triple(Trigger.CHARGER, "", true)
-            home.containsMatchIn(t) -> Triple(Trigger.WIFI, "дом", true)
+            home.containsMatchIn(t) -> Triple(Trigger.WIFI, "casa", true)
             connected != null -> Triple(kindOf(connected), cleanTarget(connected), true)
             disconnected != null -> Triple(kindOf(disconnected), cleanTarget(disconnected), false)
             else -> null
@@ -107,14 +106,14 @@ object EventPhrases {
 
     private fun kindOf(target: String) = if (wifiWords.containsMatchIn(target)) Trigger.WIFI else Trigger.BLUETOOTH
 
-    private fun cleanTarget(target: String) =
-        target.replace(wifiWords, "").replace(btWords, "").replace(spaces, " ").trim()
+    private fun cleanTarget(target: String): String = target
+        .replace(wifiWords, "")
+        .replace(btWords, "")
+        .replace(Regex("^(?:la|el)\\s+"), "")
+        .replace(spaces, " ")
+        .trim()
 
-    /**
-     * Which paired device [spoken] means: the one whose name shares the most
-     * words with it ("колонке jbl" → "JBL Flip 6"). Null when none shares at
-     * least half — "машине" says nothing about "Toyota Touch".
-     */
+    /** Match a spoken device against paired names, refusing guesses below half overlap. */
     fun device(spoken: String, names: List<String>): String? = names
         .map { it to ModeNames.overlap(spoken, it) }
         .filter { it.second >= MIN_MATCH }
