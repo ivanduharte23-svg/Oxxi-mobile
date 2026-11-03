@@ -97,26 +97,16 @@ class EdgeTtsProtocolTest {
     }
 
     @Test
-    fun `russian text selects the russian voice`() {
-        assertEquals(EdgeTtsProtocol.VOICE_RU, EdgeTtsProtocol.detectVoice("Привет, как дела?"))
-    }
-
-    @Test
-    fun `english text selects the english voice`() {
-        assertEquals(EdgeTtsProtocol.VOICE_EN, EdgeTtsProtocol.detectVoice("Hello, how are you?"))
-    }
-
-    @Test
-    fun `spanish text selects the spanish female voice`() {
-        assertEquals(EdgeTtsProtocol.VOICE_ES, EdgeTtsProtocol.detectVoice("Hola, ¿cómo estás?"))
-        assertEquals(EdgeTtsProtocol.VOICE_ES, EdgeTtsProtocol.detectVoice("Necesito que abras WhatsApp"))
-    }
-
-    @Test
-    fun `punctuation and digits do not sway voice detection`() {
-        // Previously the latin counter used the range 'A'..'z', which also
-        // swept up [ \ ] ^ _ ` and could outvote real Cyrillic letters.
-        assertEquals(EdgeTtsProtocol.VOICE_RU, EdgeTtsProtocol.detectVoice("Готово: 100% [___]"))
+    fun `all scripts use Oxxi's Spanish voice`() {
+        listOf(
+            "Привет, как дела?",
+            "Hello, how are you?",
+            "Hola, ¿cómo estás?",
+            "Necesito que abras WhatsApp",
+            "Готово: 100% [___]"
+        ).forEach { text ->
+            assertEquals(text, EdgeTtsProtocol.VOICE_ES, EdgeTtsProtocol.detectVoice(text))
+        }
     }
 
     @Test
