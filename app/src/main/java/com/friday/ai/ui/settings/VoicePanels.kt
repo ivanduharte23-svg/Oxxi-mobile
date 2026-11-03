@@ -181,7 +181,7 @@ internal fun CalibrationPanel(viewModel: SettingsViewModel) {
         if (current != null) {
             Text(phaseText(current), style = MaterialTheme.typography.titleMedium, color = ArcCyan)
             LinearProgressIndicator(progress = { phaseProgress(current) }, modifier = Modifier.fillMaxWidth())
-            HudReadout("Уровень", "%.0f".format(energy))
+            HudReadout("Nivel", "%.0f".format(energy))
             HudOutlinedButton(onClick = viewModel::cancelCalibration, modifier = Modifier.fillMaxWidth()) {
                 Text("Cancelar")
             }
