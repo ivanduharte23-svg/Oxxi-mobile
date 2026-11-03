@@ -175,7 +175,7 @@ class VoiceConversation(
         }
         val apiKey = session.apiKey()
         if (apiKey.isBlank()) {
-            io.overlay.error("Не задан ключ Groq — откройте настройки Friday", ERROR_MS)
+            io.overlay.error("Falta la clave de Groq. Abre los ajustes de Oxxi.", ERROR_MS)
             return
         }
 
@@ -242,8 +242,8 @@ class VoiceConversation(
             }
             // On screen only: saying it aloud adds noise to a turn that
             // already went nowhere.
-            VoiceTurn.Next.SAY_NOT_HEARD -> io.overlay.showResult("Не расслышала", NOTICE_MS)
-            VoiceTurn.Next.SAY_NOT_RECOGNISED -> io.overlay.showResult("Не узнала голос", NOTICE_MS)
+            VoiceTurn.Next.SAY_NOT_HEARD -> io.overlay.showResult("No te he oído.", NOTICE_MS)
+            VoiceTurn.Next.SAY_NOT_RECOGNISED -> io.overlay.showResult("No he reconocido tu voz.", NOTICE_MS)
         }
     }
 
@@ -393,16 +393,16 @@ class VoiceConversation(
 /** The panel's note on who answers: the phone directly, a learned phrase, or the model. */
 internal fun sourceLabel(command: CommandResult, learned: Boolean, russian: Boolean): String =
     when {
-        command is CommandResult.ChatMessage -> if (russian) "ИИ" else "AI"
-        learned -> if (russian) "команда · выучена" else "command · learned"
-        else -> if (russian) "команда" else "command"
+        command is CommandResult.ChatMessage -> if (russian) "ИИ" else "IA"
+        learned -> if (russian) "команда · выучена" else "comando · aprendido"
+        else -> if (russian) "команда" else "comando"
     }
 
 /** What a spoken turn makes of an outcome that is not plain conversation. */
 private fun spokenReply(outcome: CommandExecutor.Outcome): String = when (outcome) {
     is CommandExecutor.Outcome.Reply -> outcome.text
     is CommandExecutor.Outcome.Conversation -> outcome.text
-    CommandExecutor.Outcome.NeedsScreen -> "Screen analysis available in the app"
-    is CommandExecutor.Outcome.NeedsFile -> "File analysis available in the app"
+    CommandExecutor.Outcome.NeedsScreen -> "El análisis de pantalla está disponible en la aplicación."
+    is CommandExecutor.Outcome.NeedsFile -> "El análisis de archivos está disponible en la aplicación."
     CommandExecutor.Outcome.Silent -> ""
 }
