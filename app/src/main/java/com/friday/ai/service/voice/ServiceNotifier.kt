@@ -20,9 +20,9 @@ class ServiceNotifier(private val context: Context) {
 
     fun createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, "Friday Assistant", NotificationManager.IMPORTANCE_LOW)
+            val channel = NotificationChannel(CHANNEL_ID, "Oxxi · asistente", NotificationManager.IMPORTANCE_LOW)
                 .apply {
-                    description = "Friday wake word listener"
+                    description = "Escucha la palabra de activación de Oxxi"
                     setShowBadge(false)
                     setSound(null, null)
                 }
@@ -37,7 +37,7 @@ class ServiceNotifier(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Friday AI")
+            .setContentTitle("Oxxi")
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setContentIntent(open)
