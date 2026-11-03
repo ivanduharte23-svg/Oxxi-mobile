@@ -215,7 +215,7 @@ internal fun ChatLayout(
                 .windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars))
         ) {
             HudTopBar(
-                title = "F.R.I.D.A.Y.",
+                title = "OXXI",
                 status = status(state),
                 // Two icons each side, so the centred title never runs into them.
                 navigation = {
