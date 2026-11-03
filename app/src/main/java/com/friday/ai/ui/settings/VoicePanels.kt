@@ -142,7 +142,7 @@ private fun VoiceModelState(state: VoskModelManager.DownloadState, onDownload: (
         is VoskModelManager.DownloadState.NotDownloaded -> {
             HudReadout("Modelo de activación", "NO INSTALADO", valueColor = ErrorColor)
             HudOutlinedButton(onClick = onDownload, modifier = Modifier.fillMaxWidth()) {
-                Text("Descargar modelo de voz (~45 MB)")
+                Text("Descargar modelo de voz (~40 MB)")
             }
         }
         is VoskModelManager.DownloadState.Downloading -> {
