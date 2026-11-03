@@ -160,17 +160,17 @@ class ModeEngine(
             com.friday.ai.core.mail.Confirmation.Answer.OTHER -> null
             com.friday.ai.core.mail.Confirmation.Answer.NO -> {
                 proposal = null
-                say("Хорошо, режим остаётся как был.", "OK, the mode stays as it was.")
+                say("Хорошо, режим остаётся как был.", "De acuerdo, el modo se queda como estaba.")
             }
             com.friday.ai.core.mail.Confirmation.Answer.YES -> {
                 proposal = null
-                val mode = store.byId(p.modeId) ?: return say("Этого режима уже нет.", "That mode is gone.")
+                val mode = store.byId(p.modeId) ?: return say("Этого режима уже нет.", "Ese modo ya no existe.")
                 val steps = mode.steps.toMutableList()
                 if (p.replaces != null && p.replaces in steps.indices) steps[p.replaces] = p.step else steps += p.step
                 store.put(mode.copy(steps = steps))
                 say(
                     "Запомнила. Режим ${mode.name}: ${ModeSteps.summary(steps, russian)}.",
-                    "Got it. ${mode.name} mode: ${ModeSteps.summary(steps, russian)}."
+                    "Entendido. Modo ${mode.name}: ${ModeSteps.summary(steps, false)}."
                 )
             }
         }
@@ -213,11 +213,11 @@ class ModeEngine(
         }
         return when (val compiled = compile(name, description)) {
             is ModeCompiler.Result.Failed -> if (compiled.reason == "no_key") {
-                say("Чтобы разобрать описание режима, нужен ключ Groq в настройках.", "I need the Groq key in Settings to understand the mode.")
+                say("Чтобы разобрать описание режима, нужен ключ Groq в настройках.", "Necesito la clave de Groq en los ajustes para entender la descripción del modo.")
             } else {
                 say(
                     "Не поняла, что делать в режиме $name. Опишите конкретнее: что включить, что выключить.",
-                    "I couldn't work out what $name mode should do. Say it more concretely: what to turn on or off."
+                    "No he podido determinar qué debe hacer el modo $name. Describe con más detalle qué hay que activar o desactivar."
                 )
             }
             is ModeCompiler.Result.Steps -> {
@@ -226,9 +226,9 @@ class ModeEngine(
                 val what = ModeSteps.summary(mode.steps, say.russian)
                 val skipped = if (compiled.skipped.isEmpty()) "" else say(
                     " Часть описания сделать не умею — её пропустила.",
-                    " Part of it is beyond what I can do, so I left it out."
+                    " Hay una parte que no puedo realizar y la he omitido."
                 )
-                val head = if (replaced) say("Обновила режим $name", "Updated $name mode") else say("Режим $name", "$name mode")
+                val head = if (replaced) say("Обновила режим $name", "He actualizado el modo $name") else say("Режим $name", "$name mode")
                 say(
                     "$head: $what.$skipped Скажите «режим $name», чтобы включить, или «отмена», если я поняла не так.",
                     "$head: $what.$skipped Say \"$name mode\" to start it, or \"cancel\" if I got it wrong."
@@ -258,9 +258,9 @@ class ModeEngine(
     // --- NFC tags ---------------------------------------------------------------
 
     private fun tag(id: String, say: Say): String {
-        val mode = store.byId(id) ?: return say("Этого режима уже нет.", "That mode is gone.")
+        val mode = store.byId(id) ?: return say("Этого режима уже нет.", "Ese modo ya no existe.")
         val tags = nfc?.takeIf { it.available() }
-            ?: return say("NFC выключен или его нет — включите NFC в настройках и скажите ещё раз.", "NFC is off or missing — turn it on and say it again.")
+            ?: return say("NFC выключен или его нет — включите NFC в настройках и скажите ещё раз.", "El NFC está desactivado o no está disponible. Actívalo en los ajustes y vuelve a intentarlo.")
         tags.startWriting(mode.id, mode.name)
         return say(
             "Поднесите NFC-метку к задней панели телефона. Потом касание метки будет включать и выключать режим ${mode.name}.",
@@ -276,7 +276,7 @@ class ModeEngine(
     suspend fun toggle(modeId: String, russian: Boolean, runner: suspend (CommandResult) -> String): String {
         val say = Say(russian)
         val mode = store.byId(modeId) ?: return say(
-            "Эта метка была для режима, которого больше нет.", "This tag was for a mode that no longer exists."
+            "Эта метка была для режима, которого больше нет.", "Esta etiqueta estaba vinculada a un modo que ya no existe."
         )
         return if (mode.active) exit(mode, say, runner)
         else run(mode, say, runner, automatic = true, steps = mode.steps.filterNot { it.tool in NEEDS_OWNER })
@@ -285,13 +285,13 @@ class ModeEngine(
     // --- events --------------------------------------------------------------
 
     private suspend fun onEvent(request: CommandResult.Mode.OnEvent, say: Say): String {
-        val mode = store.byId(request.id) ?: return say("Этого режима уже нет.", "That mode is gone.")
-        val timetable = schedules ?: return say("Недоступно.", "Not available.")
-        val trigger = Trigger.of(request.trigger) ?: return say("Не поняла, при чём включать.", "I didn't get the trigger.")
+        val mode = store.byId(request.id) ?: return say("Этого режима уже нет.", "Ese modo ya no existe.")
+        val timetable = schedules ?: return say("Недоступно.", "No está disponible.")
+        val trigger = Trigger.of(request.trigger) ?: return say("Не поняла, при чём включать.", "No he entendido qué debe activar el modo.")
         if (!request.exit && mode.steps.any { it.tool in NEEDS_OWNER }) {
             return say(
                 "В режиме ${mode.name} есть звонок или сообщение — сам по себе, без вас, такой режим я не запускаю.",
-                "${mode.name} mode calls or messages someone, so I won't start it by itself."
+                "El modo ${mode.name} incluye una llamada o un mensaje; no lo iniciaré automáticamente sin que estés presente."
             )
         }
         val (value, note) = when (trigger) {
@@ -299,14 +299,14 @@ class ModeEngine(
             Trigger.BLUETOOTH -> bluetoothDevice(request.target, say) ?: return bluetoothHelp(request.target, say)
             Trigger.WIFI -> links?.wifi()?.let { it to "" } ?: return say(
                 "Подключитесь к этой сети Wi-Fi и скажите ещё раз — и проверьте, что геопозиция включена: без неё Android не называет сеть.",
-                "Connect to that Wi-Fi network and say it again, with location on — Android won't name the network without it."
+                "Conéctate a esa red Wi-Fi y vuelve a intentarlo. Activa también la ubicación, porque Android no permite identificar la red sin ella."
             )
         }
         val event = timetable.addEvent(mode.id, trigger, value, request.onConnect, request.exit)
-        val verb = if (request.exit) say("выключать", "turn off") else say("включать", "turn on")
+        val verb = if (request.exit) say("выключать", "desactivar") else say("включать", "activar")
         val described = describeEvent(event, say.russian)
         val gap = if (described.startsWith("когда") || described.startsWith("when")) ", " else " "
-        return say("Буду $verb режим ${mode.name}", "I'll $verb ${mode.name} mode") + gap + described + "." + note
+        return say("Буду $verb режим ${mode.name}", "Voy a $verb el modo ${mode.name}") + gap + described + "." + note
     }
 
     /** The device "к машине" means: a paired one by name, else the one connected right now. */
@@ -357,13 +357,13 @@ class ModeEngine(
     // --- schedules ---------------------------------------------------------
 
     private suspend fun schedule(request: CommandResult.Mode.Schedule, say: Say): String {
-        val mode = store.byId(request.id) ?: return say("Этого режима уже нет.", "That mode is gone.")
-        val timetable = schedules ?: return say("Расписания недоступны.", "Schedules aren't available.")
-        val verb = if (request.exit) say("выключать", "turn off") else say("включать", "turn on")
+        val mode = store.byId(request.id) ?: return say("Этого режима уже нет.", "Ese modo ya no existe.")
+        val timetable = schedules ?: return say("Расписания недоступны.", "Los horarios no están disponibles.")
+        val verb = if (request.exit) say("выключать", "desactivar") else say("включать", "activar")
         scheduleRefusal(request, mode, verb, say)?.let { return it }
         val time = java.time.LocalTime.of(request.hour ?: 0, request.minute ?: 0)
         val s = timetable.set(mode.id, request.exit, time, Days.of(request.days))
-        return say("Буду $verb режим ${mode.name} ", "I'll $verb ${mode.name} mode ") +
+        return say("Буду $verb режим ${mode.name} ", "Voy a $verb el modo ${mode.name} ") +
             ScheduleMath.describe(s.days, s.time, say.russian) + "."
     }
 
@@ -375,15 +375,15 @@ class ModeEngine(
         )
         !request.exit && mode.steps.any { it.tool in NEEDS_OWNER } -> say(
             "В режиме ${mode.name} есть звонок или сообщение — сам по себе, без вас, такой режим я не запускаю.",
-            "${mode.name} mode calls or messages someone, so I won't start it on a timer with nobody there."
+            "El modo ${mode.name} incluye una llamada o un mensaje; no lo iniciaré mediante un horario si no estás presente."
         )
         else -> null
     }
 
     private suspend fun unschedule(id: String, say: Say): String {
-        val mode = store.byId(id) ?: return say("Этого режима уже нет.", "That mode is gone.")
+        val mode = store.byId(id) ?: return say("Этого режима уже нет.", "Ese modo ya no existe.")
         schedules?.clear(id)
-        return say("Режим ${mode.name} больше не включается по расписанию.", "${mode.name} mode no longer runs on a schedule.")
+        return say("Режим ${mode.name} больше не включается по расписанию.", "El modo ${mode.name} ya no se activará mediante un horario.")
     }
 
     /**
@@ -420,7 +420,7 @@ class ModeEngine(
         val at = "%d:%02d".format(time.hour, time.minute)
         return say(
             " Вы включаете его около $at уже не первый день — включать каждый день в $at само?",
-            " You've been turning it on around $at for a few days — start it every day at $at by itself?"
+            " Llevas varios días activándolo alrededor de las $at. ¿Quieres que lo active automáticamente todos los días a esa hora?"
         )
     }
 
@@ -431,11 +431,11 @@ class ModeEngine(
             com.friday.ai.core.mail.Confirmation.Answer.OTHER -> null
             com.friday.ai.core.mail.Confirmation.Answer.NO -> {
                 habit = null
-                say("Хорошо, только когда скажете.", "OK, only when you say so.")
+                say("Хорошо, только когда скажете.", "De acuerdo, solo lo activaré cuando me lo pidas.")
             }
             com.friday.ai.core.mail.Confirmation.Answer.YES -> {
                 habit = null
-                val mode = store.byId(offer.modeId) ?: return say("Этого режима уже нет.", "That mode is gone.")
+                val mode = store.byId(offer.modeId) ?: return say("Этого режима уже нет.", "Ese modo ya no existe.")
                 schedule(CommandResult.Mode.Schedule(mode.id, false, offer.time.hour, offer.time.minute, Days.mask(Days.ALL)), say)
             }
         }
@@ -453,7 +453,7 @@ class ModeEngine(
         runner: suspend (CommandResult) -> String
     ): String {
         lastRun = null
-        val mode = store.byId(request.id) ?: return say("Этого режима уже нет.", "That mode is gone.")
+        val mode = store.byId(request.id) ?: return say("Этого режима уже нет.", "Ese modo ya no existe.")
         val command = router(request.instead)
         if (command is CommandResult.ChatMessage || command is CommandResult.Mode) {
             return say(
@@ -465,7 +465,7 @@ class ModeEngine(
             is CommandResult.DeviceControl -> device.apply(command.action, command.level, say.russian).message
             else -> runner(command)
         }
-        return offer(mode, command, reply, say)
+        redesactivarer(mode, command, reply, say)
     }
 
     /** After a correction was carried out: the question whether to keep it in [mode]. */
@@ -501,14 +501,14 @@ class ModeEngine(
         val (mode, what) = split(rest) ?: return say("Не поняла, в какой режим добавить.", "Which mode should I add it to?")
         return when (val compiled = compile(mode.name, what)) {
             is ModeCompiler.Result.Failed -> say(
-                "Не поняла, что добавить в режим ${mode.name}.", "I couldn't work out what to add to ${mode.name} mode."
+                "Не поняла, что добавить в режим ${mode.name}.", "No he podido determinar qué debo añadir al modo ${mode.name}."
             )
             is ModeCompiler.Result.Steps -> {
                 val steps = mode.steps + compiled.steps
                 store.put(mode.copy(steps = steps, description = mode.description + "; " + what))
                 say(
                     "Добавила в режим ${mode.name}: ${ModeSteps.summary(compiled.steps, say.russian)}. Теперь в нём: ${ModeSteps.summary(steps, say.russian)}.",
-                    "Added to ${mode.name} mode: ${ModeSteps.summary(compiled.steps, say.russian)}. Now it does: ${ModeSteps.summary(steps, say.russian)}."
+                    "He añadido esto al modo ${mode.name}: ${ModeSteps.summary(compiled.steps, false)}. Ahora incluye: ${ModeSteps.summary(steps, false)}."
                 )
             }
         }
@@ -522,24 +522,24 @@ class ModeEngine(
         val best = scored.maxByOrNull { it.second }?.takeIf { it.second >= MIN_STEP_MATCH }
             ?: return say(
                 "В режиме ${mode.name} такого нет. В нём: ${ModeSteps.summary(mode.steps, say.russian)}.",
-                "${mode.name} mode has no such step. It does: ${ModeSteps.summary(mode.steps, say.russian)}."
+                "El modo ${mode.name} no incluye esa acción. Actualmente hace lo siguiente: ${ModeSteps.summary(mode.steps, false)}."
             )
         val steps = mode.steps.filterIndexed { i, _ -> i != best.first }
         store.put(mode.copy(steps = steps))
         val removed = ModeSteps.describe(mode.steps[best.first], say.russian)
-        val left = if (steps.isEmpty()) say("В режиме больше ничего нет.", "Nothing is left in it.")
-        else say("Осталось: ${ModeSteps.summary(steps, say.russian)}.", "Left: ${ModeSteps.summary(steps, say.russian)}.")
-        return say("Убрала из режима ${mode.name}: $removed. ", "Removed from ${mode.name} mode: $removed. ") + left
+        val left = if (steps.isEmpty()) say("В режиме больше ничего нет.", "No queda ninguna acción en el modo.")
+        else say("Осталось: ${ModeSteps.summary(steps, say.russian)}.", "Queda lo siguiente: ${ModeSteps.summary(steps, false)}.")
+        return say("Убрала из режима ${mode.name}: $removed. ", "He quitado del modo ${mode.name}: $removed. ") + left
     }
 
     private suspend fun exit(mode: Mode, say: Say, runner: suspend (CommandResult) -> String): String {
-        val undo = mode.undo ?: return say("Режим ${mode.name} сейчас не включён.", "${mode.name} mode isn't on.")
+        val undo = mode.undo ?: return say("Режим ${mode.name} сейчас не включён.", "El modo ${mode.name} no está activado.")
         val (messages, _) = carryOut(undo, say, runner)
         store.put(mode.copy(undo = null))
         return if (messages.isEmpty()) {
-            say("Режим ${mode.name} выключен — возвращать было нечего.", "${mode.name} mode is off — nothing to put back.")
+            say("Режим ${mode.name} выключен — возвращать было нечего.", "El modo ${mode.name} está desactivado; no hay nada que restaurar.")
         } else {
-            say("Режим ${mode.name} выключен. ", "${mode.name} mode is off. ") + sentences(messages)
+            say("Режим ${mode.name} выключен. ", "El modo ${mode.name} está desactivado. ") + sentences(messages)
         }
     }
 
@@ -553,7 +553,7 @@ class ModeEngine(
         val undo = ArrayDeque<ActionEnvelope>()
         steps.forEach { step ->
             when (val c = (AgentTools.interpret(step.tool, step.args, now()) as? AgentTools.Call.Command)?.command) {
-                null -> messages += say("Шаг «${ModeSteps.describe(step, say.russian)}» не выполнить", "Couldn't do \"${ModeSteps.describe(step, say.russian)}\"")
+                null -> messages += say("Шаг «${ModeSteps.describe(step, say.russian)}» не выполнить", "No he podido ejecutar \"${ModeSteps.describe(step, say.russian)}\"")
                 is CommandResult.DeviceControl -> {
                     val result = device.apply(c.action, c.level, say.russian)
                     messages += result.message
@@ -571,23 +571,23 @@ class ModeEngine(
     }
 
     private fun describe(mode: Mode, say: Say): String {
-        val state = if (mode.active) say("Сейчас включён.", "It's on now.") else say("Сейчас выключен.", "It's off now.")
-        return say("Режим ${mode.name}: ", "${mode.name} mode: ") + ModeSteps.summary(mode.steps, say.russian) + ". " + state
+        val state = if (mode.active) say("Сейчас включён.", "Está activado.") else say("Сейчас выключен.", "Está desactivado.")
+        return say("Режим ${mode.name}: ", "Modo ${mode.name}: ") + ModeSteps.summary(mode.steps, say.russian) + ". " + state
     }
 
     private suspend fun delete(mode: Mode, say: Say): String {
         store.delete(mode.id)
         schedules?.clear(mode.id)
         val note = if (mode.active) {
-            say(" Настройки, которые он менял, оставила как есть.", " The settings it changed stay as they are.")
+            say(" Настройки, которые он менял, оставила как есть.", " Los ajustes que modificó se quedan tal como están.")
         } else {
             ""
         }
-        return say("Удалила режим ${mode.name}.", "Deleted ${mode.name} mode.") + note
+        return say("Удалила режим ${mode.name}.", "He eliminado el modo ${mode.name}.") + note
     }
 
     private suspend fun cancel(id: String, say: Say): String {
-        val mode = store.byId(id) ?: return say("Отменять нечего.", "Nothing to cancel.")
+        val mode = store.byId(id) ?: return say("Отменять нечего.", "No hay nada que cancelar.")
         store.delete(id)
         return say(
             "Убрала режим ${mode.name}. Опишите его ещё раз, по-другому.",
@@ -603,8 +603,8 @@ class ModeEngine(
                 "No modes yet. Say, for example: \"create rest mode: silent ringer and lowest brightness\"."
             )
         }
-        val names = modes.joinToString { it.name + if (it.active) say(" (включён)", " (on)") else "" }
-        return say("Ваши режимы: $names.", "Your modes: $names.")
+        val names = modes.joinToString { it.name + if (it.active) say(" (включён)", " (activado)") else "" }
+        return say("Ваши режимы: $names.", "Tus modos son: $names.")
     }
 
     private fun missing(name: String, say: Say) = say(
@@ -616,7 +616,7 @@ class ModeEngine(
     private fun sentences(messages: List<String>) =
         messages.filter { it.isNotBlank() }.joinToString(" ") { m -> m.trim().let { if (it.last() in ".!?…") it else "$it." } }
 
-    private class Say(val russian: Boolean) {
-        operator fun invoke(ru: String, en: String) = if (russian) ru else en
+    private class Say(@Suppress("UNUSED_PARAMETER") val russian: Boolean) {
+        operator fun invoke(@Suppress("UNUSED_PARAMETER") ru: String, es: String) = es
     }
 }
