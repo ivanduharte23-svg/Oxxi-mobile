@@ -43,7 +43,7 @@ object OfflineCommands {
     }
 
     /** What Oxxi says when a request needs a connection. */
+    @Suppress("UNUSED_PARAMETER")
     fun offlineRefusal(russian: Boolean): String =
-        if (russian) "Нет сети — могу только управлять телефоном."
-        else "No hay conexión; ahora solo puedo controlar el teléfono."
+        "No hay conexión; ahora solo puedo controlar el teléfono."
 }
