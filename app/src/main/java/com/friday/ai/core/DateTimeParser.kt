@@ -34,7 +34,12 @@ object DateTimeParser {
     const val DEFAULT_REMINDER_MINUTES = 60
 
     private val LEAD_TIME = Regex(
-        """(?:(?:con\s+)?(?:\d+\s*)?(?:minuto\p{L}*|hora\p{L}*)\s+antes\s+de|(?:за|)\s*(\d+)?\s*(minuto\p{L}*|hora\p{L}*|минут\p{L}*|мин|час\p{L}*|hours?|minutes?|mins?)\s*(?:до|before))""",
+        """(?:за|)\s*(\d+)?\s*(минут\p{L}*|мин|час\p{L}*|hours?|minutes?|mins?)\s*(?:до|before)""",
+        RegexOption.IGNORE_CASE
+    )
+
+    private val SPANISH_LEAD = Regex(
+        """(?:con\s+)?(\d+)?\s*(minuto\p{L}*|hora\p{L}*)\s+antes\s+de""",
         RegexOption.IGNORE_CASE
     )
 
@@ -50,11 +55,11 @@ object DateTimeParser {
      */
     fun parseReminderLeadMinutes(text: String): Int? {
         val lower = text.lowercase()
-        val match = LEAD_TIME.find(lower) ?: BARE_LEAD.find(lower) ?: return null
+        val match = SPANISH_LEAD.find(lower) ?: LEAD_TIME.find(lower) ?: BARE_LEAD.find(lower) ?: return null
         val amount = match.groupValues[1].toIntOrNull() ?: 1
         val unit = match.groupValues[2]
         val minutes = when {
-            unit.startsWith("час") || unit.startsWith("hour") -> amount * 60
+            unit.startsWith("hora") || unit.startsWith("час") || unit.startsWith("hour") -> amount * 60
             else -> amount
         }
         return minutes.takeIf { it in 1..(14 * 24 * 60) }
