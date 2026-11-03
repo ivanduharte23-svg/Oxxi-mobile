@@ -204,7 +204,7 @@ class FridayAgent(
      * to the result itself does. The language is the one the user just used.
      */
     private fun languageNote(@Suppress("UNUSED_PARAMETER") said: String): String =
-        "\\n(Responde siempre en español de España.)"
+        "\n(Responde siempre en español de España.)"
 
     /**
      * Runs one tool and describes the outcome for the model, in plain words.
