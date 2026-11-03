@@ -35,7 +35,7 @@ import com.friday.ai.ui.theme.HudLabelStyle
 import java.util.Calendar
 
 /**
- * Conversation history: a list of past chats with a "New chat" action,
+ * Conversation history: a list of past chats with a "Nueva conversación" action,
  * grouped by recency. Voice conversations appear here too, since spoken and
  * typed turns share the same session ids.
  */
@@ -56,7 +56,7 @@ fun SessionDrawer(
     ) {
         Spacer(Modifier.height(20.dp))
         Text(
-            "F.R.I.D.A.Y.",
+            "OXXI",
             style = HudBrandStyle,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 8.dp)
