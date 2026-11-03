@@ -451,10 +451,10 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
             volumeMinPattern.containsMatchIn(lower) -> CommandResult.DeviceControl(DeviceAction.VOLUME_SET, MIN_VOLUME)
 
             // "(?<!un)mute": "unmute" contains "mute" and used to mute.
-            lower.matches(Regex(".*(?:выключи звук|без звука|беззвучн\\p{L}*|(?<!un)mute|тише некуда).*")) ->
+            lower.matches(Regex(".*(?:apaga el sonido|quita el sonido|silencia|sin sonido|выключи звук|без звука|беззвучн\\p{L}*|(?<!un)mute|тише некуда).*")) ->
                 CommandResult.DeviceControl(DeviceAction.MUTE)
 
-            lower.matches(Regex(".*(?:включи звук|unmute|верни звук).*")) ->
+            lower.matches(Regex(".*(?:enciende el sonido|activa el sonido|quita el silencio|включи звук|unmute|верни звук).*")) ->
                 CommandResult.DeviceControl(DeviceAction.UNMUTE)
 
             mentionsVolume && (lower.contains("громче") || lower.contains("прибав") ||
@@ -468,8 +468,8 @@ class CommandRouter(private val now: () -> java.time.LocalDateTime = java.time.L
             lower.contains("громче") -> CommandResult.DeviceControl(DeviceAction.VOLUME_UP)
             lower.contains("тише") -> CommandResult.DeviceControl(DeviceAction.VOLUME_DOWN)
 
-            lower.matches(Regex(".*(?:не беспокоить|режим тишины|do not disturb|dnd).*")) ->
-                if (lower.contains("выключ") || lower.contains("off") || lower.contains("отключ")) {
+            lower.matches(Regex(".*(?:no molestar|modo no molestar|не беспокоить|режим тишины|do not disturb|dnd).*")) ->
+                if (lower.contains("desactiva") || lower.contains("apaga") || lower.contains("выключ") || lower.contains("off") || lower.contains("отключ")) {
                     CommandResult.DeviceControl(DeviceAction.DND_OFF)
                 } else {
                     CommandResult.DeviceControl(DeviceAction.DND_ON)
