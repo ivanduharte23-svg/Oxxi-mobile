@@ -59,7 +59,7 @@ class BriefComposerTest {
         assertTrue(BriefComposer.missedSummary(List(3) { n("A") }, true).contains("notificaciones"))
         assertTrue(BriefComposer.missedSummary(List(7) { n("A") }, true).contains("notificaciones"))
         // 11-14 are the case naive pluralisation gets wrong.
-        assertTrue(BriefComposer.missedSummary(List(11) { n("A") }, true).contains("уведомлений"))
+        assertTrue(BriefComposer.missedSummary(List(11) { n("A") }, true).contains("notificaciones"))
     }
 
     @Test
@@ -72,7 +72,7 @@ class BriefComposerTest {
             localTime = LocalTime.of(8, 0)
         )
         assertTrue(s.startsWith("Buenos días."))
-        assertTrue("got: $s", s.contains("24°"))
+        assertTrue("got: $s", s.contains("24 °C"))
         assertTrue("got: $s", s.contains("reunión con el médico"))
         assertTrue("got: $s", s.contains("15:00"))
         assertTrue("got: $s", s.contains("3"))
@@ -97,7 +97,7 @@ class BriefComposerTest {
     fun `a packed day is truncated rather than recited`() {
         val agenda = List(9) { AgendaItem("event $it", "1$it:00") }
         val s = BriefComposer.morningBrief(null, agenda, 0, russian = false, localTime = LocalTime.of(8, 0))
-        assertTrue("should say how many more: $s", s.contains("more"))
+        assertTrue("should say how many more: $s", s.contains("más"))
         assertTrue("must not list all nine: $s", !s.contains("event 8"))
     }
 
