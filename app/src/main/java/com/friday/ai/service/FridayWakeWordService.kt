@@ -279,11 +279,17 @@ class FridayWakeWordService : Service() {
         prefDao.get(VoiceCalibrator.PREF_WHISPER)?.toDoubleOrNull()?.let { transcriber.silenceThreshold = it }
         wakeWordOn = prefDao.get("wake_word_enabled") == "true"
         if (!wakeWordOn) WakeStatus.report(WakeHealth(WakeHealth.Status.DISABLED))
-        if (wakeWordOn && wake.initialise(prefDao.get(VoiceCalibrator.PREF_WAKE)?.toDoubleOrNull())) wake.resume()
-        if (wakeWordOn) {
+        val backgroundReady = wakeWordOn &&
+            wake.initialise(prefDao.get(VoiceCalibrator.PREF_WAKE)?.toDoubleOrNull())
+        if (backgroundReady) {
+            wake.resume()
             watchLinks()
             watchCalls()
+            notifier.update("Oxxi está escuchando la palabra de activación.")
+        } else if (!wakeWordOn) {
+            notifier.update("Oxxi está lista. Pulsa el micrófono para iniciar una conversación.")
         }
+        overlay.setBackgroundListening(backgroundReady)
         // Calls and messages the notification listener heard about.
         scope.launch {
             get<Announcer>(Announcer::class.java).announcements
@@ -359,6 +365,7 @@ class FridayWakeWordService : Service() {
         if (::conversation.isInitialized) {
             wake.destroy()
             speaker.destroy()
+            overlay.setBackgroundListening(false)
             overlay.dismiss()
             overlay.release()
             com.friday.ai.service.voice.VoiceUi.onClose = null
