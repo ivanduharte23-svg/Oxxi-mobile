@@ -21,6 +21,8 @@ object WakePhrases {
 
     /** Optional politeness before the name: "oye Oxxi", "hola Oxxi". */
     private val ATTENTION_PREFIXES = listOf("oye", "hola", "ey", "hey", "ok", "okay", "vale")
+    private val LEGACY_ATTENTION_PREFIXES = listOf("окей", "оке", "ок", "привет", "слушай", "эй")
+    private val ALL_ATTENTION_PREFIXES = ATTENTION_PREFIXES + LEGACY_ATTENTION_PREFIXES
 
 
     /** Every accepted name, longest first so "фрайдей" wins over "фрай". */
@@ -58,7 +60,7 @@ object WakePhrases {
     private fun nameIndex(words: List<String>): Int? {
         if (words.isEmpty()) return null
         if (isName(words[0])) return 0
-        if (words.size >= 2 && words[0] in ATTENTION_PREFIXES && isName(words[1])) return 1
+        if (words.size >= 2 && words[0] in ALL_ATTENTION_PREFIXES && isName(words[1])) return 1
         return null
     }
 
@@ -83,7 +85,7 @@ object WakePhrases {
     enum class Language { RUSSIAN, ENGLISH, SPANISH }
 
     private val leadingCall = Regex(
-        "^\\s*(?:(?:oye|hola|ey|hey|ok|okay|vale)[\\s,!.]+)?" +
+        "^\\s*(?:(?:oye|hola|ey|hey|ok|okay|vale|окей|оке|ок|привет|слушай|эй)[\\s,!.]+)?" +
             "(?:oxxi|oksi|oxi|oxsi|ocsi|пятниц\\p{L}*|пятнец\\p{L}*|фрайд\\p{L}*|фрэйди|фрейди|friday)[\\s,!.:;—–-]*",
         RegexOption.IGNORE_CASE
     )
