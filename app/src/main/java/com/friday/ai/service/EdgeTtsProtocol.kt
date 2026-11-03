@@ -144,9 +144,13 @@ object EdgeTtsProtocol {
         val cyrillic = text.count { it in 'Ѐ'..'ӿ' }
         val latin = text.count { it in 'A'..'Z' || it in 'a'..'z' }
         if (cyrillic > latin) return VOICE_RU
+        val spanishWords = Regex(
+            """\b(?:hola|gracias|quiero|puedes|necesito|abre|llama|envía|""" +
+                """manda|lee|dime|dónde|cuándo|estás|tienes|por favor|mañana)\b""",
+            RegexOption.IGNORE_CASE
+        )
         val spanish = text.any { it in "áéíóúüñÁÉÍÓÚÜÑ¿¡" } ||
-            Regex("""\b(?:hola|gracias|quiero|puedes|necesito|abre|llama|envía|manda|lee|dime|dónde|cuándo|estás|tienes|por favor|mañana)\b""", RegexOption.IGNORE_CASE)
-                .containsMatchIn(text)
+            spanishWords.containsMatchIn(text)
         return if (spanish) VOICE_ES else VOICE_EN
     }
 }
