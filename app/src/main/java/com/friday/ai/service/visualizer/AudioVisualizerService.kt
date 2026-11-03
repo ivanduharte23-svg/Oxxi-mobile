@@ -132,6 +132,7 @@ class AudioVisualizerService : Service() {
             val capture = AudioPlaybackCaptureConfiguration.Builder(activeProjection)
                 .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
                 .addMatchingUsage(AudioAttributes.USAGE_GAME)
+                .excludeUid(applicationInfo.uid)
                 .build()
             val format = AudioFormat.Builder()
                 .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
