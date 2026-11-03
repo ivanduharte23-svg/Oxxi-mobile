@@ -142,6 +142,7 @@ fun OxxiMainScreen(
 
 @Composable
 private fun HomePage(state: ChatUiState, onSettings: () -> Unit, onMic: () -> Unit) {
+    val audioLevel by VoiceUi.store.level.collectAsStateWithLifecycle()
     Column(
         Modifier.fillMaxSize().padding(horizontal = 24.dp).padding(bottom = 92.dp),
         horizontalAlignment = Alignment.CenterHorizontally
