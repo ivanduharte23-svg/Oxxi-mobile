@@ -268,7 +268,7 @@ class MessageAssistantTest {
         every { inbox.answerable(any()) } returns listOf(mum)
         every { inbox.justRead(any()) } returns mum
         every { inbox.reply(any(), any(), any()) } returns false
-        assertTrue(assistant.reply(null, "хорошо", true, "хорошо").contains("уже закрыто"))
+        assertTrue(assistant.reply(null, "хорошо", true, "хорошо").contains("ha desaparecido"))
     }
 
     @Test
