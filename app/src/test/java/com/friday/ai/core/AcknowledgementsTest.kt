@@ -23,6 +23,15 @@ class AcknowledgementsTest {
     }
 
     @Test
+    fun `spanish wake call gets a spanish greeting`() {
+        val a = Acknowledgements()
+        repeat(20) {
+            val phrase = a.next(WakePhrases.Language.SPANISH)
+            assertTrue("got '$phrase'", phrase.contains("¿") || phrase.contains("A tu") || phrase.contains("Dime"))
+        }
+    }
+
+    @Test
     fun `it never says the same thing twice in a row`() {
         // A fixed phrase every single time makes an assistant sound like a
         // doorbell rather than something that answered you.
