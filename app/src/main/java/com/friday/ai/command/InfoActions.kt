@@ -48,11 +48,10 @@ class InfoActions(
      * happily invent a temperature if asked directly, so this never goes
      * through the LLM.
      */
+    @Suppress("UNUSED_PARAMETER")
     private suspend fun weather(c: CommandResult.Weather, russianSpeaker: Boolean): String {
-        // A Cyrillic place name means a Russian answer whatever else is set.
-        val russian = russianSpeaker || c.place.orEmpty().any { it in 'а'..'я' || it in 'А'..'Я' }
-        val where = c.place ?: if (russian) "вашего места" else "tu ubicación"
-        return weather.summary(c.place, c.dayOffset, russian)
-            ?: if (russian) "Не смогла получить погоду для «$where»" else "No he podido obtener el tiempo de $where."
+        val where = c.place ?: "tu ubicación"
+        return weather.summary(c.place, c.dayOffset, false)
+            ?: "No he podido obtener el tiempo de $where."
     }
 }
