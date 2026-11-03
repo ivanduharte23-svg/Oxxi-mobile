@@ -194,7 +194,7 @@ class ModeEngineTest {
         assertEquals(Ringer.NORMAL, phone.ringerMode)
         assertFalse(phone.dndState)
         assertEquals(60, phone.brightness)
-        assertTrue(reply, reply.startsWith("Modo отдыха."))
+        assertTrue(reply, reply.startsWith("El modo отдыха está desactivado."))
         assertFalse(store.all().single().active)
     }
 
