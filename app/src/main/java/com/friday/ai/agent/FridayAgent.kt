@@ -203,16 +203,8 @@ class FridayAgent(
      * stop "Alarm set for 07:30" in reply to a Russian request. A note next
      * to the result itself does. The language is the one the user just used.
      */
-    private fun languageNote(said: String): String {
-        val russian = said.any { it in 'а'..'я' || it in 'А'..'Я' || it == 'ё' || it == 'Ё' }
-        // Spanish is Oxxi's default language. Only an explicitly Russian
-        // transcript changes the response language.
-        return if (russian) {
-            "\\n(Responde en ruso.)"
-        } else {
-            "\\n(Responde siempre en español de España.)"
-        }
-    }
+    private fun languageNote(@Suppress("UNUSED_PARAMETER") said: String): String =
+        "\\n(Responde siempre en español de España.)"
 
     /**
      * Runs one tool and describes the outcome for the model, in plain words.
