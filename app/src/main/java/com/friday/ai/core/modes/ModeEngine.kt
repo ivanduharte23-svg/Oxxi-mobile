@@ -465,7 +465,7 @@ class ModeEngine(
             is CommandResult.DeviceControl -> device.apply(command.action, command.level, say.russian).message
             else -> runner(command)
         }
-        redesactivarer(mode, command, reply, say)
+        return offer(mode, command, reply, say)
     }
 
     /** After a correction was carried out: the question whether to keep it in [mode]. */
