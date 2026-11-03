@@ -58,7 +58,7 @@ class SpokenAnswer(
                 "or the request genuinely requires steps."
     }
 
-    suspend fun answer(userText: String): Result {
+    suspend fun answer(userText: String, language: String? = null): Result {
         val sessionId = session.id()
         val history = memory.getSessionHistory(sessionId, limit = HISTORY_TURNS)
         val messages = buildList {
@@ -74,8 +74,9 @@ class SpokenAnswer(
             add(ApiMessage(role = "user", content = userText))
         }
 
-        val russian = userText.any { it in 'а'..'я' || it in 'А'..'Я' || it == 'ё' || it == 'Ё' }
-        val spanish = EdgeTtsProtocol.detectVoice(userText) == EdgeTtsProtocol.VOICE_ES
+        val russian = language == "ru" ||
+            (language == null && userText.any { it in 'а'..'я' || it in 'А'..'Я' || it == 'ё' || it == 'Ё' })
+        val spanish = language == "es" || EdgeTtsProtocol.detectVoice(userText) == EdgeTtsProtocol.VOICE_ES
         val speech = speaker.beginSpeech()
         return try {
             val response = stream(messages, speech, russian)
@@ -102,7 +103,7 @@ class SpokenAnswer(
         } catch (e: Exception) {
             speech.cancel()
             Log.e(TAG, "Answer failed: ${e.message}")
-            Result.Failed(VoiceErrors.spoken(e, russian))
+            Result.Failed(VoiceErrors.spoken(e, russian, spanish))
         } finally {
             // Never leave a session waiting on input that will never arrive.
             speech.endInput()
