@@ -240,8 +240,8 @@ class ChatViewModel(
         }
     }
 
-    private fun isRussian(text: String): Boolean =
-        text.any { it in 'а'..'я' || it in 'А'..'Я' }
+    @Suppress("UNUSED_PARAMETER")
+    private fun isRussian(text: String): Boolean = false
 
     /** The owner answered the screen-capture consent screen. */
     fun onScreenConsent(resultCode: Int, data: Intent?) {
