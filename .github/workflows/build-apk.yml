@@ -26,10 +26,64 @@ jobs:
       - name: Set up Gradle wrapper
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run unit tests
-        run: ./gradlew :app:testDebugUnitTest --stacktrace
+      # An owner key is the only way to guarantee updates over an existing
+      # installation. Keep the private file in GitHub Actions Secrets, never
+      # in this public repository.
+      - name: Configure owner signing key (optional)
+        id: owner-signing
+        shell: bash
+        env:
+          OXXI_SIGNING_KEYSTORE_BASE64: ${{ secrets.OXXI_SIGNING_KEYSTORE_BASE64 }}
+          OXXI_SIGNING_STORE_PASSWORD: ${{ secrets.OXXI_SIGNING_STORE_PASSWORD }}
+          OXXI_SIGNING_KEY_ALIAS: ${{ secrets.OXXI_SIGNING_KEY_ALIAS }}
+          OXXI_SIGNING_KEY_PASSWORD: ${{ secrets.OXXI_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          values=(
+            "$OXXI_SIGNING_KEYSTORE_BASE64"
+            "$OXXI_SIGNING_STORE_PASSWORD"
+            "$OXXI_SIGNING_KEY_ALIAS"
+            "$OXXI_SIGNING_KEY_PASSWORD"
+          )
+          present=0
+          for value in "${values[@]}"; do
+            if [[ -n "$value" ]]; then present=$((present + 1)); fi
+          done
+          if [[ "$present" -ne 0 && "$present" -ne "${#values[@]}" ]]; then
+            echo "Configure all four OXXI_SIGNING_* secrets or leave all four empty."
+            exit 1
+          fi
+          if [[ "$present" -eq "${#values[@]}" ]]; then
+            key="$RUNNER_TEMP/oxxi-owner.keystore"
+            printf '%s' "$OXXI_SIGNING_KEYSTORE_BASE64" | base64 --decode > "$key"
+            keytool -list -keystore "$key" \
+              -storepass "$OXXI_SIGNING_STORE_PASSWORD" \
+              -alias "$OXXI_SIGNING_KEY_ALIAS" >/dev/null
+            {
+              echo "FRIDAY_SIGNING_STORE_FILE=$key"
+              echo "FRIDAY_SIGNING_STORE_PASSWORD=$OXXI_SIGNING_STORE_PASSWORD"
+              echo "FRIDAY_SIGNING_KEY_ALIAS=$OXXI_SIGNING_KEY_ALIAS"
+              echo "FRIDAY_SIGNING_KEY_PASSWORD=$OXXI_SIGNING_KEY_PASSWORD"
+              echo "OXXI_OWNER_SIGNING=true"
+            } >> "$GITHUB_ENV"
+            echo "Owner signing key configured."
+          else
+            echo "OXXI_OWNER_SIGNING=false" >> "$GITHUB_ENV"
+            echo "No owner signing key configured; using a stable CI debug key."
+          fi
 
-      - name: Prepare Android debug keystore
+      # Fallback signing is for testing only. Caching the generated key keeps
+      # subsequent CI APKs compatible instead of generating a new key each run.
+      - name: Cache fallback debug signing key
+        id: debug-key-cache
+        if: env.OXXI_OWNER_SIGNING != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: oxxi-debug-signing-key-v1
+
+      - name: Prepare fallback debug signing key
+        if: env.OXXI_OWNER_SIGNING != 'true' && steps.debug-key-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -42,8 +96,11 @@ jobs:
             -keyalg RSA \
             -keysize 2048 \
             -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US" \
+            -dname "CN=Oxxi Android Debug,O=Oxxi,C=US" \
             -noprompt
+
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
 
       - name: Build APK
         run: ./gradlew :app:assembleDebug --stacktrace
@@ -56,17 +113,24 @@ jobs:
           test -n "$APK"
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           test -x "$APKSIGNER"
-          if ! unzip -l "$APK" | grep -Eq 'META-INF/[^ ]+\.(RSA|DSA|EC)$'; then
-            echo "APK has no signing block; signing it with the generated debug keystore."
-            "$APKSIGNER" sign \
-              --ks "$HOME/.android/debug.keystore" \
-              --ks-pass pass:android \
-              --key-pass pass:android \
-              --ks-key-alias androiddebugkey \
-              "$APK"
+          if ! "$APKSIGNER" verify "$APK" >/dev/null 2>&1; then
+            if [[ "${OXXI_OWNER_SIGNING:-false}" == "true" ]]; then
+              "$APKSIGNER" sign \
+                --ks "$FRIDAY_SIGNING_STORE_FILE" \
+                --ks-pass env:FRIDAY_SIGNING_STORE_PASSWORD \
+                --key-pass env:FRIDAY_SIGNING_KEY_PASSWORD \
+                --ks-key-alias "$FRIDAY_SIGNING_KEY_ALIAS" \
+                "$APK"
+            else
+              "$APKSIGNER" sign \
+                --ks "$HOME/.android/debug.keystore" \
+                --ks-pass pass:android \
+                --key-pass pass:android \
+                --ks-key-alias androiddebugkey \
+                "$APK"
+            fi
           fi
           "$APKSIGNER" verify --verbose "$APK"
-          unzip -l "$APK" | grep -Eq 'META-INF/[^ ]+\.(RSA|DSA|EC)$'
 
       - name: Publish APK artifact
         uses: actions/upload-artifact@v4
