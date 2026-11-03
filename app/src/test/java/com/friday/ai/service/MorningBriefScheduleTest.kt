@@ -109,18 +109,18 @@ class MorningBriefScheduleTest {
 
     @Test
     fun `the greeting follows the clock`() {
-        assertEquals("Доброе утро.", BriefTiming.greeting(LocalTime.of(8, 0), true))
-        assertEquals("Добрый день.", BriefTiming.greeting(LocalTime.of(16, 0), true))
-        assertEquals("Добрый вечер.", BriefTiming.greeting(LocalTime.of(20, 0), true))
-        assertEquals("Доброй ночи.", BriefTiming.greeting(LocalTime.of(2, 0), true))
+        assertEquals("Buenos días.", BriefTiming.greeting(LocalTime.of(8, 0), true))
+        assertEquals("Buenas tardes.", BriefTiming.greeting(LocalTime.of(16, 0), true))
+        assertEquals("Buenas noches.", BriefTiming.greeting(LocalTime.of(20, 0), true))
+        assertEquals("Buenas noches.", BriefTiming.greeting(LocalTime.of(2, 0), true))
         assertEquals("Good afternoon.", BriefTiming.greeting(LocalTime.of(16, 0), false))
     }
 
     @Test
     fun `boundaries fall on the hour`() {
-        assertEquals("Доброе утро.", BriefTiming.greeting(LocalTime.of(5, 0), true))
-        assertEquals("Доброе утро.", BriefTiming.greeting(LocalTime.of(11, 59), true))
-        assertEquals("Добрый день.", BriefTiming.greeting(LocalTime.of(12, 0), true))
-        assertEquals("Добрый вечер.", BriefTiming.greeting(LocalTime.of(18, 0), true))
+        assertEquals("Buenos días.", BriefTiming.greeting(LocalTime.of(5, 0), true))
+        assertEquals("Buenos días.", BriefTiming.greeting(LocalTime.of(11, 59), true))
+        assertEquals("Buenas tardes.", BriefTiming.greeting(LocalTime.of(12, 0), true))
+        assertEquals("Buenas noches.", BriefTiming.greeting(LocalTime.of(18, 0), true))
     }
 }
