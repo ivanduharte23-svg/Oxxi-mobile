@@ -73,9 +73,9 @@ class SpokenAnswer(
             add(ApiMessage(role = "user", content = userText))
         }
 
-        val russian = language == "ru" ||
-            (language == null && userText.any { it in 'а'..'я' || it in 'А'..'Я' || it == 'ё' || it == 'Ё' })
-        val spanish = language == "es" || EdgeTtsProtocol.detectVoice(userText) == EdgeTtsProtocol.VOICE_ES
+        // Oxxi's conversation and every spoken fallback stay in Spanish (Spain).
+        val russian = false
+        val spanish = true
         val speech = speaker.beginSpeech()
         return try {
             val response = stream(messages, speech, russian)
