@@ -168,6 +168,13 @@
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
 
+        <!-- Captura solo audio multimedia que otras aplicaciones permiten compartir,
+             después de la autorización explícita del usuario. -->
+        <service
+            android:name=".service.visualizer.AudioVisualizerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+
         <!-- Lets Friday answer "what did I miss". The user must switch this on
              in system settings; declaring it is not enough to read anything. -->
         <!-- Time zone and manual clock changes are exempt from the implicit-
