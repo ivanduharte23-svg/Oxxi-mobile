@@ -7,9 +7,7 @@ package com.friday.ai.core
  */
 object Filler {
     private val leading = Regex(
-        """^(?:(?:bueno|buena|vale|okey|ok|de acuerdo|perfecto|genial|bien|claro|entendido|exacto|gracias|por favor|oye|oye oxxi|hey|hey oxxi|bueno oxxi|vale oxxi|ok oxxi|gracias oxxi|""" +
-            """хорошо|ладно|окей|ок|отлично|понятно|ясно|спасибо|ok|okay|alright|thanks|great)""" +
-            """[,.!?:]?\s+(?:(?:ahora|entonces|pues|y|pero|también|tambien|so|and|but|then|а|но|и|тогда)\s+)?(?:(?:ahora|ahora mismo|ahorita|теперь|сейчас|now)\s+)? )""".replace("? )", "?)"),
+        """^(?:bueno|buena|vale|okey|ok|de acuerdo|perfecto|genial|bien|claro|entendido|exacto|gracias|por favor|oye|oye oxxi|hey|hey oxxi|bueno oxxi|vale oxxi|ok oxxi|gracias oxxi|хорошо|ладно|окей|отлично|понятно|ясно|спасибо|okay|alright|thanks|great)[,.!?:]?\s+(?:(?:ahora|entonces|pues|y|pero|también|tambien|so|and|but|then|а|но|и|тогда)\s+)?(?:(?:ahora|ahora mismo|ahorita|теперь|сейчас|now)\s+)?""",
         RegexOption.IGNORE_CASE
     )
 
