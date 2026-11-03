@@ -104,4 +104,26 @@ class DateTimeParserTest {
     fun `nonsense times are rejected`() {
         assertNull(parse("в 99:99"))
     }
+
+    @Test
+    fun `Spanish dates and times are understood`() {
+        assertEquals(
+            LocalDateTime.of(2026, 7, 31, 7, 30),
+            parse("mañana a las 7:30")!!.instant
+        )
+        assertEquals(
+            LocalDateTime.of(2026, 7, 30, 15, 0),
+            parse("en 2 horas")!!.instant
+        )
+        assertEquals(
+            DayOfWeek.FRIDAY,
+            parse("el viernes a las 10")!!.instant.dayOfWeek
+        )
+    }
+
+    @Test
+    fun `Spanish reminder lead time is understood`() {
+        assertEquals(10, DateTimeParser.parseReminderLeadMinutes("avísame 10 minutos antes de la reunión"))
+        assertEquals(60, DateTimeParser.parseReminderLeadMinutes("avísame una hora antes de la reunión"))
+    }
 }
