@@ -156,12 +156,12 @@ class ErrandWatchWorker(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
                 NotificationChannel(
-                    CHANNEL_ID, "Errand reminders", NotificationManager.IMPORTANCE_DEFAULT
-                ).apply { description = "Reminders when you're near a useful place" }
+                    CHANNEL_ID, "Avisos de recados", NotificationManager.IMPORTANCE_DEFAULT
+                ).apply { description = "Avisos al acercarte a un lugar útil para un recado." }
             )
         }
 
-        val text = ErrandPlaces.nearbyPrompt(what, meters, count, russian = true)
+        val text = ErrandPlaces.nearbyPrompt(what, meters, count, russian = false)
 
         val open = applicationContext.packageManager
             .getLaunchIntentForPackage(applicationContext.packageName)
@@ -173,7 +173,7 @@ class ErrandWatchWorker(
         manager.notify(
             NOTIFICATION_BASE_ID + errandId.toInt(),
             NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-                .setContentTitle("Friday")
+                .setContentTitle("Oxxi")
                 .setContentText(text)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                 .setSmallIcon(android.R.drawable.ic_dialog_map)
