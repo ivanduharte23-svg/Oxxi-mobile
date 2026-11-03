@@ -16,6 +16,16 @@ object ModeNames {
 
     private val stopWords = setOf("мой", "моя", "мое", "мои", "мне", "the", "my", "пожалуйста", "please")
 
+    /** Cross-language names for phone settings, used when matching a spoken removal request. */
+    private val overlapAliases = mapOf(
+        "яркость" to setOf("brillo", "brightness"),
+        "громкость" to setOf("volumen", "volume"),
+        "звук" to setOf("sonido", "volume"),
+        "звонок" to setOf("timbre", "ringer"),
+        "фонарик" to setOf("linterna", "flashlight"),
+        "музыка" to setOf("música", "music")
+    )
+
     /**
      * Whether [spoken] names [name] (or one of its aliases): every word of the
      * name matches a spoken word by stem, in order, with at most one spoken
@@ -41,7 +51,13 @@ object ModeNames {
         val wanted = words(phrase)
         val have = words(text)
         if (wanted.isEmpty()) return 0.0
-        return wanted.count { w -> have.any { sameStem(w, it) } }.toDouble() / wanted.size
+        return wanted.count { w ->
+            val aliases = overlapAliases[w].orEmpty()
+            have.any { h ->
+                sameStem(w, h) || aliases.any { alias -> sameStem(alias, h) } ||
+                    overlapAliases[h].orEmpty().any { alias -> sameStem(w, alias) }
+            }
+        }.toDouble() / wanted.size
     }
 
     /** "грусти"/"грусть", "отдыха"/"отдых": the same word in another case. */
