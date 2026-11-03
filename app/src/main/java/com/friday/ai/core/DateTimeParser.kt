@@ -1,6 +1,7 @@
 package com.friday.ai.core
 
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -133,7 +134,7 @@ object DateTimeParser {
         }
     }
 
-    private fun resolveDay(text: String, now: LocalDateTime) : java.time.LocalDate {
+    private fun resolveDay(text: String, now: LocalDateTime): LocalDate? {
         // "mañana" is both tomorrow and the morning. Remove time-of-day
         // phrases first so "a las 8 de la mañana" stays on today's date.
         val dayText = text.replace(
@@ -153,7 +154,6 @@ object DateTimeParser {
             else -> WEEKDAYS.entries
                 .firstOrNull { (word, _) -> dayText.contains(word) }
                 ?.let { (_, dow) -> now.toLocalDate().with(TemporalAdjusters.next(dow)) }
-                ?: now.toLocalDate()
         }
     }
 
