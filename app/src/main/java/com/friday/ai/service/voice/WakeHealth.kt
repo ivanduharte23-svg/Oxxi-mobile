@@ -27,21 +27,21 @@ data class WakeHealth(
 
     /** The notification's status line: what is happening, and what to do about it. */
     fun describe(): String = when (status) {
-        Status.DISABLED -> "Wake word off"
+        Status.DISABLED -> "Palabra de activación desactivada"
         Status.UNAVAILABLE, Status.FAILED -> failureText(reason)
-        Status.LOADING -> "Loading voice model..."
-        Status.STARTING -> "Starting microphone..."
+        Status.LOADING -> "Cargando el modelo de voz…"
+        Status.STARTING -> "Iniciando el micrófono…"
         Status.LISTENING -> "Listening for \"Friday\""
-        Status.PAUSING, Status.PAUSED_FOR_COMMAND -> "Listening..."
-        Status.PAUSED_FOR_CALL -> "Пауза на время звонка"
-        Status.RECOVERING -> "Микрофон недоступен — повтор через ${retryInMs / MS_PER_SECOND} с ($attempt/$MAX_SHOWN)"
-        Status.STOPPED -> "Stopped"
+        Status.PAUSING, Status.PAUSED_FOR_COMMAND -> "Escuchando…"
+        Status.PAUSED_FOR_CALL -> "En pausa durante la llamada"
+        Status.RECOVERING -> "Micrófono no disponible; nuevo intento en ${retryInMs / MS_PER_SECOND} s ($attempt/$MAX_SHOWN)"
+        Status.STOPPED -> "Detenido"
     }
 
     private fun failureText(reason: WakeFailure?): String = when (reason) {
-        WakeFailure.PERMISSION -> "Нет доступа к микрофону — откройте Friday и разрешите его"
-        WakeFailure.MODEL -> "Голосовая модель не установлена — скачайте её в настройках"
-        else -> "Пятница не слышит — откройте Friday, чтобы перезапустить"
+        WakeFailure.PERMISSION -> "No hay acceso al micrófono. Abre Oxxi y concede el permiso."
+        WakeFailure.MODEL -> "El modelo de voz no está instalado. Descárgalo desde los ajustes."
+        else -> "Oxxi no puede escucharte. Abre la aplicación para reiniciarla."
     }
 
     companion object {
